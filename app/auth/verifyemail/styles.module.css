@@ -1,164 +1,369 @@
-/* Root container styles */
-.container {
-      /* height: 90vh; */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    
-    /* Grid styles */
-    .grid {
-      width: 70%;
-    }
-    
-    /* Left column with image */
-    .leftColumn {
-      position: relative;
-      overflow: hidden;
-      height: 90vh;
-    }
-    
-    .image {
-      filter: brightness(0.7);
-    }
-    
-    /* Right column with form */
-    .rightColumn {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 2rem;
-    }
-    
-    .goBackButton {
-      margin-bottom: 1rem;
-      color: #025a3a;
-    }
+/* Main container */
+.pageContainer {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+}
 
-    .goBackButton:hover{
-      color: #025a3a;
-      background-color: transparent;
-    }
-    
-    .title {
-      margin-bottom: 0.5rem;
-      font-size: 30px;
-      font-weight: 700;
-      color: #000000;
-      display: flex;
-      justify-content: center;
-      /* margin-top: 10px; */
-    }
-    
-    .subtitle {
-      margin-bottom: 1.5rem;
-      color: #6b7280;
-      font-size: 16px;
-      font-weight: 400;
-      text-align: center;
-      color: #6b7280;
-      /* margin-top: 10px; */
-    }
+/* Left column with image */
+.leftColumn {
+  position: relative;
+  width: 50%;
+  height: 100vh;
+}
 
-    .otpGrid {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-    }
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(2, 90, 58, 0.85), rgba(2, 44, 34, 0.7));
+  z-index: 1;
+}
 
-    .otpInput input {
-      text-align: center;
-      font-size: 20px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      width: 50px;
-      height: 50px;
-      margin-bottom: 1rem;
-    }
-    
-    
-    /* .input {
-      margin-bottom: 1rem;
-      width: 300px;
-          max-width: 100%;
-    } */
-/*     
-    .submitBtn {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-top: 20px;
-    } */
+.welcomeTextOverlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  text-align: center;
+  width: 80%;
+  color: white;
+}
 
-    .verifybtn{
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 16px; 
-    }
-    
-    .submitButton {
-      /* height: 40px; */
-      background-color: #025a3a;
-      color: white;
-      width: 10.125rem;
-      height: 2.75rem;
-      /* padding: 12px 36px; */
-      gap: 8px;
-      border-radius: 46px;
-      border: none;
-      margin-top: 50px;
-    }
-    
-    .submitButton:hover {
-      background-color: #025a3a;
-      color: white;
-    }
-    
-    .signUpText {
-      margin-top: 1rem;
-    }
-    
-    .signUpText{
-    text-align: center;
-    /* margin-top: 20px; */
-    font-size: 12px;
-    font-weight: 400;
-    }
-    
-    .signUpText a {
-      color: #025a3a;
-      text-decoration: none;
-    }
+.welcomeTitle {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  letter-spacing: -0.5px;
+}
 
-    .resendText {
-      margin-top: 16px;
-      font-size: 14px;
-      color: #6b7280;
-      text-align: center;
-    }
+.welcomeSubtitle {
+  font-size: 1.4rem;
+  opacity: 0.9;
+  font-weight: 400;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+}
 
-    .resendBTN{
-      /* height: 40px; */
-      padding: 0;
-      color: #ffffff;
-      background-color: #007aff;
-      width: 10.125rem;
-      height: 2.75rem;
-      /* padding: 12px 36px; */
-      gap: 8px;
-      border-radius: 46px;
-      border: none;
-    }
+.image {
+  object-fit: cover;
+  object-position: center;
+  z-index: 0;
+}
 
-    .resendBTN:hover{
-      color: #007aff; 
-      text-decoration: underline;
-      color: #ffffff;
-    }
-    
-    
-   
-    
-    
+/* Right column with form */
+.rightColumn {
+  width: 50%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f8fafc;
+  overflow-y: auto;
+  padding: 2rem 0;
+}
+
+.formContainer {
+  width: 100%;
+  max-width: 450px;
+  padding: 0 1.5rem;
+  position: relative;
+}
+
+.goBackButton {
+  position: absolute;
+  top: 0;
+  left: 1.5rem;
+  color: #025a3a;
+  padding: 8px 12px;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  background: transparent;
+  z-index: 10;
+}
+
+.goBackButton:hover {
+  color: #025a3a;
+  background-color: rgba(2, 90, 58, 0.08);
+  transform: translateX(-3px);
+}
+
+.formHeader {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  margin-top: 3rem;
+}
+
+.title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(135deg, #025a3a, #038c5a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #64748b;
+  line-height: 1.5;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.formWrapper {
+  background-color: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+/* OTP Input Styling */
+.otpContainer {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 1.5rem 0;
+}
+
+.otpInput {
+  width: 60px;
+}
+
+.otpInputWrapper {
+  width: 60px;
+}
+
+.otpInputField {
+  height: 60px;
+  font-size: 24px;
+  font-weight: 600;
+  text-align: center;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  transition: all 0.3s ease;
+}
+
+.otpInputField:focus {
+  border-color: #025a3a;
+  background-color: white;
+  box-shadow: 0 0 0 2px rgba(2, 90, 58, 0.1);
+  transform: translateY(-2px);
+}
+
+.submitButton {
+  height: 50px;
+  background: linear-gradient(135deg, #025a3a, #038c5a);
+  color: white;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(2, 90, 58, 0.2);
+  margin: 1.5rem 0;
+  width: 100%;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #013a25, #025a3a);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(2, 90, 58, 0.3);
+}
+
+.submitButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.resendContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.resendText {
+  font-size: 15px;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.countdownText {
+  font-size: 15px;
+  color: #025a3a;
+  font-weight: 600;
+}
+
+.resendButton {
+  color: #025a3a;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  background: transparent;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.resendButton:hover {
+  background-color: rgba(2, 90, 58, 0.08);
+  color: #025a3a;
+}
+
+.signUpText {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.signUpLink {
+  color: #025a3a;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-weight: 700;
+  margin-left: 5px;
+}
+
+.signUpLink:hover {
+  color: #013a25;
+  text-decoration: underline;
+}
+
+/* Success state styling */
+.successContainer {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.successIconWrapper {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(2, 90, 58, 0.1), rgba(3, 140, 90, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.successIcon {
+  color: #025a3a;
+}
+
+.successTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 1rem;
+}
+
+.successText {
+  font-size: 1rem;
+  color: #334155;
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.successSubtext {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 1024px) {
+  .welcomeTitle {
+    font-size: 3rem;
+  }
+
+  .welcomeSubtitle {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    flex-direction: column;
+  }
+
+  /* Hide left column on mobile */
+  .leftColumn {
+    display: none;
+  }
+
+  .rightColumn {
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .formContainer {
+    padding: 0 1rem;
+    max-width: 500px;
+  }
+
+  .formHeader {
+    margin-top: 4rem;
+  }
+
+  .goBackButton {
+    left: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+
+  .formWrapper {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .otpContainer {
+    gap: 8px;
+  }
+
+  .otpInput {
+    width: 50px;
+  }
+
+  .otpInputWrapper {
+    width: 50px;
+  }
+
+  .otpInputField {
+    height: 50px;
+    font-size: 20px;
+  }
+
+  .submitButton {
+    height: 45px;
+  }
+}
+
+/* Animation for form elements */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.formWrapper {
+  animation: fadeIn 0.5s ease-out;
+}

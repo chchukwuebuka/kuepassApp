@@ -1,4 +1,4 @@
-.navFlex {
+/* .navFlex {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -239,7 +239,6 @@
   transform: scale(0.95);
 }
 
-/* Mobile Menu Container - Hidden on desktop */
 .mobileMenu {
   display: none;
   position: fixed;
@@ -262,7 +261,6 @@
   opacity: 1;
 }
 
-/* Mobile Navigation Links */
 .mobileNavLinks {
   display: flex;
   flex-direction: column;
@@ -283,7 +281,6 @@
   color: #025a3a;
 }
 
-/* Mobile Authentication Buttons */
 .mobileAuthButtons {
   display: flex;
   flex-direction: column;
@@ -304,7 +301,6 @@
   font-size: 1.1rem;
 }
 
-/* Mobile button styles - mirroring your existing buttons but with mobile-specific classes */
 .mobileNavBTN {
   color: #025a3a;
   background-color: transparent;
@@ -375,39 +371,33 @@
   background-color: rgba(229, 57, 53, 0.1);
 }
 
-/* Media Queries - Only modify mobile behavior, leave desktop as is */
+
 @media (max-width: 768px) {
-  /* Show mobile menu button and hide desktop nav */
   .mobileMenuButton {
     display: flex;
     align-items: center;
     justify-content: center;
   }
   
-  /* Enable mobile menu */
   .mobileMenu {
     display: block;
   }
   
-  /* Hide desktop navigation */
   .navLink, .groupBTN {
     display: none;
   }
   
-  /* Make the logo smaller on mobile */
   .kuepass {
     width: 7rem;
     height: auto;
   }
   
-  /* Make search bar smaller on mobile */
   .navSearch {
     max-width: 200px;
   }
 }
 
 @media (max-width: 480px) {
-  /* Further adjustments for very small screens */
   .navFlex {
     padding: 0.75rem 1rem;
     height: 70px;
@@ -418,12 +408,248 @@
   }
   
   .navSearch {
-    /* max-width: 130px; */
     display: none;
   }
   
   .mobileMenu {
-    top: 70px; /* Match smaller navbar height */
+    top: 70px; 
     max-height: calc(100vh - 70px);
   }
+} */
+
+
+/* Base Navbar Styles */
+.navFlexEnhanced {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2.9rem;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  height: 80px;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.navContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.kuepass {
+  width: 8.383125rem;
+  height: 2.844375rem;
+  cursor: pointer;
+}
+
+/* Enhanced Search Styles */
+.searchContainer {
+  flex: 1;
+  max-width: 400px;
+  margin: 0 2rem;
+  display: none;
+}
+
+@media (min-width: 992px) {
+  .searchContainer {
+    display: block;
+  }
+}
+
+.searchRoot {
+  transition: all 0.2s ease;
+}
+
+.searchRootFocused {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.searchInput {
+  border-radius: 8px;
+  height: 42px;
+  border: 1px solid #e0e0e0;
+  background-color: #fff;
+}
+
+.searchIcon {
+  color: #888;
+}
+
+/* Navigation Links */
+.navLinkEnhanced {
+  display: none;
+}
+
+@media (min-width: 992px) {
+  .navLinkEnhanced {
+    display: flex;
+    gap: 2rem;
+    font-size: 1rem;
+  }
+}
+
+.link {
+  text-decoration: none;
+  color: #000;
+  transition: color 0.3s ease, transform 0.2s ease;
+  position: relative;
+  padding: 0.5rem 0;
+}
+
+.link:hover {
+  color: #056348;
+  transform: translateY(-1px);
+}
+
+.link::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: #056348;
+  transition: width 0.3s ease;
+}
+
+.link:hover::after {
+  width: 100%;
+}
+
+/* Button Styles */
+.groupBTN {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.navBTNEnhanced {
+  color: #025a3a !important;
+  background-color: transparent !important;
+  border: 1px solid #056348 !important;
+  border-radius: 46px !important;
+  width: 10.125rem;
+  height: 2.75rem;
+  padding: 0 1.5rem !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+.navBTNEnhanced:hover {
+  background-color: #e0f2f1 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(5, 99, 72, 0.1);
+}
+
+.navBTN1Enhanced {
+  background-color: #025a3a !important;
+  color: white !important;
+  border-radius: 46px !important;
+  width: 10.125rem;
+  height: 2.75rem;
+  padding: 0 1.5rem !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  border: none !important;
+}
+
+.navBTN1Enhanced:hover {
+  background-color: #023825 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(5, 99, 72, 0.2);
+}
+
+.navBTN11Enhanced {
+  background-color: #025a3a !important;
+  color: #ffffff !important;
+  border-radius: 46px !important;
+  width: 10.125rem;
+  height: 2.75rem;
+  padding: 0 1.5rem !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  border: none !important;
+}
+
+.navBTN11Enhanced:hover {
+  background-color: #023825 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(5, 99, 72, 0.2);
+}
+
+.avatarButtonEnhanced {
+  background-color: transparent;
+  width: 10.125rem;
+  height: 2.75rem;
+  padding: 0 1rem;
+  border-radius: 46px;
+  border: none;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.avatarButtonEnhanced:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Mobile Menu */
+.mobileMenuButton {
+  display: block;
+}
+
+@media (min-width: 992px) {
+  .mobileMenuButton {
+    display: none;
+  }
+}
+
+.mobileNavLink {
+  padding: 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  width: 100%;
+}
+
+.mobileNavLink:hover {
+  background-color: #f5f5f5;
+}
+
+.mobileLogoutButton {
+  padding: 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  width: 100%;
+  color: #e03131;
+}
+
+.mobileLogoutButton:hover {
+  background-color: #fff5f5;
+}
+
+.mobileNavBTN {
+  color: #025a3a !important;
+  background-color: transparent !important;
+  border: 1px solid #056348 !important;
+  border-radius: 46px !important;
+  height: 2.75rem !important;
+  font-weight: 500 !important;
+}
+
+.mobileNavBTN1 {
+  background-color: #025a3a !important;
+  color: white !important;
+  border-radius: 46px !important;
+  height: 2.75rem !important;
+  font-weight: 500 !important;
 }
