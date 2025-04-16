@@ -1,0 +1,67 @@
+.countdownSection {
+      padding: 20px;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+    }
+    
+    .countdownHeader {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .countdownTimer {
+      display: flex;
+      align-items: center;
+      gap: 40px; 
+    }
+    
+    .timeBlock {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .timeValue {
+      font-size: 2rem; 
+      font-weight: bold;
+    }
+    
+    .timeLabel {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+    
+    .colon {
+      font-size: 2rem; 
+      margin: 0 10px;
+    }
+    
+    /* Small Size Styles */
+    .small {
+      padding: 10px;
+    }
+
+    .small .countdownSection{
+      background-color: transparent;
+    }
+    
+    .small .countdownTimer {
+      gap: 20px; 
+      flex-direction: column;
+      margin-top: 10px;
+    }
+    
+    .small .timeValue {
+      font-size: 1rem;
+    }
+    
+    .small .timeLabel {
+      font-size: 0.6rem; 
+    }
+    
+    .small .colon {
+      font-size: 1rem; 
+      margin: 0 5px; 
+    }
+    

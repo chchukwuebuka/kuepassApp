@@ -1,0 +1,25 @@
+.card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .button{
+      height: 40px;
+      background-color: #025a3a;
+      color: white;
+      width: 10.125rem;
+      height: 2.75rem;
+      padding: 12px 36px;
+      gap: 8px;
+      border-radius: 46px;
+      border: none;
+      font-size: 12px;
+    }
+
+    .button:hover {
+      cursor: pointer;
+      background-color: #023825;
+    }

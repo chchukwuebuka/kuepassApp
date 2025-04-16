@@ -1,0 +1,21 @@
+.card {
+      width: 39.9375rem;
+      padding: 30px;
+      border-radius: 4px;
+      border: 1px solid #f0f0f0;
+    }
+    
+    .inputFlex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+    
+    .inputFlex1 {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      align-items: center;
+    }
+    

@@ -1,0 +1,228 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: #f5f5f5;
+  height: 100vh;
+  padding: 0;
+  margin: 0;
+}
+
+.header {
+  width: 100%;
+  background-color: #024d3a;
+  padding: 1rem 0;
+  text-align: center;
+  color: white;
+  padding: 70px 0;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+  width: 100%;
+  padding: 1rem;
+}
+
+.profileCard {
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  /* max-width: 400px; */
+  width: 50rem;
+}
+
+.profileCard1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+}
+
+.profileImage {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.image {
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #024d3a;
+}
+
+.flexContainer{
+      gap: 20px;
+}
+
+.label{
+      text-align: left;
+}
+
+.inputField{
+      width: 213px;
+height: 40px;
+/* padding: 10px 14px; */
+border-radius: 4px;
+border: 1px solid #F0F0F0
+}
+
+.inputField1{
+      width: 447px;
+height: 40px;
+padding: 10px 14px;
+border-radius: 4px;
+border: 1px;
+border: 1px solid #F0F0F0
+}
+
+/* .profileDetails {
+  margin-bottom: 2rem;
+}
+
+.profileDetails h2 {
+  font-size: 1.5rem;
+  margin: 0.5rem 0;
+  color: #333;
+}
+
+.profileDetails p {
+  margin: 0.2rem 0;
+  color: #555;
+} */
+
+/* Form container styles */
+.form-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Input field styles */
+.input-field {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db; /* light gray border */
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* subtle shadow */
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #6366f1; /* indigo border on focus */
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3); /* indigo ring on focus */
+}
+
+/* Label styles */
+.label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #374151; /* dark gray */
+  margin-bottom: 0.25rem;
+}
+
+.label .required {
+  color: #ef4444; /* red for required indicator */
+}
+
+/* Error message styles */
+.error-message {
+  color: #ef4444; /* red color for error messages */
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Button styles */
+.submit-button {
+  padding: 0.5rem 1rem;
+  background-color: #6366f1; /* indigo */
+  color: #fff;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.submit-button:hover {
+  background-color: #4f46e5; /* darker indigo on hover */
+}
+
+.submit-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3); /* focus ring */
+}
+
+/* Full-width styles for inputs spanning 2 columns */
+.full-width {
+  grid-column: span 2;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 20px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.editButton,
+.logoutButton {
+  flex: 1;
+  padding: 0.8rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.editButton {
+  border: 1px solid #025a3a;
+  color: #f5f5f5;
+  background-color: #025a3a;
+  width: 14.125rem;
+  height: 2.75rem;
+  padding: 12px 36px;
+  gap: 8px;
+  border-radius: 46px;
+  border: 1px #056348 solid;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.editButton:hover {
+  color: #017f56;
+  background-color: #f5f5f5;
+}
+
+.logoutButton {
+  border: 1px solid #025a3a;
+  color: #025a3a;
+  background-color: transparent;
+  width: 14.125rem;
+  height: 2.75rem;
+  padding: 12px 36px;
+  gap: 8px;
+  border-radius: 46px;
+  border: 1px #056348 solid;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.logoutButton:hover {
+  color: #f5f5f5;
+  background-color: #017f56;
+}

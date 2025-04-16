@@ -1,0 +1,173 @@
+/* .stepIndicatorContainer {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+      width: 80%;
+    }
+    
+    .step,
+    .activeStep,
+    .completedStep {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+    }
+    
+    .activeStep {
+      font-weight: bold;
+      color: #0070f3;
+    }
+    
+    .completedStep {
+      font-weight: bold;
+      border-bottom: 2px solid #28a745;
+      color: #28a745;
+    }
+     */
+
+     .stepIndicatorContainer {
+      display: flex;
+      justify-content: space-between;
+      margin: 2rem 0;
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    
+    .stepCircle {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: #f0f0f0;
+      color: #666;
+      margin-bottom: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: 2px solid #e0e0e0;
+    }
+    
+    .stepNumber {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .stepName {
+      font-size: 14px;
+      color: #666;
+      margin-top: 4px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      max-width: 100px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    /* Connector line between steps */
+    .connector {
+      position: absolute;
+      top: 18px; /* Center with the circles */
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background-color: #e0e0e0;
+      z-index: -1;
+      transition: background-color 0.3s ease;
+    }
+    
+    /* Current step styles */
+    .currentStep .stepCircle {
+      background-color: #025a3a;
+      color: white;
+      border-color: #025a3a;
+      box-shadow: 0 0 0 4px rgba(2, 90, 58, 0.2);
+      transform: scale(1.1);
+    }
+    
+    .currentStep .stepName {
+      color: #025a3a;
+      font-weight: 600;
+    }
+    
+    /* Completed step styles */
+    .completedStep .stepCircle {
+      background-color: #025a3a;
+      color: white;
+      border-color: #025a3a;
+    }
+    
+    .completedStep .stepName {
+      color: #025a3a;
+    }
+    
+    .checkIcon {
+      font-size: 16px;
+      color: white;
+    }
+    
+    .completedConnector {
+      background-color: #025a3a;
+    }
+    
+    /* Pending step styles */
+    .pendingStep .stepCircle {
+      background-color: #f5f5f5;
+      color: #aaa;
+    }
+    
+    .pendingStep .stepName {
+      color: #aaa;
+    }
+    
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      .stepName {
+        font-size: 12px;
+        max-width: 80px;
+      }
+      
+      .stepCircle {
+        width: 32px;
+        height: 32px;
+      }
+      
+      .connector {
+        top: 16px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .stepName {
+        font-size: 10px;
+        max-width: 60px;
+      }
+      
+      .stepCircle {
+        width: 28px;
+        height: 28px;
+      }
+      
+      .stepNumber {
+        font-size: 12px;
+      }
+      
+      .connector {
+        top: 14px;
+      }
+    }

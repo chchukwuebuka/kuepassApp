@@ -1,0 +1,37 @@
+/* Container for the loader */
+.loaderContainer {
+      height: 100vh; /* Full-screen height */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #ffffff; /* Optional: Set background color */
+    }
+    
+    /* Rotating circle */
+    .spinner {
+      width: 120px; /* Size of the spinner */
+      height: 120px;
+      border: 5px solid #d3d3d3; /* Light gray border */
+      border-top: 5px solid #025a3a; /* Highlighted color for rotation */
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    /* Centered Image */
+    .image {
+      border-radius: 50%; /* Optional: Make the image circular */
+    }
+    
+    /* Keyframes for the spinning animation */
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    

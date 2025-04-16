@@ -1,0 +1,58 @@
+.tableContainer {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.tableUser {
+  display: flex;
+  justify-content: space-between;
+}
+
+.tableBTN {
+  height: 40px;
+  background-color: #025a3a;
+  color: #ffffff;
+  width: 10.125rem;
+  height: 2.75rem;
+  padding: 12px 36px;
+  gap: 8px;
+  border-radius: 46px;
+  border: none;
+  border: 1px #025a3a solid;
+  font-size: 14px;
+}
+
+.tableBTN:hover {
+  cursor: pointer;
+  background-color: #023825;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.trName {
+  color: #0b101b;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.th,
+.td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.th {
+  background: #f8f8f8;
+  color: #0b101b;
+}
+
+.td {
+  padding-top: 10px;
+}

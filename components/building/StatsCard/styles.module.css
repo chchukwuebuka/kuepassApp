@@ -1,0 +1,40 @@
+.card {
+  background: white;
+  padding: 20px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  width: 40%;
+  border-radius: 20px;
+}
+
+.cardTitle {
+  margin: auto;
+  font-size: 16px;
+  font-weight: 500;
+  color: #5a5e66;
+}
+
+.cardAmount {
+  font-size: 32px;
+  font-weight: 700;
+  color: #14142a;
+  margin: auto;
+}
+
+.viewButton {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.viewBtn {
+  height: 40px;
+  background-color: #025a3a;
+  color: white;
+  width: 10.125rem;
+  height: 2rem;
+  border-radius: 46px;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}

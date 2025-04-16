@@ -1,0 +1,55 @@
+.formGroup {
+      margin-bottom: 15px;
+    }
+    
+    .label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    
+    .required {
+      color: red;
+    }
+    
+    .textarea {
+      width: 25.9375rem;
+      height: 150px;
+      padding: 10px 14px;
+      border-radius: 4px;
+      border: 1px solid #f0f0f0;
+    }
+    
+    .input1 {
+      width: 25.9375rem;
+      height: 40px;
+      border-radius: 4px;
+      border: 1px solid #f0f0f0;
+    }
+    
+    .textAdress {
+      width: 25.9375rem;
+      height: 50px;
+      border-radius: 4px;
+      border: 1px solid #f0f0f0;
+    }
+    
+    .inputDate {
+      width: 12.5rem;
+      height: 40px;
+      padding: 10px 14px;
+      border-radius: 4px;
+      border: 1px solid #f0f0f0;
+    }
+    
+    .radioGroup {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .formRow {
+      display: flex;
+      gap: 20px;
+    }
+    

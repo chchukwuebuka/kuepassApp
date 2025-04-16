@@ -1,0 +1,117 @@
+.AppFlex {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.AppFlexBTN {
+  border: 1px solid #025a3a;
+  color: #025a3a;
+  background-color: transparent;
+  width: 10.125rem;
+  height: 2.75rem;
+  cursor: pointer;
+  gap: 8px;
+  border-radius: 46px;
+  border: 1px #056348 solid;
+  font-size: 14px;
+}
+
+.AppFlexBTN:hover {
+  color: #ffffff;
+  background-color: #025a3a;
+}
+
+/* Modal Overlay */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: rgb(253, 248, 247);
+  padding: 20px;
+  border-radius: 8px;
+  width: 450px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.closeButton {
+  background: red;
+  border: none;
+  font-size: 24px;
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.saveBTN {
+  display: flex;
+  justify-content: center;
+}
+
+.saveButton {
+  color: #ffffff;
+  background-color: #025a3a;
+  width: 10.125rem;
+  height: 2.75rem;
+  cursor: pointer;
+  gap: 8px;
+  border-radius: 46px;
+  border: 1px #056348 solid;
+  font-size: 14px;
+}
+
+.saveButton:hover {
+  color: #025a3a;
+  background-color: #ffffff;
+}
+
+.Appearance {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.TextBTN {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.changeFlex {
+  display: flex;
+  gap: 30px;
+}
+
+.changeBTN {
+  border: 1px solid #025a3a;
+  color: #025a3a;
+  background-color: transparent;
+  width: 8.125rem;
+  height: 2.75rem;
+  cursor: pointer;
+  gap: 8px;
+  border-radius: 46px;
+  border: 1px #056348 solid;
+  font-size: 14px;
+}
+
+.changeBTN:hover {
+  color: #ffffff;
+  background-color: #025a3a;
+}

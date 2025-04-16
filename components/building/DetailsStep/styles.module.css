@@ -1,0 +1,20 @@
+.containerTitle, .containerTitle1 {
+      display: flex;
+      flex-direction: column;
+      width: 100%; 
+      margin-bottom: 15px;
+    }
+    
+    .TitleLabel {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 5px; 
+    }
+    
+    .TitleInput {
+      width: 30rem;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }

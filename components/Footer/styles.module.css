@@ -1,0 +1,182 @@
+.stack {
+  height: 20rem;
+ position: relative;
+ overflow: hidden;
+ height: 65vh;
+ background-color: #ffffff; 
+ margin-top: 20px;
+}
+
+.curve{
+ content: "";
+ border-top-left-radius: 100% 40%;
+ border-top-right-radius: 100% 40%;
+ position: absolute;
+ bottom: 0;
+ width: 100%;
+ height: 85%;
+ background-color: #043d37;
+}
+
+.stackEvent {
+ max-width: 50%;
+ color: #fff;
+ margin-top: 90px;
+}
+
+.spacingLg {
+ gap: 1.5rem;
+ display: flex;
+ flex-direction: column;
+}
+
+.textxlbold {
+ font-size: 28px;
+ font-weight: 700;
+ color: #043d37;
+}
+
+.buttonmd {
+ border: 1px #056348 solid;
+ color: #025a3a;
+ background-color: #ffffff;
+ width: 12.725rem;
+ height: 2.75rem;
+ padding: 12px 36px;
+ gap: 8px;
+ border-radius: 46px;
+ font-size: 16px;
+ font-weight: 700;
+ cursor: pointer;
+ transition: background-color 0.3s, color 0.3s;
+}
+
+.buttonmd:hover {
+ background-color: #e0f2f1;
+ color: #025a3a;
+}
+
+.kuepass {
+ margin-top: 10px;
+}
+
+
+.groupFlex {
+ display: flex;
+ align-items: center;
+}
+
+.footerFlex {
+ width: 16rem;
+ margin-left: 10px;
+}
+
+.buttonStack {
+ display: flex;
+ flex-direction: column;
+}
+
+.imageContainer {
+ position: absolute;
+ width: 200px;
+ right: 120px;
+ bottom: 170px;
+ z-index: 1000;
+}
+
+.circularImage {
+ border: 5px solid #fff;
+ border-radius: 50%;
+ width: 100%;
+ height: auto;
+}
+
+.footerInfo {
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ width: 78rem;
+ margin-left: 10px;
+ margin-top: 80px;
+}
+
+.groupXs {
+ display: flex;
+ gap: 1.5rem;
+}
+
+.socialButton {
+ background-color: transparent;
+ color: #fff;
+ font-size: 20px;
+ border: 1px #fff solid;
+ cursor: pointer;
+ transition: color 0.3s ease;
+ border-radius: 50%;
+ width: 40px;
+ height: 40px;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+}
+
+.socialButton:hover {
+ color: #ccc;
+ background-color: transparent;
+}
+
+.socialButton i {
+ pointer-events: none;
+}
+
+.Text {
+ font-size: 14px;
+ font-weight: 400;
+ padding-top: 10px;
+ text-align: center;
+}
+
+@media (max-width: 768px) {
+ .footerFlex {
+   flex-direction: column;
+   align-items: center;
+   width: 100%;
+ }
+
+ .groupFlex {
+   flex-direction: column;
+   align-items: center;
+   width: 100%;
+ }
+
+ .downloadButtons {
+   flex-direction: column;
+   align-items: center;
+ }
+
+ .socialMedia {
+   justify-content: center;
+   width: 100%;
+ }
+
+ .imageContainer {
+   position: static;
+   width: 100%;
+   margin-top: 20px;
+   bottom: auto;
+   right: auto;
+ }
+
+ .stack {
+   height: auto;
+   padding: 2rem 0;
+ }
+
+ .stackEvent {
+   max-width: 100%;
+ }
+
+ .groupFlex {
+   width: 100%;
+ }
+}  

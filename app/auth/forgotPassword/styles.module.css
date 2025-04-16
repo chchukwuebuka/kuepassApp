@@ -1,0 +1,107 @@
+/* Root container styles */
+.container {
+      height: 90vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    /* Grid styles */
+    .grid {
+      width: 70%;
+    }
+    
+    /* Left column with image */
+    .leftColumn {
+      position: relative;
+      overflow: hidden;
+      height: 90vh;
+    }
+    
+    .image {
+      filter: brightness(0.7);
+    }
+    
+    /* Right column with form */
+    .rightColumn {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 2rem;
+    }
+    
+    .goBackButton {
+      margin-bottom: 1rem;
+      color: #025a3a;
+    }
+
+    .goBackButton:hover{
+      color: #025a3a;
+      background-color: transparent;
+    }
+    
+    .title {
+      margin-bottom: 0.5rem;
+      font-size: 36px;
+      font-weight: 700;
+      color: #000000;
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    
+    .subtitle {
+      margin-bottom: 1.5rem;
+      color: #6b7280;
+      font-size: 16px;
+      font-weight: 400;
+      text-align: center;
+      color: #6b7280;
+      margin-top: 10px;
+    }
+    
+    .input {
+      margin-bottom: 1rem;
+      /* width: 300px;
+          max-width: 100%; */
+    }
+    
+    .submitBtn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+    }
+    
+    .submitButton {
+      height: 40px;
+      background-color: #025a3a;
+      color: white;
+      width: 10.125rem;
+      height: 2.75rem;
+      padding: 12px 36px;
+      gap: 8px;
+      border-radius: 46px;
+      border: none;
+    }
+    
+    .submitButton:hover {
+      background-color: #025a3a;
+      color: white;
+    }
+    
+    .signUpText {
+      margin-top: 1rem;
+    }
+    
+    .signUpText{
+    text-align: center;
+    margin-top: 20px;
+    font-size: 12px;
+    font-weight: 400;
+    }
+    
+    .signUpText a {
+      color: #025a3a;
+      text-decoration: none;
+    }

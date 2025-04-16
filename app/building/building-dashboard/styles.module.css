@@ -1,0 +1,90 @@
+.navStark {
+  margin-bottom: 80px;
+}
+
+.container {
+  display: flex;
+  margin-left: 125px;
+  justify-content: center;
+  align-items: center;
+}
+
+.main {
+  flex: 1;
+  padding: 20px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.appContainer{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.appButton{
+  display: flex;
+  justify-content: end;
+  align-items: end;
+  width: 200%;
+}
+
+.appBTN{
+  height: 40px;
+  background-color: transparent;
+  color: #025a3a;
+  width: 10.125rem;
+  height: 2.75rem;
+  gap: 8px;
+  border-radius: 46px;
+  border: 1px #025a3a solid;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.modalContainer {
+  position: relative;
+}
+
+.nextButton{
+  background-color: #025a3a;
+  color: #ffffff;
+  width: 8.125rem;
+  height: 2rem;
+  gap: 8px;
+  border-radius: 46px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.modalButtonGroup {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.SaveWrap{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 40px;
+  width: 100%;
+}
+
+.SaveBTN{
+  background-color: #025a3a;
+  color: #ffffff;
+  width: 8.125rem;
+  height: 2rem;
+  gap: 8px;
+  border-radius: 46px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+}

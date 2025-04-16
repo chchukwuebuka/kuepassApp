@@ -1,0 +1,33 @@
+/* .stack {
+  padding: 32px;
+  gap: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  background-color: rgb(253, 248, 247);
+  width: 100%;
+}
+
+.eventText {
+  font-size: 20px;
+  font-weight: 700;
+  color: #000000;
+}
+
+.flex {
+  padding: 0 85px;
+}
+
+.eventText1 {
+  display: flex;
+  align-items: center;
+
+  font-size: 16px;
+  font-weight: 700;
+  color: #056348;
+}
+
+.arrowIcon {
+  margin-left: 8px;
+  width: 16px;
+  height: 16px;
+} */

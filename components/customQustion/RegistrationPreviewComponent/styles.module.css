@@ -1,0 +1,115 @@
+.previewContainer {
+      background-color: white;
+      border-radius: 10px;
+      border: 1px solid #eaeaea;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      position: relative;
+    }
+    
+    .previewContainer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 20px;
+      right: 20px;
+      height: 8px;
+      background-color: #025a3a;
+      border-radius: 0 0 4px 4px;
+    }
+    
+    .previewTitle {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #025a3a;
+      text-align: center;
+      margin-top: 10px;
+    }
+    
+    .previewSubtitle {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    
+    .questionsPreview {
+      background-color: #fafafa;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #eee;
+    }
+    
+    .previewQuestion {
+      padding: 15px;
+      background-color: white;
+      border-radius: 8px;
+      border: 1px solid #f0f0f0;
+      transition: transform 0.2s ease;
+    }
+    
+    .previewQuestion:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .previewLabel {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+      font-size: 1rem;
+    }
+    
+    .requiredStar {
+      color: #e03131;
+      margin-left: 4px;
+    }
+    
+    .previewInput {
+      width: 100%;
+    }
+    
+    .previewTextarea {
+      width: 100%;
+      min-height: 100px;
+    }
+    
+    .emptyPreview {
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f9f9f9;
+      border: 2px dashed #e0e0e0;
+    }
+    
+    /* Preview toggle button */
+    .previewToggle {
+      margin-bottom: 15px;
+      background-color: #f8f9fa;
+      color: #495057;
+      transition: all 0.2s ease;
+    }
+    
+    .previewToggle:hover {
+      background-color: #e9ecef;
+    }
+    
+    .previewToggle:active {
+      transform: translateY(1px);
+    }
+    
+    /* Preview animation */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .previewContainer {
+      animation: fadeIn 0.3s ease-out;
+    }

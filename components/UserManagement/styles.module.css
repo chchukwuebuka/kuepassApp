@@ -1,0 +1,54 @@
+.summary {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 20px;
+}
+
+.summaryRegular {
+  background-color: whitesmoke;
+  width: 10rem;
+  border-radius: 8px;
+  padding-left: 10px;
+  height: 100px;
+}
+
+.summaryText {
+  font-size: 16px;
+  color: #5a5e66;
+}
+
+.summaryNumber {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.inputIMGcard {
+  padding-top: 20px;
+  width: 16%;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  background-color: whitesmoke;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  height: 100px;
+}
+
+.inputIMG {
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.inputText {
+  font-size: 12px;
+  font-weight: 20px;
+  margin-top: 6px;
+  color: #5a5e66;
+}
+
+.searchExport{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+}
