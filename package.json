@@ -15,7 +15,7 @@
     "@mantine/form": "^7.16.1",
     "@mantine/hooks": "^7.16.1",
     "@reduxjs/toolkit": "^2.5.0",
-    "@tabler/icons-react": "^3.29.0",
+    "@tabler/icons-react": "^3.31.0",
     "@types/react-slick": "^0.23.13",
     "dayjs": "^1.11.13",
     "embla-carousel-react": "^8.5.2",
