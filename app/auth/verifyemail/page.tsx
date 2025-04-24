@@ -1,130 +1,96 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useRef, useEffect } from "react"
-import { Button, Text, TextInput, Box, Title } from "@mantine/core"
-import Image from "next/image"
-import { IconArrowLeft, IconCheck } from "@tabler/icons-react"
-import styles from "./styles.module.css"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react";
+import { Button, Text, Box, Title, Notification } from "@mantine/core";
+import Image from "next/image";
+import { IconArrowLeft, IconCheck, IconX } from "@tabler/icons-react";
+import styles from "./styles.module.css";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { verifyEmail } from "@/app/services/api";
+import { setAuthToken, setUserData } from "@/app/services/auth";
+import { useDispatch } from "react-redux";
+import { login } from "@/store/store"; // Adjust the path as necessary
 
 const VerifyEmail = () => {
-  const [otp, setOtp] = useState(["", "", "", ""])
-  const [loading, setLoading] = useState(false)
-  const [resendLoading, setResendLoading] = useState(false)
-  const [countdown, setCountdown] = useState(0)
-  const [verified, setVerified] = useState(false)
-  const router = useRouter()
+  const [loading, setLoading] = useState(false);
+  const [verified, setVerified] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const router = useRouter();
+  const dispatch = useDispatch();
 
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
-
-  // Handle countdown for resend button
+  // Get URL params if any
   useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
-      return () => clearTimeout(timer)
+    // The email verification happens via a link sent to email
+    // which would have URL parameters like /email-verify/{uidb64}/{token}/
+    // If the current URL has these parameters, verify the email automatically
+    const urlParams = new URLSearchParams(window.location.search);
+    const uidb64 = urlParams.get("uidb64");
+    const token = urlParams.get("token");
+
+    if (uidb64 && token) {
+      handleVerifyEmail(uidb64, token);
     }
-  }, [countdown])
+  }, []);
 
-  const handleChange = (value: string, index: number) => {
-    if (/^[0-9]*$/.test(value)) {
-      const newOtp = [...otp]
-      newOtp[index] = value
-      setOtp(newOtp)
+  const handleVerifyEmail = async (uidb64: string, token: string) => {
+    setLoading(true);
+    setError(null);
 
-      // Auto-focus next input
-      if (value && index < 3) {
-        inputRefs.current[index + 1]?.focus()
-      }
-    }
-  }
+    try {
+      // Call API to verify the email with token
+      const response = await verifyEmail({
+        uidb64,
+        token,
+      });
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
-    // Handle backspace
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus()
-    }
+      if (response.success) {
+        // Show success state
+        setVerified(true);
+        setSuccess("Your email has been successfully verified!");
 
-    // Handle arrow keys
-    if (e.key === "ArrowLeft" && index > 0) {
-      inputRefs.current[index - 1]?.focus()
-    }
-    if (e.key === "ArrowRight" && index < 3) {
-      inputRefs.current[index + 1]?.focus()
-    }
-  }
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault()
-    const pastedData = e.clipboardData.getData("text")
-    if (/^\d+$/.test(pastedData)) {
-      const digits = pastedData.slice(0, 4).split("")
-      const newOtp = [...otp]
-
-      digits.forEach((digit, index) => {
-        if (index < 4) {
-          newOtp[index] = digit
+        // If the API returns token and user data after verification
+        if (response.token) {
+          setAuthToken(response.token);
         }
-      })
 
-      setOtp(newOtp)
+        if (response.user) {
+          setUserData(response.user);
 
-      // Focus the appropriate input after paste
-      if (digits.length < 4) {
-        inputRefs.current[digits.length]?.focus()
+          // Create a properly typed user object for Redux
+          const user = {
+            name: response.user.name || "", // Default if undefined
+            email: response.user.email,
+            profilePicture:
+              response.user.profilePicture || "/images/avatar.png", // Default avatar
+          };
+
+          dispatch(login(user));
+        }
+
+        // Redirect after a delay
+        setTimeout(() => {
+          router.push("/"); // Redirect to home page
+        }, 2000);
       } else {
-        inputRefs.current[3]?.focus()
+        setError(
+          response.message || "Failed to verify email. Please try again."
+        );
       }
-    }
-  }
-
-  const handleSubmit = async () => {
-    if (otp.join("").length !== 4) return
-
-    setLoading(true)
-    try {
-      // Here, you would verify the OTP with the backend
-      console.log("OTP submitted:", otp.join(""))
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Show success state
-      setVerified(true)
-
-      // Redirect after a delay
-      setTimeout(() => {
-        router.push("/auth/success") // Example route for successful verification
-      }, 2000)
-    } catch (error) {
-      console.error("Error verifying OTP:", error)
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Verification failed. Please try again.";
+      setError(errorMessage);
+      console.error("Error verifying email:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-
-  const handleResendOtp = async () => {
-    setResendLoading(true)
-    try {
-      // Simulate API call to resend OTP
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Reset OTP fields
-      setOtp(["", "", "", ""])
-
-      // Focus first input
-      inputRefs.current[0]?.focus()
-
-      // Start countdown
-      setCountdown(60)
-    } catch (error) {
-      console.error("Error resending OTP:", error)
-    } finally {
-      setResendLoading(false)
-    }
-  }
+  };
 
   return (
     <div className={styles.pageContainer}>
@@ -133,9 +99,17 @@ const VerifyEmail = () => {
         <div className={styles.overlay}></div>
         <div className={styles.welcomeTextOverlay}>
           <Title className={styles.welcomeTitle}>Verify Your Email</Title>
-          <Text className={styles.welcomeSubtitle}>One last step to secure your account</Text>
+          <Text className={styles.welcomeSubtitle}>
+            One last step to secure your account
+          </Text>
         </div>
-        <Image src="/images/clubDance.png" alt="Verification background" fill className={styles.image} priority />
+        <Image
+          src="/images/clubDance.png"
+          alt="Verification background"
+          fill
+          className={styles.image}
+          priority
+        />
       </div>
 
       {/* Right Column with Form */}
@@ -144,18 +118,46 @@ const VerifyEmail = () => {
           <Button
             variant="subtle"
             className={styles.goBackButton}
-            onClick={() => router.back()}
+            onClick={() => router.push("/auth/signin")}
             leftSection={<IconArrowLeft size={18} />}
           >
-            Go Back
+            Back to Sign In
           </Button>
 
           <div className={styles.formHeader}>
-            <Title className={styles.title}>Verify Your Email</Title>
+            <Title className={styles.title}>Email Verification</Title>
             <Text className={styles.subtitle}>
-              We&apos;ve sent a 4-digit verification code to your email address. Enter the code below to confirm your email.
+              {loading
+                ? "Verifying your email..."
+                : verified
+                ? "Your email has been verified!"
+                : "Check your email for a verification link. Click the link to verify your account."}
             </Text>
           </div>
+
+          {error && (
+            <Notification
+              color="red"
+              onClose={() => setError(null)}
+              className={styles.notification}
+              withCloseButton
+              icon={<IconX size={20} />}
+            >
+              {error}
+            </Notification>
+          )}
+
+          {success && (
+            <Notification
+              color="green"
+              onClose={() => setSuccess(null)}
+              className={styles.notification}
+              withCloseButton
+              icon={<IconCheck size={20} />}
+            >
+              {success}
+            </Notification>
+          )}
 
           <Box className={styles.formWrapper}>
             {verified ? (
@@ -166,72 +168,58 @@ const VerifyEmail = () => {
                 <Title order={2} className={styles.successTitle}>
                   Email Verified!
                 </Title>
-                <Text className={styles.successText}>Your email has been successfully verified.</Text>
-                <Text className={styles.successSubtext}>You will be redirected to continue...</Text>
+                <Text className={styles.successText}>
+                  Your email has been successfully verified.
+                </Text>
+                <Text className={styles.successSubtext}>
+                  You will be redirected to continue...
+                </Text>
+              </div>
+            ) : loading ? (
+              <div className={styles.loadingContainer}>
+                <Text ta="center">Verifying your email address...</Text>
+                <Button loading className={styles.loadingButton}>
+                  Verifying
+                </Button>
+              </div>
+            ) : error ? (
+              <div className={styles.errorContainer}>
+                <Text ta="center" color="red" mb="md">
+                  {error}
+                </Text>
+                <Button
+                  onClick={() => router.push("/auth/signnup")}
+                  className={styles.submitButton}
+                >
+                  Back to Sign Up
+                </Button>
               </div>
             ) : (
-              <>
-                <div className={styles.otpContainer}>
-                  {otp.map((value, index) => (
-                    <TextInput
-                      key={index}
-                      maxLength={1}
-                      value={value}
-                      onChange={(e) => handleChange(e.target.value, index)}
-                      onKeyDown={(e) => handleKeyDown(e, index)}
-                      onPaste={index === 0 ? handlePaste : undefined}
-                      className={styles.otpInput}
-                      classNames={{
-                        input: styles.otpInputField,
-                        wrapper: styles.otpInputWrapper,
-                      }}
-                      autoFocus={index === 0}
-                      ref={(el) => {
-                        inputRefs.current[index] = el ? el.querySelector("input") : null
-                      }}
-                    />
-                  ))}
-                </div>
-
+              <div className={styles.instructionsContainer}>
+                <Text ta="center" mb="xl">
+                  We&apos;ve sent a verification link to your email address.
+                  Please check your inbox and click on the link to verify your
+                  account.
+                </Text>
                 <Button
+                  onClick={() => router.push("/auth/signin")}
                   className={styles.submitButton}
-                  onClick={handleSubmit}
-                  loading={loading}
-                  disabled={otp.join("").length !== 4 || loading}
                 >
-                  {loading ? "Verifying..." : "Verify Email"}
+                  Go to Sign In
                 </Button>
-
-                <div className={styles.resendContainer}>
-                  <Text className={styles.resendText}>Didn&apos;t receive the code?</Text>
-                  {countdown > 0 ? (
-                    <Text className={styles.countdownText}>Resend code in {countdown}s</Text>
-                  ) : (
-                    <Button
-                      variant="subtle"
-                      className={styles.resendButton}
-                      onClick={handleResendOtp}
-                      loading={resendLoading}
-                      disabled={resendLoading}
-                    >
-                      Resend Code
-                    </Button>
-                  )}
-                </div>
-
-                <Text className={styles.signUpText}>
-                  Don&apos;t have an account?{" "}
-                  <Link href="/auth/signup" className={styles.signUpLink}>
-                    Sign up
+                <Text className={styles.signUpText} ta="center" mt="xl">
+                  Didn&apos;t receive the email?{" "}
+                  <Link href="/auth/signnup" className={styles.signUpLink}>
+                    Try signing up again
                   </Link>
                 </Text>
-              </>
+              </div>
             )}
           </Box>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default VerifyEmail
+export default VerifyEmail;

@@ -1,17 +1,33 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { TextInput, PasswordInput, Button, Text, Stack, Notification, Box, Title } from "@mantine/core"
-import { useForm } from "@mantine/form"
-import Image from "next/image"
-import { IconAt, IconArrowLeft, IconLock, IconBrandGoogle } from "@tabler/icons-react"
-import styles from "./styles.module.css"
-import Link from "next/link"
-import { useDispatch } from "react-redux"
-import { login } from "@/store/store" // Adjust the path as necessary
-import { useRouter } from "next/navigation"
+import { useState } from "react";
+import {
+  TextInput,
+  PasswordInput,
+  Button,
+  Text,
+  Stack,
+  Notification,
+  Box,
+  Title,
+} from "@mantine/core";
+import { useForm } from "@mantine/form";
+import Image from "next/image";
+import {
+  IconAt,
+  IconArrowLeft,
+  IconLock,
+  IconBrandGoogle,
+} from "@tabler/icons-react";
+import styles from "./styles.module.css";
+import Link from "next/link";
+import { useDispatch } from "react-redux";
+import { login } from "@/store/store"; // Adjust the path as necessary
+import { useRouter } from "next/navigation";
+import { signIn } from "@/app/services/api";
+import { setAuthToken, setUserData } from "@/app/services/auth";
 
 const SignIn: React.FC = () => {
   const form = useForm({
@@ -20,39 +36,58 @@ const SignIn: React.FC = () => {
       password: "",
     },
     validate: {
-      email: (value) => (/^\S+@\S+$/.test(value) ? null : "Please enter a valid email address"),
-      password: (value) => (value.length >= 6 ? null : "Password must be at least 6 characters"),
+      email: (value) =>
+        /^\S+@\S+$/.test(value) ? null : "Please enter a valid email address",
+      password: (value) =>
+        value.length >= 6 ? null : "Password must be at least 6 characters",
     },
-  })
+  });
 
-  const dispatch = useDispatch()
-  const router = useRouter()
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState<boolean>(false)
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleSignIn = async (values: typeof form.values) => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      // Replace this with your actual authentication logic
-      // For demonstration, we'll mock a successful sign-in
-      const mockUser = {
-        name: "John Doe",
+      // Call the API with the form values
+      const response = await signIn({
         email: values.email,
-        profilePicture: "/images/avatar.png", // Ensure this image exists
+        password: values.password,
+      });
+
+      if (response.success && response.token && response.user) {
+        // Store the token and user data
+        setAuthToken(response.token);
+        setUserData(response.user);
+
+        // Create a properly typed user object for Redux
+        const user = {
+          name: response.user.name || "", // Provide default value if undefined
+          email: response.user.email,
+          profilePicture: response.user.profilePicture || "/images/avatar.png", // Default avatar
+        };
+
+        // Update Redux state
+        dispatch(login(user));
+
+        // Redirect to home page
+        router.push("/");
+      } else {
+        setError(response.message || "Failed to sign in. Please try again.");
       }
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      dispatch(login(mockUser))
-      router.push("/") // Redirect to home page after sign-in
-    } catch {
-      setError("Failed to sign in. Please try again.")
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Failed to sign in. Please try again.";
+      setError(errorMessage);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className={styles.pageContainer}>
@@ -61,9 +96,17 @@ const SignIn: React.FC = () => {
         <div className={styles.overlay}></div>
         <div className={styles.welcomeTextOverlay}>
           <Title className={styles.welcomeTitle}>Welcome Back</Title>
-          <Text className={styles.welcomeSubtitle}>We&apos;re excited to see you again</Text>
+          <Text className={styles.welcomeSubtitle}>
+            We&apos;re excited to see you again
+          </Text>
         </div>
-        <Image src="/images/clubDance.png" alt="Sign in background" fill className={styles.image} priority />
+        <Image
+          src="/images/clubDance.png"
+          alt="Sign in background"
+          fill
+          className={styles.image}
+          priority
+        />
       </div>
 
       {/* Right Column with Form */}
@@ -80,11 +123,18 @@ const SignIn: React.FC = () => {
 
           <div className={styles.formHeader}>
             <Title className={styles.title}>Sign In</Title>
-            <Text className={styles.subtitle}>Log in to your account to continue your journey</Text>
+            <Text className={styles.subtitle}>
+              Log in to your account to continue your journey
+            </Text>
           </div>
 
           {error && (
-            <Notification color="red" onClose={() => setError(null)} className={styles.notification} withCloseButton>
+            <Notification
+              color="red"
+              onClose={() => setError(null)}
+              className={styles.notification}
+              withCloseButton
+            >
               {error}
             </Notification>
           )}
@@ -110,7 +160,9 @@ const SignIn: React.FC = () => {
                 <PasswordInput
                   label="Password"
                   placeholder="Enter your password"
-                  leftSection={<IconLock size={18} className={styles.inputIcon} />}
+                  leftSection={
+                    <IconLock size={18} className={styles.inputIcon} />
+                  }
                   {...form.getInputProps("password")}
                   required
                   className={styles.input}
@@ -124,7 +176,10 @@ const SignIn: React.FC = () => {
                 />
 
                 <div className={styles.forgotPasswordContainer}>
-                  <Link href="/auth/forgotPassword" className={styles.forgotPassword}>
+                  <Link
+                    href="/auth/forgot-password"
+                    className={styles.forgotPassword}
+                  >
                     Forgot Password?
                   </Link>
                 </div>
@@ -145,7 +200,7 @@ const SignIn: React.FC = () => {
               <span className={styles.dividerText}>OR</span>
             </div>
 
-            <Stack spacing="md">
+            <Stack gap="md">
               <Button
                 variant="outline"
                 fullWidth
@@ -166,7 +221,7 @@ const SignIn: React.FC = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default SignIn
+export default SignIn;

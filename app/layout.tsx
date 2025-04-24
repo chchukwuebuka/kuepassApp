@@ -1,11 +1,10 @@
-
-
 // app/layout.tsx (or _app.tsx if you use the pages directory)
 import { Roboto } from "next/font/google";
 import { MantineProvider, createTheme } from "@mantine/core";
 import ReduxProvider from "@/store/provider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import GlobalLoading from "@/components/loader/globalLoading";
+import AppProviders from "@/app/components/AppProviders";
 import "./globals.css";
 import styles from "./page.module.css";
 
@@ -37,9 +36,11 @@ export default function RootLayout({
       <body className={roboto.className}>
         <ReduxProvider>
           <ErrorBoundary>
-            <MantineProvider theme={theme} >
+            <MantineProvider theme={theme}>
               <GlobalLoading />
-              <main className={styles.mainContent}>{children}</main>
+              <AppProviders>
+                <main className={styles.mainContent}>{children}</main>
+              </AppProviders>
             </MantineProvider>
           </ErrorBoundary>
         </ReduxProvider>
