@@ -1,16 +1,43 @@
+
+
 /**
  * Authentication utilities for token management
  */
 
-// Token storage key
 const AUTH_TOKEN_KEY = "kuepass_auth_token";
 const USER_DATA_KEY = "kuepass_user_data";
 
 // Define user data interface
-interface UserData {
+export interface UserData {
   name?: string;
+  username?: string;
+  email?: string;
+  profile_url?: string;
+}
+
+// Define sign-in data
+export interface SignInData {
   email: string;
-  profilePicture?: string;
+  password: string;
+}
+
+// Define auth response
+export interface AuthResponse {
+  success?: boolean;
+  message?: string;
+  detail?: string;
+  refresh?: string;
+  access?: string;
+  data?: {
+    tokens?: {
+      access: string;
+      refresh?: string;
+    };
+    user?: UserData;
+  };
+  token?: string;
+  user?: UserData;
+  error_code?: string;
 }
 
 /**
@@ -84,9 +111,91 @@ export function isAuthenticated(): boolean {
 }
 
 /**
- * Clear all authentication data
+ * Clear all authentication data and perform server logout
  */
-export function clearAuth(): void {
+export async function clearAuth(): Promise<void> {
   removeAuthToken();
   removeUserData();
+
+  try {
+    const BASE_URL =
+      process.env.NEXT_PUBLIC_API_URL ||
+      "https://keupass-48c2ae65f897.herokuapp.com/api";
+
+    await fetch(`${BASE_URL}/logout/`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCsrfToken() || "",
+      },
+    });
+  } catch (error) {
+    console.error("Server logout failed:", error);
+  }
+}
+
+/**
+ * Fetch CSRF token (if needed)
+ */
+export function getCsrfToken(): string | null {
+  if (typeof document === "undefined") return null;
+  const name = "csrftoken";
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === name + "=") {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+/**
+ * For authenticated requests
+ */
+export async function authenticatedRequest<T>(
+  url: string,
+  method: string = "GET",
+  data: Record<string, unknown> | null = null
+): Promise<T> {
+  const token = getAuthToken();
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const csrfToken = getCsrfToken();
+  if (csrfToken) {
+    headers["X-CSRFToken"] = csrfToken;
+  }
+
+  const options: RequestInit = {
+    method,
+    headers,
+    credentials: "include",
+  };
+
+  if (data && method !== "GET") {
+    options.body = JSON.stringify(data);
+  }
+
+  return safeFetch<T>(url, options);
+}
+
+/**
+ * Fetch user profile (stub - implement based on backend endpoint)
+ */
+export async function getUserProfile(): Promise<UserData> {
+  const BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL ||
+    "https://keupass-48c2ae65f897.herokuapp.com/api";
+  return authenticatedRequest<UserData>(`${BASE_URL}/user/`, "GET");
 }

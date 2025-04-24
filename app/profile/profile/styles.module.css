@@ -1,155 +1,268 @@
-.navStark{
+.navStark {
   margin-bottom: 80px;
 }
 
 .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      background-color: #f5f5f5;
-      padding: 0;
-      margin: 0;
-    }
-    
-    .header {
-      width: 100%;
-      background-color: #024d3a;
-      padding: 1rem 0;
-      text-align: center;
-      color: white;
-padding: 70px 0;
-    }
-    
-    .header h1 {
-      margin: 0;
-      font-size: 2rem;
-    }
-    
-    .main {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-grow: 1;
-      width: 100%;
-      padding: 1rem;
-    }
-    
-    .profileCard {
-      background: white;
-      padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      /* max-width: 400px; */
-      width: 30rem;
-    }
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: #f5f5f5;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+}
 
-    .profileCard1{
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 50px;
-    }
-    
-    .profileImage {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 1rem;
-    }
-    
-    .image {
-      border-radius: 50%;
-      object-fit: cover;
-      border: 4px solid #024d3a;
-    }
-    
-    .profileDetails {
-      margin-bottom: 2rem;
-    }
-    
-    .profileDetails h2 {
-      font-size: 1.5rem;
-      margin: 0.5rem 0;
-      color: #333;
-    }
-    
-    .profileDetails p {
-      margin: 0.2rem 0;
-      color: #555;
-    }
-    
-    .actions {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-top: 20px;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-    
-    .editButton,
-    .logoutButton {
-      flex: 1;
-      padding: 0.8rem;
-      font-size: 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    
-    .editButton {
-      border: 1px solid #025a3a;
-      color: #f5f5f5;
-      background-color: #025a3a;
-      width: 14.125rem;
-      height: 2.75rem;
-      padding: 12px 36px;
-      gap: 8px;
-      border-radius: 46px;
-      border: 1px #056348 solid;
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-    
-    .editButton:hover {
-      color: #017f56;
-      background-color: #f5f5f5;
-    }
-    
-    .logoutButton {
-      border: 1px solid #025a3a;
-      color: #025a3a;
-      background-color: transparent;
-      width: 14.125rem;
-      height: 2.75rem;
-      padding: 12px 36px;
-      gap: 8px;
-      border-radius: 46px;
-      border: 1px #056348 solid;
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-    
-    .logoutButton:hover {
-      color: #f5f5f5;
-      background-color: #017f56;
-    }
+.loadingCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  padding: 3rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 50rem;
+  height: 200px;
+}
 
-    .eventsFlex{
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-top: 30px;
-      margin-bottom: 30px;
-      gap: 10px;
-    }
+.loadingText {
+  margin-top: 1rem;
+  color: #024d3a;
+  font-weight: 500;
+}
 
-    .eventsCards{
-      width: 400px;
-border-radius: 20px;
-border: 1px #025a3a solid;
-text-align: center;
-padding: 20px;
-background-color: #ffffff;
-    }
-    
+.profileCard {
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 50rem;
+}
+
+.profileCard1 {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.profileImage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.avatar {
+  border: 4px solid #024d3a;
+}
+
+.imgErrorText {
+  margin-top: 0.5rem;
+  color: #e74c3c;
+  font-size: 0.8rem;
+}
+
+.profileDetails {
+  margin-bottom: 1rem;
+  text-align: left;
+  gap: 20px;
+  /* flex: 1; */
+}
+
+.profileName {
+  font-size: 1.8rem;
+  margin: 0 0 1rem 0;
+  color: #024d3a;
+  padding-bottom: 0.5rem;
+}
+
+.profileDivider {
+  margin-bottom: 1rem;
+  border-color: #f0f0f0;
+}
+
+.profileInfo {
+  margin: 0.5rem 0;
+  color: #555;
+  font-size: 1rem;
+  line-height: 1.5;
+  flex-wrap: nowrap;
+}
+
+.infoIcon {
+  color: #024d3a;
+  margin-right: 0.5rem;
+}
+
+.infoLabel {
+  color: #333;
+  font-weight: 600;
+  width: 100px;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 20px;
+}
+
+.actionLink {
+  text-decoration: none;
+}
+
+.buttonIcon {
+  margin-right: 8px;
+}
+
+.editButton,
+.logoutButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: bold;
+  width: 14.125rem;
+  height: 2.75rem;
+  border-radius: 46px;
+  transition: all 0.3s ease;
+}
+
+.editButton {
+  border: 1px solid #025a3a;
+  color: #f5f5f5;
+  background-color: #025a3a;
+  border: 1px #056348 solid;
+}
+
+.editButton:hover {
+  color: #017f56;
+  background-color: #f5f5f5;
+  transform: translateY(-2px);
+}
+
+.logoutButton {
+  border: 1px solid #025a3a;
+  color: #025a3a;
+  background-color: transparent;
+  border: 1px #056348 solid;
+}
+
+.logoutButton:hover {
+  color: #f5f5f5;
+  background-color: #017f56;
+  transform: translateY(-2px);
+}
+
+.eventsFlex {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  margin-top: 30px;
+  margin-bottom: 30px;
+  gap: 20px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.eventsCards {
+  flex: 1;
+  min-width: 300px;
+  max-width: 400px;
+  border-radius: 20px;
+  border: 1px #025a3a solid;
+  text-align: center;
+  padding: 20px;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.eventsCards:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.cardTitle {
+  color: #024d3a;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.cardDescription {
+  color: #555;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .profileCard {
+    width: 90%;
+    padding: 1.5rem;
+  }
+
+  .profileCard1 {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .profileImage {
+    margin-bottom: 0.5rem;
+  }
+
+  .profileDetails {
+    text-align: center;
+    width: 100%;
+  }
+
+  .profileInfo {
+    justify-content: center;
+  }
+
+  .infoLabel {
+    width: auto;
+    margin-right: 5px;
+  }
+
+  .eventsFlex {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .eventsCards {
+    width: 90%;
+    margin-bottom: 10px;
+    min-width: unset;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .avatar {
+    width: 120px !important;
+    height: 120px !important;
+  }
+
+  .editButton,
+  .logoutButton {
+    width: 100%;
+  }
+}

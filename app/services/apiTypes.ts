@@ -3,21 +3,40 @@
  */
 
 export interface AuthResponse {
-  success: boolean;
+  success?: boolean;
   message?: string;
-  token?: string;
-  user?: {
-    name?: string;
-    email: string;
-    profilePicture?: string;
+  detail?: string;
+  data?: {
+    tokens?: {
+      access: string;
+      refresh?: string;
+    };
+    user?: UserData;
   };
+  token?: string; // For backward compatibility
+  user?: UserData; // For backward compatibility
+  access?: string; // For direct JWT response format
+  refresh?: string; // For direct JWT response format
+}
+
+export interface UserData {
+  name?: string;
+  username?: string;
+  email?: string;
+  profile_url?: string;
+  phone_number?: string;
+  active?: boolean;
+  country?: string;
+  currency?: string;
+  language?: string;
 }
 
 export interface SignUpData {
-  name: string;
+  username: string;
   email: string;
   password: string;
-  number?: string;
+  phone_number?: string;
+  profile_url?: string;
 }
 
 export interface SignInData {

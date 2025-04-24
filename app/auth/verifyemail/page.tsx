@@ -3,38 +3,67 @@
 import type React from "react";
 
 import { useState, useEffect } from "react";
-import { Button, Text, Box, Title, Notification } from "@mantine/core";
+import {
+  Button,
+  Text,
+  Box,
+  Title,
+  Notification,
+  PasswordInput,
+  TextInput,
+} from "@mantine/core";
 import Image from "next/image";
-import { IconArrowLeft, IconCheck, IconX } from "@tabler/icons-react";
+import { IconArrowLeft, IconCheck, IconX, IconLock } from "@tabler/icons-react";
 import styles from "./styles.module.css";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { verifyEmail } from "@/app/services/api";
 import { setAuthToken, setUserData } from "@/app/services/auth";
 import { useDispatch } from "react-redux";
-import { login } from "@/store/store"; // Adjust the path as necessary
+import { login } from "@/store/store";
+import { useForm } from "@mantine/form";
 
 const VerifyEmail = () => {
   const [loading, setLoading] = useState(false);
   const [verified, setVerified] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
   const router = useRouter();
   const dispatch = useDispatch();
+  const searchParams = useSearchParams();
+
+  const form = useForm({
+    initialValues: {
+      newPassword: "",
+      confirmPassword: "",
+      verificationCode: "",
+    },
+    validate: {
+      newPassword: (value) =>
+        value.length >= 8
+          ? null
+          : "Password must be at least 8 characters long",
+      confirmPassword: (value, values) =>
+        value === values.newPassword ? null : "Passwords do not match",
+      verificationCode: (value) =>
+        value ? null : "Verification code is required",
+    },
+  });
 
   // Get URL params if any
   useEffect(() => {
-    // The email verification happens via a link sent to email
-    // which would have URL parameters like /email-verify/{uidb64}/{token}/
-    // If the current URL has these parameters, verify the email automatically
-    const urlParams = new URLSearchParams(window.location.search);
-    const uidb64 = urlParams.get("uidb64");
-    const token = urlParams.get("token");
+    const email = searchParams.get("email");
+    const uidb64 = searchParams.get("uidb64");
+    const token = searchParams.get("token");
+    const mode = searchParams.get("mode");
 
-    if (uidb64 && token) {
+    if (email && mode === "reset") {
+      setIsPasswordReset(true);
+    } else if (uidb64 && token) {
       handleVerifyEmail(uidb64, token);
     }
-  }, []);
+  }, [searchParams]);
 
   const handleVerifyEmail = async (uidb64: string, token: string) => {
     setLoading(true);
@@ -52,20 +81,51 @@ const VerifyEmail = () => {
         setVerified(true);
         setSuccess("Your email has been successfully verified!");
 
-        // If the API returns token and user data after verification
-        if (response.token) {
+        let userData;
+
+        // Handle new response structure
+        if (response.data) {
+          const { tokens, user } = response.data;
+
+          // Store the JWT token if available
+          if (tokens?.access) {
+            setAuthToken(tokens.access);
+          }
+
+          if (user && user.email) {
+            userData = {
+              ...user,
+              // Handle username or extract from email if not available
+              username: user.username || user.email.split("@")[0],
+              // Handle profile picture with both possible field names
+              profilePicture:
+                user.profilePicture || user.profile_url || "/images/avatar.png",
+            };
+          }
+        }
+        // Handle legacy response structure for backward compatibility
+        else if (response.token) {
           setAuthToken(response.token);
+
+          if (response.user && response.user.email) {
+            userData = {
+              ...response.user,
+              // Handle username or extract from email if not available
+              username:
+                response.user.username || response.user.email.split("@")[0],
+            };
+          }
         }
 
-        if (response.user) {
-          setUserData(response.user);
+        if (userData && userData.email) {
+          setUserData(userData);
 
           // Create a properly typed user object for Redux
           const user = {
-            name: response.user.name || "", // Default if undefined
-            email: response.user.email,
-            profilePicture:
-              response.user.profilePicture || "/images/avatar.png", // Default avatar
+            name: userData.name || "", // Default if undefined
+            username: userData.username,
+            email: userData.email,
+            profilePicture: userData.profilePicture || "/images/avatar.png", // Default avatar
           };
 
           dispatch(login(user));
@@ -92,15 +152,73 @@ const VerifyEmail = () => {
     }
   };
 
+  const handlePasswordReset = async (values: {
+    newPassword: string;
+    confirmPassword: string;
+    verificationCode: string;
+  }) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const email = searchParams.get("email");
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL ||
+        "https://keupass-48c2ae65f897.herokuapp.com/api";
+
+      if (!email) {
+        setError("Email address is missing");
+        return;
+      }
+
+      const response = await fetch(`${apiUrl}/password-reset/confirm/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          code: values.verificationCode,
+          new_password: values.newPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setVerified(true);
+        setSuccess("Your password has been successfully reset!");
+        setTimeout(() => {
+          router.push("/auth/signin");
+        }, 2000);
+      } else {
+        setError(
+          data.message ||
+            data.detail ||
+            "Failed to reset password. Please try again."
+        );
+      }
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      setError("Network error. Please check your connection and try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className={styles.pageContainer}>
       {/* Left Column with Image */}
       <div className={styles.leftColumn}>
         <div className={styles.overlay}></div>
         <div className={styles.welcomeTextOverlay}>
-          <Title className={styles.welcomeTitle}>Verify Your Email</Title>
+          <Title className={styles.welcomeTitle}>
+            {isPasswordReset ? "Reset Password" : "Verify Your Email"}
+          </Title>
           <Text className={styles.welcomeSubtitle}>
-            One last step to secure your account
+            {isPasswordReset
+              ? "Enter your new password"
+              : "One last step to secure your account"}
           </Text>
         </div>
         <Image
@@ -125,12 +243,20 @@ const VerifyEmail = () => {
           </Button>
 
           <div className={styles.formHeader}>
-            <Title className={styles.title}>Email Verification</Title>
+            <Title className={styles.title}>
+              {isPasswordReset ? "Reset Password" : "Email Verification"}
+            </Title>
             <Text className={styles.subtitle}>
               {loading
-                ? "Verifying your email..."
+                ? isPasswordReset
+                  ? "Resetting your password..."
+                  : "Verifying your email..."
                 : verified
-                ? "Your email has been verified!"
+                ? isPasswordReset
+                  ? "Your password has been reset!"
+                  : "Your email has been verified!"
+                : isPasswordReset
+                ? "Enter the verification code sent to your email and your new password"
                 : "Check your email for a verification link. Click the link to verify your account."}
             </Text>
           </div>
@@ -166,10 +292,12 @@ const VerifyEmail = () => {
                   <IconCheck size={40} className={styles.successIcon} />
                 </div>
                 <Title order={2} className={styles.successTitle}>
-                  Email Verified!
+                  {isPasswordReset ? "Password Reset!" : "Email Verified!"}
                 </Title>
                 <Text className={styles.successText}>
-                  Your email has been successfully verified.
+                  {isPasswordReset
+                    ? "Your password has been successfully reset."
+                    : "Your email has been successfully verified."}
                 </Text>
                 <Text className={styles.successSubtext}>
                   You will be redirected to continue...
@@ -177,23 +305,76 @@ const VerifyEmail = () => {
               </div>
             ) : loading ? (
               <div className={styles.loadingContainer}>
-                <Text ta="center">Verifying your email address...</Text>
-                <Button loading className={styles.loadingButton}>
-                  Verifying
-                </Button>
-              </div>
-            ) : error ? (
-              <div className={styles.errorContainer}>
-                <Text ta="center" color="red" mb="md">
-                  {error}
+                <Text ta="center">
+                  {isPasswordReset
+                    ? "Resetting your password..."
+                    : "Verifying your email address..."}
                 </Text>
-                <Button
-                  onClick={() => router.push("/auth/signnup")}
-                  className={styles.submitButton}
-                >
-                  Back to Sign Up
+                <Button loading className={styles.loadingButton}>
+                  {isPasswordReset ? "Resetting" : "Verifying"}
                 </Button>
               </div>
+            ) : isPasswordReset ? (
+              <form onSubmit={form.onSubmit(handlePasswordReset)}>
+                <TextInput
+                  label="Verification Code"
+                  placeholder="Enter verification code from email"
+                  leftSection={
+                    <IconLock size={18} className={styles.inputIcon} />
+                  }
+                  {...form.getInputProps("verificationCode")}
+                  className={styles.input}
+                  classNames={{
+                    input: styles.inputField,
+                    label: styles.inputLabel,
+                    error: styles.inputError,
+                    wrapper: styles.inputWrapper,
+                  }}
+                  description="Enter the verification code sent to your email"
+                />
+
+                <PasswordInput
+                  label="New Password"
+                  placeholder="Enter new password"
+                  leftSection={
+                    <IconLock size={18} className={styles.inputIcon} />
+                  }
+                  {...form.getInputProps("newPassword")}
+                  className={styles.input}
+                  classNames={{
+                    input: styles.inputField,
+                    label: styles.inputLabel,
+                    error: styles.inputError,
+                    wrapper: styles.inputWrapper,
+                  }}
+                  description="Password must be at least 8 characters long"
+                />
+
+                <PasswordInput
+                  label="Confirm New Password"
+                  placeholder="Confirm new password"
+                  leftSection={
+                    <IconLock size={18} className={styles.inputIcon} />
+                  }
+                  {...form.getInputProps("confirmPassword")}
+                  className={styles.input}
+                  classNames={{
+                    input: styles.inputField,
+                    label: styles.inputLabel,
+                    error: styles.inputError,
+                    wrapper: styles.inputWrapper,
+                  }}
+                />
+
+                <Button
+                  type="submit"
+                  fullWidth
+                  className={styles.submitButton}
+                  loading={loading}
+                >
+                  {loading ? "Resetting..." : "Reset Password"}
+                </Button>
+              </form>
             ) : (
               <div className={styles.instructionsContainer}>
                 <Text ta="center" mb="xl">

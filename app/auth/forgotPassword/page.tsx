@@ -1,110 +1,17 @@
-// "use client";
-// import {
-//   Container,
-//   Grid,
-//   TextInput,
-//   PasswordInput,
-//   Button,
-//   Text,
-//   Stack,
-// } from "@mantine/core";
-// import { useForm } from "@mantine/form";
-// import Image from "next/image";
-// import { IconAt } from "@tabler/icons-react";
-// import styles from "./styles.module.css";
-
-// const  ForgotPassword= () => {
-//       const form = useForm({
-//             initialValues: {
-//               email: "",
-//             },
-//             validate: {
-//               email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
-//             },
-//           });
-
-//           const handleSubmit = (values: { email: string }) => {
-//             console.log("Forgot password request submitted:", values);
-//             // Handle the forgot password logic (e.g., call an API to send reset instructions)
-//           };
-
-//   const icon = <IconAt size={16} />;
-
-//   return (
-//     <Container fluid className={styles.container}>
-//       <Grid className={styles.grid}>
-//         {/* Left Column with Image */}
-//         <Grid.Col span={6} className={styles.leftColumn}>
-//           <Image
-//             src="/images/signinImage.png"
-//             alt="Sign in background"
-//             layout="fill"
-//             objectFit="cover"
-//             className={styles.image}
-//           />
-//         </Grid.Col>
-
-//         {/* Right Column with Form */}
-//         <Grid.Col span={6} className={styles.rightColumn}>
-//           <Button
-//             variant="subtle"
-//             className={styles.goBackButton}
-//             onClick={() => window.history.back()}
-//           >
-//             &larr; Go Back
-//           </Button>
-
-//           <Text className={styles.title}>Reset Password</Text>
-//           <Text size="sm" color="dimmed" className={styles.subtitle}>
-//           Kindly input your functional email and we will send you an OTP to help you proceed
-//           </Text>
-
-//           <form
-//             onSubmit={form.onSubmit((values) => {
-//                   handleSubmit(values);
-//                 })}
-//           >
-//             <TextInput
-//               label="Email address"
-//               rightSection={icon}
-//               placeholder="Enter your email address"
-//               {...form.getInputProps("email")}
-//               required
-//               className={styles.input}
-//             />
-//             <PasswordInput
-//               label="Password"
-//               placeholder="Enter your password"
-//               {...form.getInputProps("password")}
-//               required
-//               className={styles.input}
-//             />
-//             <Stack className={styles.submitBtn}>
-//             <Button type="submit" fullWidth className={styles.submitButton} mt="md">
-//           Reset
-//         </Button>
-//             </Stack>
-//           </form>
-//         </Grid.Col>
-//       </Grid>
-//     </Container>
-//   );
-// };
-
-// export default  ForgotPassword;
-
 "use client";
 
 import { useState } from "react";
-import { TextInput, Button, Text, Box, Title } from "@mantine/core";
+import {
+  TextInput,
+  Button,
+  Text,
+  Box,
+  Title,
+  Notification,
+} from "@mantine/core";
 import { useForm } from "@mantine/form";
 import Image from "next/image";
-import {
-  IconAt,
-  IconArrowLeft,
-  IconSend,
-  IconCheck,
-} from "@tabler/icons-react";
+import { IconAt, IconArrowLeft, IconSend, IconX } from "@tabler/icons-react";
 import styles from "./styles.module.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -112,7 +19,7 @@ import { useRouter } from "next/navigation";
 const ForgotPassword = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm({
     initialValues: {
@@ -126,19 +33,69 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (values: { email: string }) => {
     setLoading(true);
-    console.log("Forgot password request submitted:", values);
+    setError(null);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL ||
+        "https://keupass-48c2ae65f897.herokuapp.com/api";
+      console.log("Sending request to:", `${apiUrl}/password-reset/`);
+      console.log("Request body:", JSON.stringify({ email: values.email }));
 
-      // Show success message
-      setSubmitted(true);
-    } catch (error) {
-      console.error("Error sending reset email:", error);
-      form.setErrors({
-        email: "Failed to send reset email. Please try again.",
+      const response = await fetch(`${apiUrl}/password-reset/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Origin: window.location.origin,
+        },
+        body: JSON.stringify({
+          email: values.email,
+        }),
+        credentials: "include",
       });
+
+      console.log("Response status:", response.status);
+      if (response.status === 500) {
+        setError("Server error. Please contact support or try again later.");
+        return;
+      }
+
+      let data;
+      try {
+        data = await response.json();
+        console.log("Response data:", data);
+      } catch (jsonError) {
+        console.error("Error parsing JSON response:", jsonError);
+        setError("Invalid response from server. Please try again.");
+        return;
+      }
+
+      if (response.ok) {
+        // Show success message and redirect to verification page
+        router.push(
+          `/auth/verifyemail?email=${encodeURIComponent(
+            values.email
+          )}&mode=reset`
+        );
+      } else {
+        // Show error from API
+        setError(
+          data.message ||
+            data.detail ||
+            "Failed to send verification code. Please try again."
+        );
+      }
+    } catch (err) {
+      console.error("Error sending verification code:", err);
+      if (err instanceof Error) {
+        console.error("Error details:", {
+          name: err.name,
+          message: err.message,
+          stack: err.stack,
+        });
+      }
+      setError("Network error. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -166,7 +123,6 @@ const ForgotPassword = () => {
       {/* Right Column with Form */}
       <div className={styles.rightColumn}>
         <div className={styles.formContainer}>
-         
           <Button
             variant="subtle"
             className={styles.goBackButton}
@@ -178,71 +134,57 @@ const ForgotPassword = () => {
           <div className={styles.formHeader}>
             <Title className={styles.title}>Reset Password</Title>
             <Text className={styles.subtitle}>
-              Enter your email address and we&apos;ll send you instructions to
-              reset your password
+              Enter your email address and we&apos;ll send you a verification
+              code
             </Text>
           </div>
+
+          {error && (
+            <Notification
+              color="red"
+              onClose={() => setError(null)}
+              className={styles.notification}
+              withCloseButton
+              icon={<IconX size={18} />}
+            >
+              {error}
+            </Notification>
+          )}
+
           <Box className={styles.formWrapper}>
-            {submitted ? (
-              <div className={styles.successContainer}>
-                <div className={styles.successIconWrapper}>
-                  <IconCheck size={40} className={styles.successIcon} />
-                </div>
-                <Title order={2} className={styles.successTitle}>
-                  Check Your Email
-                </Title>
-                <Text className={styles.successText}>
-                  We&apos;ve sent password reset instructions to{" "}
-                  <strong>{form.values.email}</strong>
-                </Text>
-                <Text className={styles.successSubtext}>
-                  If you don&apos;t see the email, check your spam folder or
-                  make sure you entered the correct email address.
-                </Text>
-                <Button
-                  className={styles.returnButton}
-                  onClick={() => router.push("/auth/verifyemail")}
-                >
-                  Got to Verify Email
-                </Button>
-              </div>
-            ) : (
-              <form onSubmit={form.onSubmit(handleSubmit)}>
-                <TextInput
-                  label="Email Address"
-                  placeholder="Enter your email address"
-                  leftSection={
-                    <IconAt size={18} className={styles.inputIcon} />
-                  }
-                  {...form.getInputProps("email")}
-                  className={styles.input}
-                  classNames={{
-                    input: styles.inputField,
-                    label: styles.inputLabel,
-                    error: styles.inputError,
-                    wrapper: styles.inputWrapper,
-                  }}
-                  description="We'll send a verification code to this email"
-                />
+            <form onSubmit={form.onSubmit(handleSubmit)}>
+              <TextInput
+                label="Email Address"
+                placeholder="Enter your email address"
+                leftSection={<IconAt size={18} className={styles.inputIcon} />}
+                {...form.getInputProps("email")}
+                className={styles.input}
+                classNames={{
+                  input: styles.inputField,
+                  label: styles.inputLabel,
+                  error: styles.inputError,
+                  wrapper: styles.inputWrapper,
+                }}
+                description="We'll send a verification code to this email"
+              />
 
-                <Button
-                  type="submit"
-                  fullWidth
-                  className={styles.submitButton}
-                  loading={loading}
-                  rightSection={!loading && <IconSend size={18} />}
-                >
-                  {loading ? "Sending..." : "Send Reset Instructions"}
-                </Button>
+              <Button
+                type="submit"
+                fullWidth
+                className={styles.submitButton}
+                loading={loading}
+                rightSection={!loading && <IconSend size={18} />}
+              >
+                {loading ? "Sending..." : "Send Verification Code"}
+              </Button>
 
-                <Text className={styles.signInText}>
-                  Remember your password?{" "}
-                  <Link href="/auth/signin" className={styles.signInLink}>
-                    Sign In
-                  </Link>
-                </Text>
-              </form>
-            )}
+              <Text className={styles.signInText}>
+                Remember your password?{" "}
+                <Link href="/auth/signin" className={styles.signInLink}>
+                  Sign In
+                </Link>
+              </Text>
+            </form>
           </Box>
         </div>
       </div>
