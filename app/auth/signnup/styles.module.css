@@ -576,3 +576,40 @@
 .formWrapper {
   animation: fadeIn 0.5s ease-out;
 }
+
+/* Profile image upload styles */
+.profileImageUpload {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.profileImageContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profileImage {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #025a3a;
+  margin-bottom: 0.75rem;
+}
+
+.uploadImageButton {
+  background-color: transparent;
+  color: #025a3a;
+  border: 1px solid #025a3a;
+  border-radius: 20px;
+  padding: 0.35rem 1rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.uploadImageButton:hover {
+  background-color: rgba(2, 90, 58, 0.1);
+}

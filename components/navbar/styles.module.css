@@ -588,9 +588,10 @@
 
 .avatarButtonEnhanced {
   background-color: transparent;
-  width: 10.125rem;
+  min-width: 10.125rem;
   height: 2.75rem;
   padding: 0 1rem;
+  margin-right: 15px;
   border-radius: 46px;
   border: none;
   display: flex;
@@ -652,4 +653,31 @@
   border-radius: 46px !important;
   height: 2.75rem !important;
   font-weight: 500 !important;
+}
+
+/* Add these new styles at the end of the file */
+
+.userProfileContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 15px;
+}
+
+.userAvatar {
+  flex-shrink: 0;
+}
+
+.userNameContainer {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.userName {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
 }
