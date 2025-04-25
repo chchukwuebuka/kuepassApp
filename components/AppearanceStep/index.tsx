@@ -1,3 +1,5 @@
+
+
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { EventFormData } from "../../store/types";
@@ -18,51 +20,87 @@ import { Check } from "tabler-icons-react";
 import styles from "./styles.module.css";
 import CountdownTimer from "../CountdownTimer";
 import QRCode from "react-qr-code";
+import { authenticatedRequest, getAuthToken } from "../../app/services/auth";
 
 interface AppearanceStepProps {
   formData: EventFormData;
   updateFormData: (update: Partial<EventFormData>) => void;
+  onFileSelect: (file: File | null) => void;
 }
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://keupass-48c2ae65f897.herokuapp.com/api";
 
 const AppearanceStep: React.FC<AppearanceStepProps> = ({
   formData,
   updateFormData,
+  onFileSelect,
 }) => {
-  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
-  const [cardDetailsColor, setCardDetailsColor] = useState<string>("#FF0000");
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(formData.appearance || null);
   const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
   const [isCountingDown, setIsCountingDown] = useState<boolean>(false);
+  const [autoStartCountdown, setAutoStartCountdown] = useState<boolean>(true);
   const [isQRModalOpen, setIsQRModalOpen] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (formData.appearance) {
-      setBackgroundImage(formData.appearance);
-    }
+    setBackgroundImage(formData.appearance || null);
   }, [formData.appearance]);
 
-  const handleSetEventImage = () => {
+  // Monitor formData.eventURL changes to trigger countdown if enabled
+  useEffect(() => {
+    console.log("formData.eventURL changed:", formData.eventURL);
+    if (formData.eventURL && (isCountingDown || autoStartCountdown)) {
+      const eventId = formData.eventURL.split("/").pop();
+      console.log("Triggering countdown for eventId:", eventId);
+      setIsCountingDown(true);
+      sendCountdownRequest(eventId);
+    }
+  }, [formData.eventURL, autoStartCountdown]);
+
+  const handleSetEventImage = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
     const file = event.target.files?.[0];
-    if (file) {
-      if (file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const result = reader.result as string;
-          setBackgroundImage(result);
-          updateFormData({
-            appearance: result,
-          });
-        };
-        reader.readAsDataURL(file);
-      } else {
-        alert("Please select a valid image file.");
-      }
+    if (!file) {
+      alert("No file selected. Please choose an image.");
+      onFileSelect(null);
+      setBackgroundImage(null);
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file (e.g., PNG, JPEG).");
+      onFileSelect(null);
+      setBackgroundImage(null);
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image size must be less than 5MB.");
+      onFileSelect(null);
+      setBackgroundImage(null);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64Url = reader.result as string;
+      setBackgroundImage(base64Url);
+    };
+    reader.readAsDataURL(file);
+
+    onFileSelect(file);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -81,9 +119,7 @@ const AppearanceStep: React.FC<AppearanceStepProps> = ({
 
   const hexToRgb = (hex: string): [number, number, number] | null => {
     hex = hex.replace("#", "");
-
     let r, g, b;
-
     if (hex.length === 3) {
       r = parseInt(hex[0] + hex[0], 16);
       g = parseInt(hex[1] + hex[1], 16);
@@ -95,7 +131,6 @@ const AppearanceStep: React.FC<AppearanceStepProps> = ({
     } else {
       return null;
     }
-
     return [r, g, b];
   };
 
@@ -108,29 +143,101 @@ const AppearanceStep: React.FC<AppearanceStepProps> = ({
     return "rgba(255, 0, 0, 0.5)";
   };
 
-  const rgbaColor = getRgbaColor(cardDetailsColor);
+  const rgbaColor = getRgbaColor(formData.cardColor || "#FF0000");
 
-  const handleToggleCountdown = (checked: boolean) => {
-    if (checked) {
-      const durationInSeconds = 3600;
-      const newTargetDate = new Date(
-        new Date().getTime() + durationInSeconds * 1000
-      );
-      setTargetDate(newTargetDate);
-      setIsCountingDown(true);
-    } else {
-      setTargetDate(undefined);
+  const sendCountdownRequest = async (eventId: string) => {
+    if (!eventId || !eventId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      console.error("Invalid event UUID:", eventId);
+      alert("Invalid event ID. Please ensure the event is created.");
       setIsCountingDown(false);
+      setAutoStartCountdown(false);
+      return;
+    }
+
+    let target = targetDate;
+    if (!target && formData.startDate && formData.startTime) {
+      target = new Date(`${formData.startDate}T${formData.startTime}:00Z`);
+      console.log("Using event start_date as target_date:", target.toISOString());
+    }
+    if (!target) {
+      target = new Date();
+      target.setDate(target.getDate() + 7); // Fallback: 7 days from now
+      console.log("Using default target_date (7 days from now):", target.toISOString());
+    }
+    setTargetDate(target);
+
+    const countdownData = {
+      event: eventId,
+      target_date: target.toISOString(),
+      is_active: true,
+    };
+
+    console.log("Sending countdown data:", JSON.stringify(countdownData, null, 2));
+
+    try {
+      const response = await authenticatedRequest(
+        `${API_BASE_URL}/event-countdowns/`,
+        "POST",
+        countdownData
+      );
+      console.log("Countdown created successfully:", response);
+      alert("Countdown started successfully!");
+    } catch (error: any) {
+      console.error("Error creating countdown:", {
+        message: error.message,
+        status: error.status,
+        data: error.data,
+      });
+      alert(`Failed to start countdown: ${error.data?.message || "Please try again."}`);
+      setIsCountingDown(false);
+      setAutoStartCountdown(false);
     }
   };
 
+  const handleToggleCountdown = (checked: boolean) => {
+    console.log("Countdown toggle changed:", checked);
+    if (!formData.eventURL && checked) {
+      console.warn("Cannot start countdown: eventURL not set");
+      alert("Cannot start countdown: Event not yet created.");
+      return;
+    }
+
+    setIsCountingDown(checked);
+    setAutoStartCountdown(checked);
+
+    if (checked && formData.eventURL) {
+      const eventId = formData.eventURL.split("/").pop();
+      console.log("Initiating countdown for eventId:", eventId);
+      sendCountdownRequest(eventId);
+    } else {
+      console.log("Stopping countdown");
+      setTargetDate(undefined);
+    }
+  };
+
+  const handleRetryCountdown = () => {
+    if (!formData.eventURL) {
+      alert("Cannot retry countdown: Event not yet created.");
+      return;
+    }
+    const eventId = formData.eventURL.split("/").pop();
+    console.log("Retrying countdown for eventId:", eventId);
+    sendCountdownRequest(eventId);
+  };
+
   const handleCountdownComplete = () => {
+    console.log("Countdown completed");
     setIsCountingDown(false);
+    setAutoStartCountdown(false);
     setTargetDate(undefined);
     alert("Countdown has completed!");
   };
 
   const handleViewQR = () => {
+    if (!formData.eventURL) {
+      alert("Event URL not available. Please create the event first.");
+      return;
+    }
     setIsQRModalOpen(true);
   };
 
@@ -141,7 +248,6 @@ const AppearanceStep: React.FC<AppearanceStepProps> = ({
   return (
     <div>
       <Flex className={styles.flex}>
-        {/* Event Description Preview */}
         <Stack>
           <Text>Event Description Preview</Text>
           <Card className={styles.card}>
@@ -205,7 +311,6 @@ const AppearanceStep: React.FC<AppearanceStepProps> = ({
             </div>
           </Card>
         </Stack>
-        {/* Event Sub-page Preview */}
         <Stack>
           <Text>Event Sub-page Preview</Text>
           <Card className={styles.card}>
@@ -256,7 +361,7 @@ const AppearanceStep: React.FC<AppearanceStepProps> = ({
                 </Text>
                 <Text className={styles.cardAddress}>
                   {formData.location === "Physical"
-                    ? formData.address || "Event Address"
+                    ? formData.address || " coronel Address"
                     : "Virtual Event"}
                 </Text>
               </Card>
@@ -306,11 +411,22 @@ const AppearanceStep: React.FC<AppearanceStepProps> = ({
             radius="xl"
             color="teal"
             onClick={handleSetEventImage}
+            type="button"
           >
             Set Event Image
           </Button>
-          <Button variant="outline" radius="xl" color="teal">
+          <Button variant="outline" radius="xl" color="teal" type="button">
             Set Event Schedule
+          </Button>
+          <Button
+            variant="outline"
+            radius="xl"
+            color="teal"
+            onClick={handleRetryCountdown}
+            disabled={!formData.eventURL}
+            type="button"
+          >
+            Retry Countdown
           </Button>
         </Group>
 
@@ -323,6 +439,7 @@ const AppearanceStep: React.FC<AppearanceStepProps> = ({
             onChange={(event) =>
               handleToggleCountdown(event.currentTarget.checked)
             }
+            disabled={!formData.eventURL}
           />
         </Flex>
       </Flex>
@@ -338,13 +455,13 @@ const AppearanceStep: React.FC<AppearanceStepProps> = ({
                 style={{
                   backgroundColor: color.color,
                   border:
-                    cardDetailsColor === color.color
+                    formData.cardColor === color.color
                       ? "2px solid #000"
                       : "2px solid transparent",
                 }}
-                onClick={() => setCardDetailsColor(color.color)}
+                onClick={() => updateFormData({ cardColor: color.color })}
               >
-                {cardDetailsColor === color.color && (
+                {formData.cardColor === color.color && (
                   <Check size={16} color="#fff" />
                 )}
               </ActionIcon>
@@ -357,9 +474,8 @@ const AppearanceStep: React.FC<AppearanceStepProps> = ({
         accept="image/*"
         ref={fileInputRef}
         style={{ display: "none" }}
-        onChange={handleImageUpload}
+        onChange={handleImageSelect}
       />
-      {/* QR Code Modal */}
       <Modal
         opened={isQRModalOpen}
         onClose={() => setIsQRModalOpen(false)}
