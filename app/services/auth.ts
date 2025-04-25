@@ -3,7 +3,6 @@
 /**
  * Authentication utilities for token management
  */
-
 const AUTH_TOKEN_KEY = "kuepass_auth_token";
 const USER_DATA_KEY = "kuepass_user_data";
 
@@ -127,8 +126,8 @@ export async function clearAuth(): Promise<void> {
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRFToken": getCsrfToken() || "",
-      },
+        "X-CSRFToken": getCsrfToken() || ""
+      }
     });
   } catch (error) {
     console.error("Server logout failed:", error);
@@ -161,12 +160,10 @@ export function getCsrfToken(): string | null {
 export async function authenticatedRequest<T>(
   url: string,
   method: string = "GET",
-  data: Record<string, unknown> | null = null
+  data: Record<string, unknown> | FormData | null = null
 ): Promise<T> {
   const token = getAuthToken();
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
+  const headers: HeadersInit = {};
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
@@ -180,11 +177,16 @@ export async function authenticatedRequest<T>(
   const options: RequestInit = {
     method,
     headers,
-    credentials: "include",
+    credentials: "include"
   };
 
   if (data && method !== "GET") {
-    options.body = JSON.stringify(data);
+    if (data instanceof FormData) {
+      options.body = data;
+    } else {
+      headers["Content-Type"] = "application/json";
+      options.body = JSON.stringify(data);
+    }
   }
 
   return safeFetch<T>(url, options);
@@ -198,4 +200,32 @@ export async function getUserProfile(): Promise<UserData> {
     process.env.NEXT_PUBLIC_API_URL ||
     "https://keupass-48c2ae65f897.herokuapp.com/api";
   return authenticatedRequest<UserData>(`${BASE_URL}/user/`, "GET");
+}
+
+/**
+ * Helper to handle fetch errors including network issues
+ */
+export async function safeFetch<T>(
+  url: string,
+  options: RequestInit,
+  fallbackErrorMessage = "Network error. Please check your internet connection."
+): Promise<T> {
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const error = new Error(
+        errorData.message || `HTTP error! Status: ${response.status}`
+      );
+      (error as any).status = response.status;
+      (error as any).data = errorData;
+      throw error;
+    }
+    return response.json();
+  } catch (error) {
+    if (error instanceof TypeError && error.message.includes("fetch")) {
+      throw new Error(fallbackErrorMessage);
+    }
+    throw error;
+  }
 }
