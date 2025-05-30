@@ -1,5 +1,3 @@
-
-
 /**
  * Authentication utilities for token management
  */
@@ -8,10 +6,17 @@ const USER_DATA_KEY = "kuepass_user_data";
 
 // Define user data interface
 export interface UserData {
+  id?: string;
   name?: string;
   username?: string;
   email?: string;
   profile_url?: string;
+  phone_number?: string;
+  active?: boolean;
+  country?: string;
+  currency?: string;
+  language?: string;
+  profilePicture?: string;
 }
 
 // Define sign-in data
@@ -126,8 +131,8 @@ export async function clearAuth(): Promise<void> {
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRFToken": getCsrfToken() || ""
-      }
+        "X-CSRFToken": getCsrfToken() || "",
+      },
     });
   } catch (error) {
     console.error("Server logout failed:", error);
@@ -177,7 +182,7 @@ export async function authenticatedRequest<T>(
   const options: RequestInit = {
     method,
     headers,
-    credentials: "include"
+    credentials: "include",
   };
 
   if (data && method !== "GET") {

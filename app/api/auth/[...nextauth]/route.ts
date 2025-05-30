@@ -4,7 +4,7 @@ import { NextAuthOptions } from "next-auth";
 import { setAuthToken, setUserData, UserData } from "@/app/services/auth";
 
 // Configure authentication options
-export const authOptions: NextAuthOptions = {
+const authOptions: NextAuthOptions = {
   // Configure one or more authentication providers
   providers: [
     GoogleProvider({
@@ -38,7 +38,6 @@ export const authOptions: NextAuthOptions = {
               user.email.split("@")[0],
             email: user.email,
             name: user.name || "",
-            profilePicture: user.image || "/images/avatar.png",
             profile_url: user.image || undefined,
           };
 

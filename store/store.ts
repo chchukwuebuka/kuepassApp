@@ -16,7 +16,8 @@ import loadingReducer from "./loadingSlice";
 import eventReducer from "./eventSlice";
 
 // Updated User interface to match SignupUser from backend
-interface User {
+export interface User {
+  id?: string; // or number, depending on your backend
   username: string; // Required (maxLength: 150, minLength: 1)
   email: string; // Required (maxLength: 254)
   phone_number?: string; // Optional (maxLength: 20)

@@ -1,53 +1,52 @@
+"use client";
 
-
-"use client"
-
-import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
-import { Roboto } from "next/font/google"
-import styles from "./styles.module.css"
-import Sidebar from "@/components/Sidebar"
-import TopBanner from "@/components/TopBanner"
-import StatsCard from "@/components/StatsCard"
-import UserTable from "@/components/UserTable"
-import Customization from "@/components/Customization"
-import TicketDashboard from "@/components/UserManagement"
-import Finance from "@/components/Finance"
-import { Stack, Loader, Center, Text } from "@mantine/core"
-import { authenticatedRequest } from "@/app/services/auth"
+import React from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { Roboto } from "next/font/google";
+import styles from "./styles.module.css";
+import Sidebar from "@/components/Sidebar";
+import TopBanner from "@/components/TopBanner";
+import StatsCard from "@/components/StatsCard";
+import UserTable from "@/components/UserTable";
+import Customization from "@/components/Customization";
+import TicketDashboard from "@/components/UserManagement";
+import Finance from "@/components/Finance";
+import { Stack, Loader, Center, Text } from "@mantine/core";
+import { authenticatedRequest } from "@/app/services/auth";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api"
+  "https://keupass-48c2ae65f897.herokuapp.com/api";
 
 interface Customization {
-  banner_url: string
-  card_color: string
+  banner_url: string;
+  card_color: string;
 }
 
 interface EventData {
-  id: string
-  title: string
-  start_date: string
-  end_date: string
-  banner_url: string
-  location: string
-  is_active: boolean
-  creator: { id: number; username: string }
-  customizations: Customization[]
+  id: string;
+  title: string;
+  start_date: string;
+  end_date: string;
+  banner_url: string;
+  location: string;
+  is_active: boolean;
+  creator: { id: number; username: string };
+  customizations: Customization[];
 }
 
 interface AttendeeData {
-  id: string
-  event: string
-  user: number | null
-  email: string
-  name: string
-  phone_number: string
-  registration_date: string
-  responses: any[]
-  is_validated: boolean
-  validated_at: string | null
+  id: string;
+  event: string;
+  user: number | null;
+  email: string;
+  name: string;
+  phone_number: string;
+  registration_date: string;
+  responses: any[];
+  is_validated: boolean;
+  validated_at: string | null;
 }
 
 type PageKey =
@@ -57,74 +56,74 @@ type PageKey =
   | "finance"
   | "store"
   | "support"
-  | "logout"
+  | "logout";
 
 const roboto = Roboto({
   subsets: ["latin"],
   weight: ["100", "300", "400", "500", "700", "900"],
-})
+});
 
 export default function Dashboard() {
-  const searchParams = useSearchParams()
-  const eventId = searchParams.get("eventId")
-  const [event, setEvent] = useState<EventData | null>(null)
-  const [registeredUsers, setRegisteredUsers] = useState<number>(0)
-  const [validatedUsers, setValidatedUsers] = useState<number>(0)
-  const [totalBalance, setTotalBalance] = useState<string>("₦0")
-  const [loading, setLoading] = useState<boolean>(false)
-  const [error, setError] = useState<string | null>(null)
-  const [activePage, setActivePage] = useState<PageKey>("overview")
+  const searchParams = useSearchParams();
+  const eventId = searchParams.get("eventId");
+  const [event, setEvent] = useState<EventData | null>(null);
+  const [registeredUsers, setRegisteredUsers] = useState<number>(0);
+  const [validatedUsers, setValidatedUsers] = useState<number>(0);
+  const [totalBalance, setTotalBalance] = useState<string>("₦0");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [activePage, setActivePage] = useState<PageKey>("overview");
 
   useEffect(() => {
     console.log("Dashboard eventId:", eventId); // Debug log
     if (!eventId) {
-      setEvent(null)
-      setRegisteredUsers(0)
-      setValidatedUsers(0)
-      setTotalBalance("₦0")
-      setLoading(false)
-      return
+      setEvent(null);
+      setRegisteredUsers(0);
+      setValidatedUsers(0);
+      setTotalBalance("₦0");
+      setLoading(false);
+      return;
     }
 
     const fetchEventData = async () => {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
       try {
         // Fetch event details
         const eventResponse = await authenticatedRequest<{ data: EventData }>(
           `${API_BASE_URL}/events/${eventId}/`,
           "GET"
-        )
-        setEvent(eventResponse.data)
+        );
+        setEvent(eventResponse.data);
 
         // Fetch attendees for the event
         const attendeesResponse = await authenticatedRequest<AttendeeData[]>(
           `${API_BASE_URL}/attendees/?event=${eventId}`,
           "GET"
-        )
-        const attendees = attendeesResponse || []
+        );
+        const attendees = attendeesResponse || [];
         console.log("Dashboard attendees:", attendees); // Debug log
-        setRegisteredUsers(attendees.length)
-        setValidatedUsers(0) // Placeholder until validation logic is added
+        setRegisteredUsers(attendees.length);
+        setValidatedUsers(0); // Placeholder until validation logic is added
 
-        setTotalBalance("₦0")
+        setTotalBalance("₦0");
       } catch (err: any) {
-        console.error("Failed to fetch data:", err)
-        setError(err.message || "Failed to load event or attendee data.")
+        console.error("Failed to fetch data:", err);
+        setError(err.message || "Failed to load event or attendee data.");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchEventData()
-  }, [eventId])
+    fetchEventData();
+  }, [eventId]);
 
   const handleNavClick = (pageKey: PageKey) => {
-    setActivePage(pageKey)
-  }
+    setActivePage(pageKey);
+  };
 
-  const contentMapping: Record<PageKey, JSX.Element> = {
+  const contentMapping: Record<PageKey, React.ReactElement> = {
     overview: (
       <>
         {loading ? (
@@ -145,8 +144,14 @@ export default function Dashboard() {
           </div>
         )}
         <div className={styles.statsGrid}>
-          <StatsCard title="Total Registered Users" value={registeredUsers.toString()} />
-          <StatsCard title="Total Validated Users" value={validatedUsers.toString()} />
+          <StatsCard
+            title="Total Registered Users"
+            value={registeredUsers.toString()}
+          />
+          <StatsCard
+            title="Total Validated Users"
+            value={validatedUsers.toString()}
+          />
           <StatsCard
             title="Total Balance"
             value={totalBalance}
@@ -158,7 +163,7 @@ export default function Dashboard() {
       </>
     ),
     customization: <Customization />,
-    userManagement: <TicketDashboard />,
+    userManagement: <TicketDashboard eventId={eventId || ""} />,
     finance: <Finance />,
     store: (
       <>
@@ -178,7 +183,7 @@ export default function Dashboard() {
         <p>You have been logged out.</p>
       </>
     ),
-  }
+  };
 
   return (
     <div>
@@ -189,5 +194,5 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }

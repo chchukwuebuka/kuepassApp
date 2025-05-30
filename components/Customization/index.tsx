@@ -202,7 +202,7 @@ const Customization: React.FC = () => {
         const m = new FormData();
         m.append("image", selectedFile);
         const up = await authenticatedRequest(
-          `${API_BASE_URL}/api/image-upload/`,
+          `${API_BASE_URL}/upload-image/`,
           "POST",
           m
         );

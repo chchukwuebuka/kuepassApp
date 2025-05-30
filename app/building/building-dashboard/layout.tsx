@@ -3,13 +3,14 @@ import Navbar from "@/components/navbar";
 import { Roboto } from "next/font/google";
 import styles from "./styles.module.css";
 import { Stack } from "@mantine/core";
+import type { ReactNode } from "react";
 
 const roboto = Roboto({
   subsets: ["latin"],
   weight: ["100", "300", "400", "500", "700", "900"],
 });
 
-export default function DashboardLayout({ children }) {
+export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <>
       <Stack className={styles.navStark}>
