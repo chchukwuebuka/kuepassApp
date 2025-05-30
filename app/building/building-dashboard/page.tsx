@@ -8,7 +8,7 @@ import MemberList from "@/components/building/MembersList";
 import Sidebar, { PageKey } from "@/components/building/SidebarD";
 import Appearance from "@/components/building/AppearanceStep";
 import MembersStep from "@/components/building/MembersStep";
-import DetailsStep from "@/components/building/DetailsStep"; 
+import DetailsStep from "@/components/building/DetailsStep";
 import Modal from "@/components/building/MembersList/membersStepModal";
 import InviteTable from "@/components/building/Invite";
 import InviteTables from "@/components/building/InviteTable";
@@ -89,7 +89,7 @@ export default function BuildDashboard() {
               <button
                 className={styles.appBTN}
                 onClick={() => {
-                  setModalStep(1); 
+                  setModalStep(1);
                   setShowEditModal(true);
                 }}
               >
@@ -98,7 +98,7 @@ export default function BuildDashboard() {
             </div>
             <Appearance
               title="Customization Settings"
-              address={["Address 1", "Address 2"]}
+              address={["Address 1", "Address 2"].join(", ")}
             />
             <div className={styles.SaveWrap}>
               <p>You have unsaved changes.</p>

@@ -1,6 +1,5 @@
-/* Container Styles */
+/* Container Styles
 .container {
-  /* min-height: 100vh; */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -17,7 +16,6 @@
   color: gray;
 }
 
-/* Form Section */
 .formContainer {
   display: flex;
   gap: 40px;
@@ -107,7 +105,6 @@
   padding-top: 10px;
 }
 
-/* Questions Section - NEW STYLES */
 .questionsSection {
   margin-top: 20px;
 }
@@ -126,8 +123,6 @@
 }
 
 .questionLabel {
-  font-weight: 500;
-  /* margin-bottom: 8px; */
   color: rgb(30, 89, 65);
 }
 
@@ -145,7 +140,6 @@
   color: inherit;
 }
 
-/* Summary Section */
 .summaryBox {
   width: 34rem;
   height: 100vh;
@@ -225,4 +219,433 @@
   flex-direction: column;
   align-items: center;
   margin-bottom: 20px;
+} */
+
+
+
+/* Container Styles */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #f9fafb;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #025a3a;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+/* Form Section */
+.formContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 2.5rem;
+  width: 100%;
+  max-width: 1100px;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .formContainer {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+.formBox {
+  flex: 3;
+  padding: 2rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background-color: white;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  max-width: 100%;
+  width: 100%;
+}
+
+.formBox:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.formBox1 {
+  display: flex;
+  justify-content: space-between;
+  background-color: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 12px;
+  gap: 1.5rem;
+  color: #025a3a;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  border: 1px solid #e9ecef;
+  position: relative;
+  overflow: hidden;
+}
+
+.formBox1::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background-color: #025a3a;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.formBox1:hover {
+  background-color: #e6f7f1;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(2, 90, 58, 0.1);
+}
+
+.formBox1:hover::before {
+  opacity: 1;
+}
+
+.formBox1.selected {
+  background-color: #025a3a;
+  color: white;
+  box-shadow: 0 8px 20px rgba(2, 90, 58, 0.2);
+  transform: translateY(-3px);
+}
+
+.formBox1.selected::before {
+  opacity: 1;
+  background-color: #fff;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #334155;
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.input:focus {
+  border-color: #025a3a;
+  box-shadow: 0 0 0 3px rgba(2, 90, 58, 0.1);
+  outline: none;
+}
+
+.inputPrice {
+  width: 150px;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #334155;
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.formBox1:hover .input,
+.formBox1.selected .input {
+  border-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: inherit;
+}
+
+.formBox1:hover .inputPrice,
+.formBox1.selected .inputPrice {
+  border-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: inherit;
+}
+
+.formBox1.selected .input,
+.formBox1.selected .inputPrice {
+  color: white;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.formPrice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 150px;
+}
+
+.separator {
+  border-top: 1px solid #e2e8f0;
+  margin: 2rem 0;
+  padding-top: 1rem;
+}
+
+/* Questions Section */
+.questionsSection {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.questionsSectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #025a3a;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e6f7f1;
+}
+
+.questionItem {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.questionLabel {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+.required {
+  color: #e53e3e;
+  margin-left: 0.25rem;
+}
+
+.questionInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #334155;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.questionInput:focus {
+  border-color: #025a3a;
+  box-shadow: 0 0 0 3px rgba(2, 90, 58, 0.1);
+  outline: none;
+}
+
+/* Summary Section */
+.summaryBox {
+  flex: 2;
+  height: auto;
+  min-height: 400px;
+  background: white;
+  padding: 2rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 100px;
+  max-width: 100%;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .summaryBox {
+    position: static;
+    margin-top: 2rem;
+    max-width: 600px;
+  }
+}
+
+.summaryTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  color: #025a3a;
+  margin-bottom: 2rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e6f7f1;
+}
+
+.summaryContent {
+  margin-top: 1.5rem;
+}
+
+.summaryItem {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.summaryTotal {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  border-top: 2px solid #e2e8f0;
+  padding-top: 1.5rem;
+  color: #025a3a;
+}
+
+.purchaseBtn {
+  width: 100%;
+  margin-top: 2rem;
+  background-color: #025a3a;
+  color: white;
+  height: 3.25rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(2, 90, 58, 0.2);
+}
+
+.purchaseBtn:hover {
+  background-color: #023825;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(2, 90, 58, 0.3);
+}
+
+.Btn {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.purchaseBtn:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.purchaseBtn:not(:disabled):hover {
+  background-color: #023825;
+}
+
+.noSelection {
+  text-align: center;
+  color: #64748b;
+  font-style: italic;
+  padding: 2rem 1rem;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border: 1px dashed #cbd5e1;
+}
+
+.phonNumber {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+  
+  .formBox, .summaryBox {
+    padding: 1.5rem;
+  }
+  
+  .formBox1 {
+    flex-direction: column;
+    padding: 1.25rem;
+  }
+  
+  .formPrice {
+    margin-left: 0;
+    margin-top: 1rem;
+    align-items: flex-start;
+  }
+  
+  .inputPrice {
+    width: 100%;
+  }
+  
+  .title {
+    font-size: 1.75rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+}
+
+/* Animation for selected ticket */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(2, 90, 58, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(2, 90, 58, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(2, 90, 58, 0);
+  }
+}
+
+.formBox1.selected {
+  animation: pulse 2s infinite;
+}
+
+/* Price tag styling */
+/* .formPrice::before {
+  content: 'PRICE';
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+} */
+
+.formBox1.selected .formPrice::before {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Enhance focus states for accessibility */
+.input:focus, 
+.inputPrice:focus, 
+.questionInput:focus,
+.purchaseBtn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(2, 90, 58, 0.3);
 }

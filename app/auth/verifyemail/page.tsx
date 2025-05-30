@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import { ReactNode } from "react";
 
 import { useState, useEffect } from "react";
 import {
@@ -19,8 +20,10 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { verifyEmail } from "@/app/services/api";
 import { setAuthToken, setUserData } from "@/app/services/auth";
+import type { UserData } from "@/app/services/auth";
 import { useDispatch } from "react-redux";
 import { login } from "@/store/store";
+import type { User } from "@/store/store";
 import { useForm } from "@mantine/form";
 
 const VerifyEmail = () => {
@@ -81,7 +84,7 @@ const VerifyEmail = () => {
         setVerified(true);
         setSuccess("Your email has been successfully verified!");
 
-        let userData;
+        let userData: UserData | undefined;
 
         // Handle new response structure
         if (response.data) {
@@ -95,12 +98,12 @@ const VerifyEmail = () => {
           if (user && user.email) {
             userData = {
               ...user,
-              // Handle username or extract from email if not available
               username: user.username || user.email.split("@")[0],
-              // Handle profile picture with both possible field names
               profilePicture:
-                user.profilePicture || user.profile_url || "/images/avatar.png",
-            };
+                (user as UserData).profilePicture ||
+                (user as UserData).profile_url ||
+                "/images/avatar.png",
+            } as UserData;
           }
         }
         // Handle legacy response structure for backward compatibility
@@ -110,10 +113,13 @@ const VerifyEmail = () => {
           if (response.user && response.user.email) {
             userData = {
               ...response.user,
-              // Handle username or extract from email if not available
               username:
                 response.user.username || response.user.email.split("@")[0],
-            };
+              profilePicture:
+                (response.user as UserData).profilePicture ||
+                (response.user as UserData).profile_url ||
+                "/images/avatar.png",
+            } as UserData;
           }
         }
 
@@ -121,11 +127,11 @@ const VerifyEmail = () => {
           setUserData(userData);
 
           // Create a properly typed user object for Redux
-          const user = {
-            name: userData.name || "", // Default if undefined
-            username: userData.username,
-            email: userData.email,
-            profilePicture: userData.profilePicture || "/images/avatar.png", // Default avatar
+          const user: User = {
+            name: userData.name || "",
+            username: userData.username || "",
+            email: userData.email || "",
+            profilePicture: userData.profilePicture || "/images/avatar.png",
           };
 
           dispatch(login(user));
