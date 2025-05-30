@@ -37,6 +37,7 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import styles from "./styles.module.css";
 import { clearAuth } from "@/app/services/auth";
+import { IconHelpCircle } from "@tabler/icons-react";
 
 const Navbar: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -75,19 +76,36 @@ const Navbar: React.FC = () => {
     router.push("/");
   };
 
+  // const navLinks = [
+  //   { href: "/", label: "Home", icon: <IconHome size={18} stroke={1.5} /> },
+  //   {
+  //     href: "/QuickaPass",
+  //     label: "About",
+  //     icon: <IconInfoCircle size={18} stroke={1.5} />,
+  //   },
+  //   {
+  //     href: "/events",
+  //     label: "Search Event",
+  //     icon: <IconCalendarEvent size={18} stroke={1.5} />,
+  //   },
+  // ];
+
   const navLinks = [
     { href: "/", label: "Home", icon: <IconHome size={18} stroke={1.5} /> },
+    // Removed "/about" link as per previous discussion
     {
-      href: "/about",
-      label: "About",
-      icon: <IconInfoCircle size={18} stroke={1.5} />,
-    },
-    {
-      href: "/events",
-      label: "Search Event",
+      href: "/#trending-events-section", // Link to the "Trending Events" section on the homepage
+      label: "Events", // Or "Trending Events" if you prefer
       icon: <IconCalendarEvent size={18} stroke={1.5} />,
     },
+    {
+      href: "/#why-kuepass-section", // Link to the section on the homepage
+      label: "Why Kuepass",
+      icon: <IconHelpCircle size={18} stroke={1.5} /> // Example icon
+    },
+    // Add any other actual links you have here
   ];
+  
 
   console.log("Navbar userInfo:", userInfo);
   console.log("Profile URL:", userInfo?.profile_url);

@@ -1103,9 +1103,10 @@ const SecondaryButton = styled(Button)`
   transition: all 0.3s ease;
   
   &:hover {
-    background-color: rgba(2, 90, 58, 0.05);
+    background-color: rgba(2, 90, 58, 0.02);
     transform: translateY(-3px);
     box-shadow: 0 10px 20px rgba(2, 90, 58, 0.1);
+    color: #025A3A;
   }
   
   &:active {
