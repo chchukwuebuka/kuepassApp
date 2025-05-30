@@ -1,3 +1,6 @@
+
+
+
 import React, { useState } from "react";
 import {
   Modal,
@@ -28,9 +31,7 @@ const TicketModal: React.FC<TicketModalProps> = ({
     price: 0,
     quantity: 0,
     type: "Paid",
-    // inviteEmail is optional and not set initially
   });
-
   const [isUnlimited, setIsUnlimited] = useState<boolean>(false);
 
   const handleTicketChange = (
@@ -53,7 +54,7 @@ const TicketModal: React.FC<TicketModalProps> = ({
         inviteEmail: value === "Invite" ? "" : prev.inviteEmail,
       }));
       if (value === "Invite") {
-        setIsUnlimited(false); 
+        setIsUnlimited(false);
       }
     } else {
       console.warn(`Unexpected ticket type: ${value}`);
@@ -62,18 +63,29 @@ const TicketModal: React.FC<TicketModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Validate inviteEmail if type is Invite
+    // Validate inputs
+    if (!newTicket.name) {
+      alert("Ticket name is required.");
+      return;
+    }
+    if (newTicket.type === "Paid" && (newTicket.price <= 0 || newTicket.price > 1000)) {
+      alert("Price must be between $0.01 and $1000.00 for paid tickets.");
+      return;
+    }
     if (newTicket.type === "Invite" && !newTicket.inviteEmail) {
       alert("Please enter an invite email.");
       return;
     }
-    addTicket(newTicket); // Pass the ticket without 'id'
+    if (newTicket.type !== "Invite" && !isUnlimited && newTicket.quantity <= 0) {
+      alert("Please enter a valid quantity or select Unlimited.");
+      return;
+    }
+    addTicket(newTicket);
     setNewTicket({ name: "", price: 0, quantity: 0, type: "Paid" });
-    setIsUnlimited(false); // Reset unlimited state
+    setIsUnlimited(false);
     closeModal();
   };
 
-  // Define parser and formatter with explicit types
   const priceParser = (value: string): string => {
     return value.replace(/\$\s?|(,*)/g, "");
   };
@@ -84,13 +96,10 @@ const TicketModal: React.FC<TicketModalProps> = ({
       : "$ ";
   };
 
-  // Function to toggle unlimited quantity
   const toggleUnlimited = () => {
     if (isUnlimited) {
-      // If currently unlimited, revert to 0 or previous value
       handleTicketChange("quantity", 0);
     } else {
-      // Set quantity to "Unlimited"
       handleTicketChange("quantity", "Unlimited");
     }
     setIsUnlimited(!isUnlimited);
@@ -101,18 +110,20 @@ const TicketModal: React.FC<TicketModalProps> = ({
       opened={isModalOpen}
       onClose={closeModal}
       aria-labelledby="create-ticket-modal"
-      title="Create a New Ticket" 
-      centered 
+      title="Create a New Ticket"
+      centered
     >
       <form onSubmit={handleSubmit}>
         <Stack spacing="md">
           {/* Ticket Name */}
           <TextInput
             label="Ticket Name"
-            placeholder="e.g., Regular Admission"
+            placeholder="e.g., General Admission"
             value={newTicket.name}
             onChange={(e) => handleTicketChange("name", e.target.value)}
             required
+            maxLength={255}
+            minLength={1}
             className={styles.textInput}
           />
 
@@ -133,24 +144,27 @@ const TicketModal: React.FC<TicketModalProps> = ({
             </Flex>
           </RadioGroup>
 
-          {/* Conditionally Render Price Input */}
-          {newTicket.type !== "Free" && newTicket.type !== "Invite" && (
+          {/* Price Input */}
+          {newTicket.type === "Paid" && (
             <NumberInput
               label="Price"
-              placeholder="e.g., 5000"
+              placeholder="e.g., 100.00"
               value={newTicket.price}
               onChange={(value: number | undefined) =>
                 handleTicketChange("price", value || 0)
               }
-              required={newTicket.type === "Paid"}
-              min={0}
+              required
+              min={0.01}
+              max={1000}
+              step={0.01}
+              precision={2}
               parser={priceParser}
               formatter={priceFormatter}
               className={styles.numberInput}
             />
           )}
 
-          {/* Conditionally Render Quantity Input with Unlimited Button */}
+          {/* Quantity Input */}
           {newTicket.type !== "Invite" && (
             <Flex className={styles.unlimited}>
               <div className={styles.btn}>
@@ -167,7 +181,6 @@ const TicketModal: React.FC<TicketModalProps> = ({
                   className={styles.numberInput}
                 />
               </div>
-
               <Button
                 type="button"
                 onClick={toggleUnlimited}
@@ -180,7 +193,7 @@ const TicketModal: React.FC<TicketModalProps> = ({
             </Flex>
           )}
 
-          {/* Conditionally Render Invite Email Input */}
+          {/* Invite Email Input */}
           {newTicket.type === "Invite" && (
             <TextInput
               label="Invite Email"
@@ -189,7 +202,7 @@ const TicketModal: React.FC<TicketModalProps> = ({
               onChange={(e) =>
                 handleTicketChange("inviteEmail", e.target.value)
               }
-              required={newTicket.type === "Invite"}
+              required
               className={styles.textInput}
             />
           )}

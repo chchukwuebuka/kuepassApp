@@ -1,6 +1,6 @@
 import { configureStore, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { useDispatch } from "react-redux";
-import storage from "redux-persist/lib/storage";
+import storage from "./customStorage";
 import {
   persistStore,
   persistReducer,
@@ -13,6 +13,7 @@ import {
 } from "redux-persist";
 import { PersistConfig } from "redux-persist";
 import loadingReducer from "./loadingSlice";
+import eventReducer from "./eventSlice";
 
 // Updated User interface to match SignupUser from backend
 interface User {
@@ -72,6 +73,7 @@ export const store = configureStore({
   reducer: {
     user: persistedUserReducer,
     loading: loadingReducer,
+    event: eventReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

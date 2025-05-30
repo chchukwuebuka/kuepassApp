@@ -1,70 +1,165 @@
-"use client";
-import { useState } from "react";
-import { Roboto } from "next/font/google";
-import styles from "./styles.module.css";
-import Sidebar from "@/components/Sidebar";
-import TopBanner from "@/components/TopBanner";
-import StatsCard from "@/components/StatsCard";
-import UserTable from "@/components/UserTable";
-import Navbar from "@/components/navbar";
-import Customization from "@/components/Customization";
-import TicketDashboard from "@/components/UserManagement";
-import Finance from "@/components/Finance";
-import { Stack } from "@mantine/core";
+
+
+"use client"
+
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
+import { Roboto } from "next/font/google"
+import styles from "./styles.module.css"
+import Sidebar from "@/components/Sidebar"
+import TopBanner from "@/components/TopBanner"
+import StatsCard from "@/components/StatsCard"
+import UserTable from "@/components/UserTable"
+import Customization from "@/components/Customization"
+import TicketDashboard from "@/components/UserManagement"
+import Finance from "@/components/Finance"
+import { Stack, Loader, Center, Text } from "@mantine/core"
+import { authenticatedRequest } from "@/app/services/auth"
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "https://keupass-48c2ae65f897.herokuapp.com/api"
+
+interface Customization {
+  banner_url: string
+  card_color: string
+}
+
+interface EventData {
+  id: string
+  title: string
+  start_date: string
+  end_date: string
+  banner_url: string
+  location: string
+  is_active: boolean
+  creator: { id: number; username: string }
+  customizations: Customization[]
+}
+
+interface AttendeeData {
+  id: string
+  event: string
+  user: number | null
+  email: string
+  name: string
+  phone_number: string
+  registration_date: string
+  responses: any[]
+  is_validated: boolean
+  validated_at: string | null
+}
 
 type PageKey =
   | "overview"
   | "customization"
-  |  "userManagement"
+  | "userManagement"
   | "finance"
   | "store"
   | "support"
-  | "logout";
+  | "logout"
 
 const roboto = Roboto({
   subsets: ["latin"],
   weight: ["100", "300", "400", "500", "700", "900"],
-});
+})
 
 export default function Dashboard() {
-  const [activePage, setActivePage] = useState<PageKey>("overview");
+  const searchParams = useSearchParams()
+  const eventId = searchParams.get("eventId")
+  const [event, setEvent] = useState<EventData | null>(null)
+  const [registeredUsers, setRegisteredUsers] = useState<number>(0)
+  const [validatedUsers, setValidatedUsers] = useState<number>(0)
+  const [totalBalance, setTotalBalance] = useState<string>("₦0")
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
+  const [activePage, setActivePage] = useState<PageKey>("overview")
+
+  useEffect(() => {
+    console.log("Dashboard eventId:", eventId); // Debug log
+    if (!eventId) {
+      setEvent(null)
+      setRegisteredUsers(0)
+      setValidatedUsers(0)
+      setTotalBalance("₦0")
+      setLoading(false)
+      return
+    }
+
+    const fetchEventData = async () => {
+      setLoading(true)
+      setError(null)
+
+      try {
+        // Fetch event details
+        const eventResponse = await authenticatedRequest<{ data: EventData }>(
+          `${API_BASE_URL}/events/${eventId}/`,
+          "GET"
+        )
+        setEvent(eventResponse.data)
+
+        // Fetch attendees for the event
+        const attendeesResponse = await authenticatedRequest<AttendeeData[]>(
+          `${API_BASE_URL}/attendees/?event=${eventId}`,
+          "GET"
+        )
+        const attendees = attendeesResponse || []
+        console.log("Dashboard attendees:", attendees); // Debug log
+        setRegisteredUsers(attendees.length)
+        setValidatedUsers(0) // Placeholder until validation logic is added
+
+        setTotalBalance("₦0")
+      } catch (err: any) {
+        console.error("Failed to fetch data:", err)
+        setError(err.message || "Failed to load event or attendee data.")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchEventData()
+  }, [eventId])
 
   const handleNavClick = (pageKey: PageKey) => {
-    setActivePage(pageKey);
-  };
+    setActivePage(pageKey)
+  }
 
   const contentMapping: Record<PageKey, JSX.Element> = {
     overview: (
       <>
-        <TopBanner />
+        {loading ? (
+          <Center style={{ height: "200px" }}>
+            <Loader size="xl" />
+          </Center>
+        ) : error ? (
+          <Center style={{ height: "200px" }}>
+            <Text color="red" size="xl">
+              {error}
+            </Text>
+          </Center>
+        ) : event ? (
+          <TopBanner event={event} />
+        ) : (
+          <div className={styles.placeholderBanner}>
+            <h2>Select an event to view details</h2>
+          </div>
+        )}
         <div className={styles.statsGrid}>
-          <StatsCard title="Total Registered Users" value="150" />
-          <StatsCard title="Total Validated Users" value="145" />
+          <StatsCard title="Total Registered Users" value={registeredUsers.toString()} />
+          <StatsCard title="Total Validated Users" value={validatedUsers.toString()} />
           <StatsCard
             title="Total Balance"
-            value="₦505,000"
+            value={totalBalance}
             btnValue="View Details"
             onClick={() => console.log("Total Balance button clicked!")}
           />
         </div>
-        <UserTable />
+        <UserTable eventId={eventId || ""} searchQuery="" filter="all" />
       </>
     ),
-    customization: (
-      <>
-      <Customization/>
-      </>
-    ),
-    userManagement: (
-      <>
-      <TicketDashboard/>
-      </>
-    ),
-    finance: (
-      <>
-       <Finance/>
-      </>
-    ),
+    customization: <Customization />,
+    userManagement: <TicketDashboard />,
+    finance: <Finance />,
     store: (
       <>
         <h1>Store</h1>
@@ -83,20 +178,16 @@ export default function Dashboard() {
         <p>You have been logged out.</p>
       </>
     ),
-  };
+  }
 
   return (
     <div>
-      <Stack className={styles.navStark}>
-        <Navbar />
-      </Stack>
       <div className={styles.dashboardLayout}>
-        {/* Sidebar receives activePage and callback */}
         <Sidebar activePage={activePage} onNavClick={handleNavClick} />
         <div className={`${styles.container} ${roboto.className}`}>
           <div className={styles.mainContent}>{contentMapping[activePage]}</div>
         </div>
       </div>
     </div>
-  );
+  )
 }

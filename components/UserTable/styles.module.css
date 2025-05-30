@@ -1,20 +1,29 @@
+
+
+/* Existing styles from the user */
 .tableContainer {
   background: white;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
 }
 
 .tableUser {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eaeaea;
 }
 
 .tableBTN {
   height: 40px;
   background-color: #025a3a;
   color: #ffffff;
-  width: 10.125rem;
+  width: auto;
+  min-width: 10.125rem;
   height: 2.75rem;
   padding: 12px 36px;
   gap: 8px;
@@ -22,37 +31,185 @@
   border: none;
   border: 1px #025a3a solid;
   font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tableBTN:hover {
   cursor: pointer;
   background-color: #023825;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(2, 90, 58, 0.2);
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
   width: 100%;
+  margin-top: 10px;
 }
 
 .trName {
   color: #0b101b;
-  text-align: center;
+  text-align: left;
   font-size: 16px;
   font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.trName:hover {
+  background-color: #f9fafb;
 }
 
 .th,
 .td {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eaeaea;
+  text-align: left;
 }
 
 .th {
   background: #f8f8f8;
   color: #0b101b;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .td {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  vertical-align: middle;
+}
+
+/* New enhanced styles */
+.tableUser h3 {
+  color: #025a3a;
+  font-size: 20px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerIcon {
+  color: #025a3a;
+}
+
+.attendeeCount {
+  margin-left: 10px;
+  background-color: #025a3a;
+  color: white;
+  font-weight: 500;
+}
+
+.refreshButton {
+  transition: transform 0.3s ease;
+}
+
+.refreshButton:hover {
+  transform: rotate(45deg);
+}
+
+.validBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-weight: 500;
+}
+
+.pendingBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-weight: 500;
+}
+
+.badgeIcon {
+  margin-right: 4px;
+}
+
+.loadingContainer {
+  padding: 20px 0;
+  min-height: 200px;
+}
+
+.emptyContainer {
+  padding: 40px 0;
+  text-align: center;
+}
+
+.viewMoreFooter {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
   padding-top: 10px;
+  border-top: 1px solid #eaeaea;
+}
+
+.viewMoreBtn {
+  background: none;
+  border: none;
+  color: #025a3a;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+}
+
+.viewMoreBtn:hover {
+  background-color: rgba(2, 90, 58, 0.1);
+  transform: translateY(-2px);
+}
+
+.btnIcon {
+  transition: transform 0.2s ease;
+}
+
+.viewMoreBtn:hover .btnIcon {
+  transform: translateY(2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .tableUser {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .tableUser > div:last-child {
+    align-self: flex-end;
+  }
+
+  .th,
+  .td {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 576px) {
+  .table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .tableBTN {
+    padding: 10px 20px;
+    min-width: 8rem;
+  }
 }

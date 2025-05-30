@@ -1,16 +1,15 @@
-import CreateEventForm from '@/components/CreateEventForm/EventForm'
-import React from 'react'
+import CreateEventForm from "@/components/CreateEventForm/EventForm";
+import ProtectedRoute from "@/app/components/ProtectedRoute";
+import React from "react";
 
-function CreatEventForm() {
+function CreateEventFormPage() {
   return (
-    <div>
-      <CreateEventForm/>
-    </div>
-  )
+    <ProtectedRoute>
+      <div>
+        <CreateEventForm />
+      </div>
+    </ProtectedRoute>
+  );
 }
 
-export default CreatEventForm
-
-
-
-      
+export default CreateEventFormPage;

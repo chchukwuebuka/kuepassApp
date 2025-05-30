@@ -3,7 +3,7 @@ export interface Ticket {
   id: string; // Unique identifier
   name: string;
   price: number;
-  quantity: number;
+  quantity: number | "Unlimited" | null;
   type: "Paid" | "Free" | "Invite";
   inviteEmail?: string;
 }
@@ -12,14 +12,17 @@ export interface EventFormData {
   title: string;
   description: string;
   location: "Virtual" | "Physical";
-  address?: string;
   startDate: string;
   startTime: string;
   endDate: string;
   endTime: string;
   tickets: Ticket[];
   appearance: string;
+  cardColor: string;
   questions: Question[];
+  address: string;
+  eventURL: string;
+  price: string;
 }
 
 export interface Question {

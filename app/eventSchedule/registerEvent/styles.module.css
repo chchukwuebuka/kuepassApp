@@ -28,7 +28,6 @@
 
 .formBox {
   width: 34rem;
-  height: 100vh;
   padding: 20px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
@@ -44,6 +43,8 @@
   color: rgb(30, 89, 65);
   cursor: pointer;
   transition: background-color 0.3s, color 0.3s;
+  margin-bottom: 20px;
+  width: 100%;
 }
 
 .formBox1:hover {
@@ -56,21 +57,10 @@
   color: white;
 }
 
-/* .formBox1:hover{
-      background-color: rgb(30,89,65);
-      color: #ffffff;
-    } */
-
 .formGroup {
   margin-top: 15px;
   margin-bottom: 10px;
 }
-
-/* .formGroup label {
-      display: block;
-      font-size: 14px;
-      font-weight: 500;
-    } */
 
 .input {
   width: 15.0625rem;
@@ -79,6 +69,7 @@
   border-radius: 5px;
   background-color: transparent;
   color: rgb(30, 89, 65);
+  margin-top: 20px;
 }
 
 .inputPrice {
@@ -116,9 +107,48 @@
   padding-top: 10px;
 }
 
+/* Questions Section - NEW STYLES */
+.questionsSection {
+  margin-top: 20px;
+}
+
+.questionsSectionTitle {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.questionItem {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.questionLabel {
+  font-weight: 500;
+  /* margin-bottom: 8px; */
+  color: rgb(30, 89, 65);
+}
+
+.required {
+  color: red;
+  margin-left: 2px;
+}
+
+.questionInput {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: transparent;
+  color: inherit;
+}
+
 /* Summary Section */
 .summaryBox {
-  width: 50%;
+  width: 34rem;
+  height: 100vh;
   background: white;
   padding: 20px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -188,4 +218,11 @@
   text-align: center;
   color: #666;
   font-style: italic;
+}
+
+.phonNumber {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
 }
