@@ -1,3 +1,5 @@
+
+
 // import React from "react";
 // import { Ticket } from "../../store/types"; 
 // import {
@@ -24,7 +26,6 @@
 //   handleTicketTypeChange,
 //   handleSendInvite,
 // }) => {
-//   // Function to format the price as currency
 //   const formatPrice = (price: number): string => {
 //     return new Intl.NumberFormat("en-US", {
 //       style: "currency",
@@ -70,9 +71,7 @@
 //                 />
 //               </div>
 
-//               {/* Ticket Actions Section */}
 //               <div className={styles.ticketActions}>
-//                 {/* Ticket Type Selection */}
 //                 <RadioGroup
 //                   onChange={(value: string) =>
 //                     handleTicketTypeChange(index, value)
@@ -80,10 +79,8 @@
 //                   size="xs"
 //                   className={styles.radioGroup}
 //                 >
-                  
 //                 </RadioGroup>
 
-//                 {/* Show Send Invite Button for Invite Tickets */}
 //                 {ticket.type === "Invite" && !ticket.inviteEmail && (
 //                   <Button
 //                     variant="outline"
@@ -99,7 +96,6 @@
 //           </Card>
 //         ))}
 
-//         {/* Add New Ticket Button */}
 //         <div className={styles.inputIMGcard}>
 //           <button
 //             type="button"
@@ -121,11 +117,9 @@
 // };
 
 // export default TicketsStep;
-  
-
 
 import React from "react";
-import { Ticket } from "../../store/types"; 
+import { Ticket } from "../../store/types";
 import {
   Card,
   Flex,
@@ -133,6 +127,7 @@ import {
   Text,
   Button,
   RadioGroup,
+  Radio,
   Stack,
 } from "@mantine/core";
 import styles from "./styles.module.css";
@@ -170,9 +165,9 @@ const TicketsStep: React.FC<TicketsStepProps> = ({
           >
             <Flex className={styles.inputFlex} align="flex-start">
               <div className={styles.inputFlex1}>
-                <Text>{ticket.name}</Text>
+                <Text>{ticket.name || "Unnamed Ticket"}</Text>
                 <Text size="sm" color="dimmed">
-                  {formatPrice(ticket.price)} 
+                  {formatPrice(ticket.price)}
                 </Text>
                 <Text size="sm" color="dimmed">
                   Type: {ticket.type}
@@ -197,12 +192,18 @@ const TicketsStep: React.FC<TicketsStepProps> = ({
 
               <div className={styles.ticketActions}>
                 <RadioGroup
+                  value={ticket.type}
                   onChange={(value: string) =>
                     handleTicketTypeChange(index, value)
                   }
                   size="xs"
                   className={styles.radioGroup}
                 >
+                  <Flex gap="xs">
+                    <Radio value="Paid" label="Paid" />
+                    <Radio value="Free" label="Free" />
+                    <Radio value="Invite" label="Invite" />
+                  </Flex>
                 </RadioGroup>
 
                 {ticket.type === "Invite" && !ticket.inviteEmail && (
@@ -210,7 +211,7 @@ const TicketsStep: React.FC<TicketsStepProps> = ({
                     variant="outline"
                     size="xs"
                     mt="sm"
-                    onClick={() => handleSendInvite(ticket.id)} 
+                    onClick={() => handleSendInvite(ticket.id)}
                   >
                     Send Invite
                   </Button>
