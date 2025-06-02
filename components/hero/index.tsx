@@ -1020,7 +1020,7 @@ const GradientWord = styled.span`
 
 const HighlightSpan = styled.span`
   position: relative;
-  color: #FF3D00;
+  color: #ebb734;
   display: inline-block;
   
   &::after {

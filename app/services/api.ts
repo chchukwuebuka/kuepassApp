@@ -264,4 +264,3 @@ export async function getUserProfile(): Promise<UserData> {
 
   return authenticatedRequest<UserData>(`${BASE_URL}/user/profile/`, "GET");
 }
-

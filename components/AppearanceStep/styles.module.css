@@ -1,4 +1,4 @@
-.formGroup {
+/* .formGroup {
       margin-bottom: 15px;
     }
     
@@ -180,4 +180,601 @@
       color: #4B5563;
       text-align: center;
       width: 24rem;
-    }
+    } */
+
+
+
+
+
+/* Main Container */
+.container {
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Section Headers */
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #025a3a;
+  margin-bottom: 0.5rem;
+}
+
+.sectionSubtitle {
+  color: #64748b;
+  font-size: 1.1rem;
+}
+
+/* Form Group */
+.formGroup {
+  margin-bottom: 2rem;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.required {
+  color: #e53e3e;
+  margin-left: 0.25rem;
+}
+
+/* Main Flex Layout - Keep in row on desktop */
+.flex {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  margin-top: 2rem;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* Preview Cards - Significantly increased width */
+.card {
+  width: 100%;
+  max-width: 550px;
+  min-width: 550px;
+  min-height: 600px;
+  border: 1px solid rgba(2, 90, 58, 0.1);
+  border-radius: 16px;
+  /* padding: 1.5rem; */
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+  box-shadow: 
+    0 10px 25px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(2, 90, 58, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 550px;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #025a3a 0%, #34d399 50%, #025a3a 100%);
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(2, 90, 58, 0.1);
+}
+
+.cardIMG {
+  height: 20px;
+  width: auto;
+  display: block;
+}
+
+.cardigm {
+  margin-top: 1rem;
+  border-radius: 8px;
+}
+
+.cardFlex {
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cardevent {
+  background-image: url('/images/osiite.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  width: 100%;
+  height: 220px;
+  margin-top: 1rem;
+  border-radius: 12px;
+  position: relative;
+  overflow: visible;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.bannerImage {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.description {
+  margin-top: 4rem;
+  padding: 1rem;
+  background: rgba(2, 90, 58, 0.02);
+  border-radius: 8px;
+  border-left: 4px solid #025a3a;
+}
+
+.eventsFlex{
+  align-items: center;
+  justify-content: center;
+  gap: 120px;
+}
+
+.cardDescription {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: #025a3a;
+}
+
+.cardText {
+  font-size: 0.875rem;
+  font-weight: 400;
+  margin: 0;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.cardDetails {
+  position: absolute;
+  right: 0rem;
+  bottom: -2rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-width: 140px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 60%;
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.cardCooking {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: right;
+  color: white;
+  margin-bottom: 0.25rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.cardAddress,
+.cardTime {
+  font-size: 0.75rem;
+  font-weight: 400;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0.125rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.cardCountdown {
+  margin-top: 1rem;
+  justify-content: center;
+  padding: 0.75rem;
+  background: rgba(2, 90, 58, 0.05);
+  border-radius: 8px;
+}
+
+/* Action Buttons */
+.flexQRSchedule {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
+.yourQR,
+.youSchedule {
+  color: #ffffff;
+  background-color: rgba(2, 90, 58, 0.8);
+  min-width: 120px;
+  height: 2.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 20px;
+  border: none;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(2, 90, 58, 0.3);
+}
+
+.yourQR:hover,
+.youSchedule:hover {
+  background-color: rgba(2, 90, 58, 1);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(2, 90, 58, 0.4);
+}
+
+/* Control Section */
+.eventsShow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 70px;
+  /* width: 100%; */
+  margin: 3rem 0;
+  padding: 2rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(2, 90, 58, 0.08);
+}
+
+.controlGroup {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.controlButton {
+  background: linear-gradient(135deg, #025a3a 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(2, 90, 58, 0.2);
+}
+
+.controlButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(2, 90, 58, 0.3);
+}
+
+.controlButton:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.switchContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(2, 90, 58, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(2, 90, 58, 0.1);
+}
+
+.switchLabel {
+  font-weight: 600;
+  color: #025a3a;
+  font-size: 0.9rem;
+}
+
+/* Color Selection */
+.eventColor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 2rem 0;
+  padding: 2rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(2, 90, 58, 0.08);
+}
+
+.textColor {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #025a3a;
+  text-align: center;
+}
+
+.colorGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+  gap: 1rem;
+  max-width: 400px;
+  width: 100%;
+}
+
+.colorOption {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 3px solid transparent;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.colorOption:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.colorOption.selected {
+  border-color: #025a3a;
+  transform: scale(1.15);
+  box-shadow: 0 8px 20px rgba(2, 90, 58, 0.3);
+}
+
+/* QR Modal */
+.QRflex {
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+}
+
+.QRflexText {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #64748b;
+}
+
+.modalTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #025a3a;
+  text-align: center;
+  width: 100%;
+}
+
+/* Preview Labels */
+.previewLabel {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #025a3a;
+  margin-bottom: 1rem;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  background: rgba(2, 90, 58, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(2, 90, 58, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 1300px) {
+  .card {
+    max-width: 500px;
+    min-width: 500px;
+    flex: 0 0 500px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .card {
+    max-width: 450px;
+    min-width: 450px;
+    flex: 0 0 450px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .card {
+    max-width: 400px;
+    min-width: 400px;
+    flex: 0 0 400px;
+  }
+  
+  .eventsShow {
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: stretch;
+  }
+  
+  .controlGroup {
+    justify-content: center;
+  }
+}
+
+/* Only stack cards on mobile screens */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+  
+  .flex {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  
+  .card {
+    max-width: 100%;
+    min-width: auto;
+    flex: none;
+    min-height: 450px;
+    padding: 1rem;
+  }
+  
+  .cardDetails {
+    position: static;
+    margin-top: 1rem;
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .cardCooking,
+  .cardAddress,
+  .cardTime {
+    text-align: left;
+  }
+  
+  .flexQRSchedule {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .yourQR,
+  .youSchedule {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .eventsShow {
+    padding: 1.5rem;
+  }
+  
+  .controlGroup {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .controlButton {
+    width: 100%;
+  }
+  
+  .colorGrid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .colorOption {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sectionTitle {
+    font-size: 1.75rem;
+  }
+  
+  .card {
+    padding: 0.75rem;
+    min-height: 400px;
+  }
+  
+  .cardevent {
+    height: 100px;
+  }
+  
+  .bannerImage {
+    height: 100px;
+  }
+  
+  .cardDetails {
+    padding: 0.5rem;
+  }
+  
+  .cardCooking {
+    font-size: 0.8rem;
+  }
+  
+  .cardAddress,
+  .cardTime {
+    font-size: 0.7rem;
+  }
+  
+  .yourQR,
+  .youSchedule {
+    height: 2.25rem;
+    font-size: 0.75rem;
+  }
+  
+  .eventsShow {
+    padding: 1rem;
+  }
+  
+  .textColor {
+    font-size: 1.1rem;
+  }
+  
+  .colorGrid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  
+  .colorOption {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+/* Animation for preview updates */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Loading states */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.loadingSpinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 50%;
+  border-top-color: #025a3a;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Focus states for accessibility */
+.controlButton:focus,
+.colorOption:focus,
+.yourQR:focus,
+.youSchedule:focus {
+  outline: 2px solid #025a3a;
+  outline-offset: 2px;
+}
+
+/* Hover effects for interactive elements */
+.card:hover .cardDetails {
+  transform: scale(1.02);
+}
+
+.card:hover .bannerImage {
+  transform: scale(1.05);
+}

@@ -1,4 +1,4 @@
-.stack {
+/* .stack {
   height: 20rem;
  position: relative;
  overflow: hidden;
@@ -179,4 +179,304 @@
  .groupFlex {
    width: 100%;
  }
-}  
+}   */
+
+
+
+.stack {
+  position: relative;
+  /* overflow: hidden; */
+  min-height: 400px;
+  background-color: #ffffff;
+  margin-top: 20px;
+  padding-top: 40px;
+  width: 100%;
+}
+
+.curve {
+  border-top-left-radius: 100% 40%;
+  border-top-right-radius: 100% 40%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 85%;
+  background-color: #043d37;
+  display: flex;
+  justify-content: center;
+}
+
+.stackEvent {
+  width: 100%;
+  max-width: 1200px;
+  color: #fff;
+  margin-top: 60px;
+  padding: 0 20px;
+  position: relative;
+}
+
+.spacingLg {
+  gap: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.textxlbold {
+  font-size: 28px;
+  font-weight: 700;
+  color: #043d37;
+  text-align: left;
+  bottom: 50px;
+  position: relative;
+
+  /* font-size: 28px;
+    font-weight: 700;
+    color: #043d37;
+    text-align: center;
+    bottom: 50px;
+    position: relative;
+    right: 440px; */
+}
+
+.buttonmd {
+  border: 1px #056348 solid;
+  color: #025a3a;
+  background-color: #ffffff;
+  width: 12.725rem;
+  height: 2.75rem;
+  padding: 12px 36px;
+  gap: 8px;
+  border-radius: 46px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.buttonmd:hover {
+  background-color: #e0f2f1;
+  color: #025a3a;
+}
+
+.kuepass {
+  margin-top: 10px;
+  height: auto;
+}
+
+.groupFlex {
+  display: flex;
+  align-items: center;
+}
+
+.footerFlex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+.buttonStack {
+  display: flex;
+  flex-direction: column;
+}
+
+.imageContainer {
+  width: 200px;
+  position: absolute;
+  right: 0;
+  /* bottom: 0; */
+  top: -130px;
+  /* z-index: 1000; */
+}
+
+.circularImage {
+  border: 5px solid #fff;
+  border-radius: 50%;
+  width: 100%;
+  height: auto;
+}
+
+.footerInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 80px;
+  flex-wrap: wrap;
+}
+
+.groupXs {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.socialButton {
+  background-color: transparent;
+  color: #fff;
+  font-size: 20px;
+  border: 1px #fff solid;
+  cursor: pointer;
+  transition: color 0.3s ease, background-color 0.3s ease;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.socialButton:hover {
+  color: #ccc;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.socialButton i {
+  pointer-events: none;
+}
+
+.Text {
+  font-size: 14px;
+  font-weight: 400;
+  padding-top: 10px;
+  text-align: center;
+}
+
+/* Tablet Styles */
+@media (max-width: 1024px) {
+  .footerInfo {
+    flex-direction: row;
+    gap: 20px;
+    align-items: center;
+    margin-top: 40px;
+  }
+  
+  /* .imageContainer {
+    width: 150px;
+    right: 20px;
+    bottom: 100px;
+  } */
+  
+  .stackEvent {
+    margin-top: 40px;
+  }
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+  .stack {
+    min-height: 500px;
+    padding-top: 20px;
+  }
+  
+  .curve {
+    height: 90%;
+    border-top-left-radius: 50% 20%;
+    border-top-right-radius: 50% 20%;
+  }
+  
+  .stackEvent {
+    max-width: 100%;
+    margin-top: 30px;
+  }
+  
+  .textxlbold {
+    font-size: 24px;
+    margin-bottom: 20px;
+    position: relative;
+    bottom: 40px;
+  }
+  
+  .footerFlex {
+    flex-direction: row;
+    gap: 30px;
+    padding-bottom: 220px; /* Make space for the image */
+  }
+  
+  .buttonStack {
+    width: 100%;
+    align-items: center;
+  }
+  
+  .buttonmd {
+    width: 80%;
+    max-width: 12.725rem;
+  }
+  
+  .imageContainer {
+    width: 180px;
+    position: absolute;
+    top: 90px;
+    right: 50%;
+    transform: translateX(50%);
+    bottom: 30px;
+  }
+
+  
+  
+  .footerInfo {
+    flex-direction: row;
+    gap: 20px;
+    margin-top: 30px;
+    text-align: center;
+  }
+  
+  .kuepass {
+    margin: 0 auto;
+  }
+  
+  .Text {
+    margin: 10px 0;
+    width: 100%;
+  }
+  
+  .groupFlex {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Small Mobile Styles */
+@media (max-width: 480px) {
+  .stack {
+    min-height: 550px;
+  }
+  
+  .curve {
+    height: 92%;
+  }
+  
+  .textxlbold {
+    font-size: 22px;
+    text-align: center;
+  }
+
+  .text{
+    width: 100%;
+  }
+  
+  .buttonmd {
+    width: 100%;
+    padding: 10px 20px;
+    font-size: 14px;
+    height: 2.5rem;
+  }
+  
+  .imageContainer {
+    width: 150px;
+    bottom: 50px;
+  }
+  
+  .footerFlex {
+    padding-bottom: 180px;
+  }
+  
+  .groupXs {
+    gap: 1rem;
+  }
+  
+  .socialButton {
+    width: 36px;
+    height: 36px;
+  }
+}

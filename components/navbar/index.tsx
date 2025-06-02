@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from "react";
@@ -76,20 +75,6 @@ const Navbar: React.FC = () => {
     router.push("/");
   };
 
-  // const navLinks = [
-  //   { href: "/", label: "Home", icon: <IconHome size={18} stroke={1.5} /> },
-  //   {
-  //     href: "/QuickaPass",
-  //     label: "About",
-  //     icon: <IconInfoCircle size={18} stroke={1.5} />,
-  //   },
-  //   {
-  //     href: "/events",
-  //     label: "Search Event",
-  //     icon: <IconCalendarEvent size={18} stroke={1.5} />,
-  //   },
-  // ];
-
   const navLinks = [
     { href: "/", label: "Home", icon: <IconHome size={18} stroke={1.5} /> },
     // Removed "/about" link as per previous discussion
@@ -101,11 +86,10 @@ const Navbar: React.FC = () => {
     {
       href: "/#why-kuepass-section", // Link to the section on the homepage
       label: "Why Kuepass",
-      icon: <IconHelpCircle size={18} stroke={1.5} /> // Example icon
+      icon: <IconHelpCircle size={18} stroke={1.5} />, // Example icon
     },
     // Add any other actual links you have here
   ];
-  
 
   console.log("Navbar userInfo:", userInfo);
   console.log("Profile URL:", userInfo?.profile_url);
@@ -192,7 +176,8 @@ const Navbar: React.FC = () => {
                               console.error(
                                 "Avatar image failed to load, using fallback"
                               );
-                              e.currentTarget.src = "https://via.placeholder.com/150";
+                              e.currentTarget.src =
+                                "https://via.placeholder.com/150";
                             },
                           }}
                         />
