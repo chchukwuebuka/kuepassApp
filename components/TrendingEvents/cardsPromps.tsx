@@ -1,8 +1,7 @@
-
 "use client";
 import React from "react";
 import styled from "styled-components";
-import { Card, Image, Text, Box, Badge, Group } from "@mantine/core";
+import { Card, Image, Text, Badge, Group } from "@mantine/core";
 import Link from "next/link";
 import { FaCalendar, FaUser, FaMapMarkerAlt, FaClock } from "react-icons/fa";
 
@@ -13,6 +12,7 @@ export interface EventCardProps {
   time: string;
   organizer: string;
   location: string;
+  address: string;
   category?: string;
   isFeatured?: boolean;
   eventId?: string;
@@ -25,10 +25,17 @@ const EventCard: React.FC<EventCardProps> = ({
   time,
   organizer,
   location,
+  address,
   category,
   isFeatured = false,
   eventId = "event-details",
 }) => {
+  // Compute the href for "View Details" button
+  const detailsHref =
+    eventId && eventId.startsWith("static-event-")
+      ? `/event-unavailable?title=${encodeURIComponent(title)}`
+      : `/eventSchedule/eventDetails/${eventId}`;
+
   return (
     <CardWrapper>
       <CardContent>
@@ -46,24 +53,30 @@ const EventCard: React.FC<EventCardProps> = ({
               <CalendarIcon />
               <MetaText>{date}</MetaText>
             </MetaItem>
-            
+
             <MetaItem>
               <TimeIcon />
               <MetaText>{time}</MetaText>
             </MetaItem>
-            
+
             <MetaItem>
               <OrganizerIcon />
               <MetaText>{organizer}</MetaText>
             </MetaItem>
-            
+
             <MetaItem>
               <LocationIcon />
               <MetaText>{location}</MetaText>
             </MetaItem>
+
+            <MetaItem>
+              <LocationIcon />
+              <MetaText>{address}</MetaText>
+            </MetaItem>
           </MetaInfo>
 
-          <StyledLink href="/eventunavailable">
+          {/* Updated StyledLink to use the same conditional logic */}
+          <StyledLink href={detailsHref}>
             <ViewDetailsButton>View Details</ViewDetailsButton>
           </StyledLink>
         </CardBody>
@@ -72,15 +85,16 @@ const EventCard: React.FC<EventCardProps> = ({
   );
 };
 
-// Styled Components with enhanced design
+// Styled Components
+
 const CardWrapper = styled.div`
   width: 300px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  
+
   &:hover {
     transform: translateY(-6px);
   }
-  
+
   @media (max-width: 576px) {
     width: 100%;
     max-width: 300px;
@@ -97,7 +111,7 @@ const CardContent = styled(Card)`
   overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.06);
   background-color: white;
-  
+
   &:hover {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   }
@@ -111,7 +125,7 @@ const ImageWrapper = styled.div`
 const CardImage = styled(Image)`
   transition: transform 0.5s ease;
   width: 100%;
-  
+
   ${CardContent}:hover & {
     transform: scale(1.05);
   }
@@ -224,13 +238,13 @@ const ViewDetailsButton = styled.button`
   cursor: pointer;
   transition: all 0.2s ease;
   margin-top: 0.5rem;
-  
+
   &:hover {
     background-color: #056348;
-    color: #FFF;
+    color: #fff;
     transform: translateY(-2px);
   }
-  
+
   &:active {
     transform: translateY(0);
   }

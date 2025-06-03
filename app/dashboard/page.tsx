@@ -75,7 +75,6 @@ export default function Dashboard() {
   const [activePage, setActivePage] = useState<PageKey>("overview");
 
   useEffect(() => {
-    console.log("Dashboard eventId:", eventId); // Debug log
     if (!eventId) {
       setEvent(null);
       setRegisteredUsers(0);
@@ -84,40 +83,69 @@ export default function Dashboard() {
       setLoading(false);
       return;
     }
-
+  
     const fetchEventData = async () => {
       setLoading(true);
       setError(null);
-
+  
       try {
-        // Fetch event details
+        // 1) Fetch the single event
         const eventResponse = await authenticatedRequest<{ data: EventData }>(
           `${API_BASE_URL}/events/${eventId}/`,
           "GET"
         );
         setEvent(eventResponse.data);
-
-        // Fetch attendees for the event
-        const attendeesResponse = await authenticatedRequest<AttendeeData[]>(
+  
+        // 2) Fetch all attendees (the endpoint is returning everyone, not just this event)
+        const attendeesResponse = await authenticatedRequest<any>(
           `${API_BASE_URL}/attendees/?event=${eventId}`,
           "GET"
         );
-        const attendees = attendeesResponse || [];
-        console.log("Dashboard attendees:", attendees); // Debug log
-        setRegisteredUsers(attendees.length);
-        setValidatedUsers(0); // Placeholder until validation logic is added
-
+  
+        // 3) Extract the array (could be wrapped in data or results)
+        let allAttendees: AttendeeData[] = [];
+        if (Array.isArray(attendeesResponse)) {
+          allAttendees = attendeesResponse;
+        } else if (Array.isArray(attendeesResponse.data)) {
+          allAttendees = attendeesResponse.data;
+        } else if (Array.isArray(attendeesResponse.results)) {
+          allAttendees = attendeesResponse.results;
+        } else {
+          console.warn(
+            "Unable to find attendees array in response, defaulting to empty",
+            attendeesResponse
+          );
+          allAttendees = [];
+        }
+  
+        // 4) Filter down to only those whose `event` property exactly matches our eventId
+        const filteredForThisEvent = allAttendees.filter(
+          (att) => att.event === eventId
+        );
+  
+        // 5) Now count how many remain after filtering
+        setRegisteredUsers(filteredForThisEvent.length);
+  
+        // 6) If you also need “validated” count, filter again on is_validated
+        const validatedCount = filteredForThisEvent.filter(
+          (att) => att.is_validated
+        ).length;
+        setValidatedUsers(validatedCount);
+  
+        // 7) (Optional) Total balance logic goes here; for now we leave it as ₦0
         setTotalBalance("₦0");
       } catch (err: any) {
-        console.error("Failed to fetch data:", err);
-        setError(err.message || "Failed to load event or attendee data.");
+        console.error("Failed to fetch event or attendees:", err);
+        setError(err.message || "Could not load event/attendee data.");
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchEventData();
   }, [eventId]);
+  
+  
 
   const handleNavClick = (pageKey: PageKey) => {
     setActivePage(pageKey);
