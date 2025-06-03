@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -58,8 +57,9 @@ const Customization: React.FC = () => {
     eventURL: "",
     price: "0.00",
   });
-  const [initialFormData, setInitialFormData] =
-    useState<EventFormData | null>(null);
+  const [initialFormData, setInitialFormData] = useState<EventFormData | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -92,7 +92,11 @@ const Customization: React.FC = () => {
         { headers: { "Cache-Control": "no-cache" } }
       );
       console.log("Raw customization response:", cuRes);
-      const list = Array.isArray(cuRes.data) ? cuRes.data : Array.isArray(cuRes) ? cuRes : [];
+      const list = Array.isArray(cuRes.data)
+        ? cuRes.data
+        : Array.isArray(cuRes)
+        ? cuRes
+        : [];
       const existing = list.length > 0 ? list[0] : null;
       console.log("Existing customization:", existing);
 
@@ -111,11 +115,16 @@ const Customization: React.FC = () => {
       const customCardColor = existing?.card_color;
       const eventCardColor = event.customization?.card_color;
       const backendCardColor = customCardColor || eventCardColor || "#025a3a";
-      const cardColor = isValidHex(backendCardColor) ? backendCardColor : "#025a3a";
+      const cardColor = isValidHex(backendCardColor)
+        ? backendCardColor
+        : "#025a3a";
       console.log(
-        "Custom card_color:", customCardColor,
-        "Event card_color:", eventCardColor,
-        "Selected cardColor:", cardColor
+        "Custom card_color:",
+        customCardColor,
+        "Event card_color:",
+        eventCardColor,
+        "Selected cardColor:",
+        cardColor
       );
 
       // Build formData
@@ -131,10 +140,12 @@ const Customization: React.FC = () => {
         endDate: end.toISOString().slice(0, 10) || "",
         endTime: end.toTimeString().slice(0, 5) || "",
         tickets: event.tickets || [],
-        appearance: existing?.banner_url || event.banner_url || DEFAULT_BANNER_URL,
+        appearance:
+          existing?.banner_url || event.banner_url || DEFAULT_BANNER_URL,
         cardColor,
         questions: event.questions || [],
-        eventURL: event.event_url || `${window.location.origin}/events/${eventId}`,
+        eventURL:
+          event.event_url || `${window.location.origin}/events/${eventId}`,
         price: event.price?.toString() || "0.00",
       };
 
@@ -255,7 +266,9 @@ const Customization: React.FC = () => {
           customizationPayload
         );
         console.log("Customization POST response:", customizationResponse);
-        setCustomizationId(customizationResponse.data?.id || customizationResponse.id);
+        setCustomizationId(
+          customizationResponse.data?.id || customizationResponse.id
+        );
       }
 
       // Update Redux
@@ -348,12 +361,7 @@ const Customization: React.FC = () => {
         closeOnClickOutside={!isLoading}
       >
         <Stack>
-          {isLoading ? (
-            <div className={styles.loadingContainer}>
-              <Loader />
-              <Text>Loading...</Text>
-            </div>
-          ) : error ? (
+          {error ? (
             <Alert
               icon={<AlertCircle />}
               title="Error"
@@ -371,6 +379,12 @@ const Customization: React.FC = () => {
             >
               Saved!
             </Alert>
+          ) : null}
+          {isLoading ? (
+            <div className={styles.loadingContainer}>
+              <Loader />
+              <Text>Loading...</Text>
+            </div>
           ) : (
             <>
               <Tabs

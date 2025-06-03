@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import { useEffect, useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import {
   Center,
   Text,
@@ -10,85 +10,334 @@ import {
   Button,
   Group,
   Loader,
-} from "@mantine/core"; // Added Loader import
-import Link from "next/link";
+  Stack,
+  ThemeIcon,
+  Box,
+  Badge,
+  Divider,
+  Card,
+  Grid,
+  Anchor,
+  Container,
+  Timeline,
+} from "@mantine/core"
+import {
+  IconCheck,
+  IconHome,
+  IconMail,
+  IconCalendarEvent,
+  IconTicket,
+  IconCreditCard,
+  IconClock,
+} from "@tabler/icons-react"
+import Link from "next/link"
 
 function PaymentSuccessContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const [reference, setReference] = useState<string | null>(null);
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const [reference, setReference] = useState<string | null>(null)
 
   useEffect(() => {
-    const ref = searchParams.get("reference");
-    const stat = searchParams.get("status");
+    const ref = searchParams.get("reference")
+    const stat = searchParams.get("status")
 
-    setReference(ref);
+    setReference(ref)
 
     if (stat === "success") {
-      console.log("Payment successful for reference:", ref);
-      // You could potentially fetch more order details here using the reference if needed
-      // Or clear cart, etc.
-
-      // Optional: Redirect to a main page or user dashboard after a few seconds
-      // const timer = setTimeout(() => {
-      //   router.push('/'); // Redirect to homepage
-      // }, 5000); // 5 seconds
-      // return () => clearTimeout(timer);
+      console.log("Payment successful for reference:", ref)
     } else {
-      // Handle cases where status might not be 'success' even on this page (shouldn't happen if backend routes correctly)
-      console.warn(
-        "Landed on success page, but status is not 'success':",
-        stat
-      );
+      console.warn("Landed on success page, but status is not 'success':", stat)
     }
-  }, [searchParams, router]);
+  }, [searchParams, router])
+
+  const nextSteps = [
+    {
+      icon: IconMail,
+      title: "Check Your Email",
+      description: "Confirmation details sent",
+      color: "blue",
+    },
+    {
+      icon: IconTicket,
+      title: "Download Ticket",
+      description: "Get your event ticket",
+      color: "green",
+    },
+    {
+      icon: IconCalendarEvent,
+      title: "Add to Calendar",
+      description: "Don't miss the event",
+      color: "violet",
+    },
+  ]
 
   return (
-    <Center style={{ minHeight: "80vh", padding: "20px" }}>
-      <Paper
-        shadow="md"
-        p="xl"
-        radius="md"
-        withBorder
-        style={{ maxWidth: "500px", width: "100%" }}
-      >
-        <Title order={2} ta="center" mb="lg" c="green">
-          Payment Successful!
-        </Title>
-        <Text ta="center" mb="md">
-          Thank you for your payment. Your registration has been confirmed.
-        </Text>
-        {reference && (
-          <Text ta="center" c="dimmed" size="sm" mb="xl">
-            Transaction Reference: {reference}
-          </Text>
-        )}
-        <Text ta="center" mb="xl">
-          You should receive a confirmation email shortly.
-        </Text>
-        <Group justify="center">
-          <Button component={Link} href="/" variant="light">
-            Go to Homepage
-          </Button>
-          {/* You can add a link to view their event registrations or tickets */}
-          {/* <Button component={Link} href="/my-events">View My Events</Button> */}
-        </Group>
-      </Paper>
-    </Center>
-  );
+    <Box
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #51cf66 0%, #40c057 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "1rem",
+      }}
+    >
+      <Container size="md" style={{ width: "100%" }}>
+        <Paper
+          shadow="xl"
+          radius="xl"
+          p={{ base: "md", sm: "xl", md: "2rem" }}
+          style={{
+            background: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(10px)",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* Decorative elements */}
+          <Box
+            style={{
+              position: "absolute",
+              top: "-50px",
+              right: "-50px",
+              width: "100px",
+              height: "100px",
+              background: "linear-gradient(45deg, #51cf66, #40c057)",
+              borderRadius: "50%",
+              opacity: 0.1,
+              zIndex: 0,
+            }}
+          />
+          <Box
+            style={{
+              position: "absolute",
+              bottom: "-30px",
+              left: "-30px",
+              width: "60px",
+              height: "60px",
+              background: "linear-gradient(45deg, #69db7c, #51cf66)",
+              borderRadius: "50%",
+              opacity: 0.1,
+              zIndex: 0,
+            }}
+          />
+
+          <Stack gap="xl" style={{ position: "relative", zIndex: 1 }}>
+            {/* Header */}
+            <Center>
+              <ThemeIcon
+                size={80}
+                radius="xl"
+                variant="gradient"
+                gradient={{ from: "green", to: "teal" }}
+                style={{
+                  boxShadow: "0 8px 32px rgba(81, 207, 102, 0.3)",
+                }}
+              >
+                <IconCheck size={40} />
+              </ThemeIcon>
+            </Center>
+
+            <Stack gap="md" align="center">
+              <Badge
+                size="lg"
+                variant="light"
+                color="green"
+                radius="xl"
+                style={{
+                  textTransform: "none",
+                  fontSize: "0.875rem",
+                  padding: "0.5rem 1rem",
+                }}
+              >
+                Payment Successful
+              </Badge>
+
+              <Title
+                order={1}
+                ta="center"
+                size={{ base: "h2", sm: "h1" }}
+                style={{
+                  background: "linear-gradient(45deg, #51cf66, #40c057)",
+                  backgroundClip: "text",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  fontWeight: 700,
+                  lineHeight: 1.2,
+                }}
+              >
+                Payment Complete!
+              </Title>
+
+              <Text ta="center" size="lg" c="dark.6" maw={500} style={{ lineHeight: 1.6 }}>
+                Thank you for your payment. Your registration has been confirmed and you're all set for the event!
+              </Text>
+            </Stack>
+
+            {/* Transaction Details */}
+            {reference && (
+              <Card
+                padding="lg"
+                radius="lg"
+                style={{
+                  background: "rgba(81, 207, 102, 0.05)",
+                  border: "1px solid rgba(81, 207, 102, 0.2)",
+                }}
+              >
+                <Group gap="md" align="center">
+                  <ThemeIcon size={40} radius="xl" variant="light" color="green">
+                    <IconCreditCard size={20} />
+                  </ThemeIcon>
+                  <Box style={{ flex: 1 }}>
+                    <Text size="sm" c="dimmed">
+                      Transaction Reference
+                    </Text>
+                    <Text fw={600} style={{ fontFamily: "monospace" }}>
+                      {reference}
+                    </Text>
+                  </Box>
+                  <Group gap="xs">
+                    <IconClock size={16} color="#51cf66" />
+                    <Text size="sm" c="green">
+                      Completed
+                    </Text>
+                  </Group>
+                </Group>
+              </Card>
+            )}
+
+            {/* What's Next Timeline */}
+            <Box>
+              <Text fw={600} size="lg" mb="md" ta="center">
+                What happens next?
+              </Text>
+              <Timeline active={0} bulletSize={24} lineWidth={2} color="green">
+                <Timeline.Item bullet={<IconMail size={12} />} title="Confirmation Email">
+                  <Text c="dimmed" size="sm">
+                    You'll receive a confirmation email with your ticket and event details within the next few minutes.
+                  </Text>
+                </Timeline.Item>
+                <Timeline.Item bullet={<IconTicket size={12} />} title="Event Access">
+                  <Text c="dimmed" size="sm">
+                    Your ticket will include QR codes and access instructions for the event.
+                  </Text>
+                </Timeline.Item>
+                <Timeline.Item bullet={<IconCalendarEvent size={12} />} title="Event Day">
+                  <Text c="dimmed" size="sm">
+                    Present your ticket at the event entrance or use the provided access link for virtual events.
+                  </Text>
+                </Timeline.Item>
+              </Timeline>
+            </Box>
+
+            <Divider
+              label="Quick Actions"
+              labelPosition="center"
+              style={{
+                "& .mantine-Divider-label": {
+                  fontSize: "0.875rem",
+                  fontWeight: 500,
+                  color: "#495057",
+                },
+              }}
+            />
+
+            {/* Quick Actions */}
+            <Grid gutter="md">
+              {nextSteps.map((step, index) => (
+                <Grid.Col key={index} span={{ base: 12, sm: 4 }}>
+                  <Card
+                    padding="lg"
+                    radius="lg"
+                    style={{
+                      transition: "all 0.3s ease",
+                      cursor: "pointer",
+                      border: "1px solid #e9ecef",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
+                        boxShadow: "0 8px 25px rgba(0, 0, 0, 0.1)",
+                      },
+                    }}
+                  >
+                    <Stack gap="sm" align="center">
+                      <ThemeIcon size={50} radius="xl" variant="light" color={step.color}>
+                        <step.icon size={24} />
+                      </ThemeIcon>
+                      <Text fw={600} ta="center" size="sm">
+                        {step.title}
+                      </Text>
+                      <Text size="xs" c="dimmed" ta="center">
+                        {step.description}
+                      </Text>
+                    </Stack>
+                  </Card>
+                </Grid.Col>
+              ))}
+            </Grid>
+
+            {/* Action Buttons */}
+            <Group justify="center" gap="md">
+              <Button
+                component={Link}
+                href="/"
+                variant="light"
+                leftSection={<IconHome size={16} />}
+                radius="xl"
+                size="md"
+              >
+                Go to Homepage
+              </Button>
+              <Button
+                component={Link}
+                href="/my-events"
+                variant="gradient"
+                gradient={{ from: "green", to: "teal" }}
+                leftSection={<IconTicket size={16} />}
+                radius="xl"
+                size="md"
+                style={{
+                  boxShadow: "0 4px 15px rgba(81, 207, 102, 0.3)",
+                }}
+              >
+                View My Events
+              </Button>
+            </Group>
+
+            {/* Footer */}
+            <Stack gap="xs" align="center">
+              <Text size="sm" c="dimmed" ta="center">
+                Need help or have questions about your registration?
+              </Text>
+              <Group gap="xs">
+                <Anchor href="mailto:support@yourapp.com" size="sm">
+                  Contact Support
+                </Anchor>
+                <Text size="sm" c="dimmed">
+                  •
+                </Text>
+                <Anchor href="/help" size="sm">
+                  Help Center
+                </Anchor>
+              </Group>
+            </Stack>
+          </Stack>
+        </Paper>
+      </Container>
+    </Box>
+  )
 }
 
 export default function PaymentSuccessPage() {
-  // Suspense is required by Next.js when using useSearchParams in a page component directly
   return (
     <Suspense
       fallback={
-        <Center style={{ height: "80vh" }}>
-          <Loader />
+        <Center style={{ height: "100vh" }}>
+          <Loader size="lg" />
         </Center>
       }
     >
       <PaymentSuccessContent />
     </Suspense>
-  );
+  )
 }

@@ -1,4 +1,4 @@
-.ticketStack {
+/* .ticketStack {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -40,4 +40,388 @@
   font-size: 12px;
   font-weight: 20px;
   margin-top: 6px;
+} */
+
+
+/* Main Container */
+.ticketStack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Section Header */
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #025a3a;
+  margin-bottom: 0.5rem;
+}
+
+.sectionSubtitle {
+  color: #64748b;
+  font-size: 1.1rem;
+}
+
+/* Ticket Card */
+.card {
+  width: 100%;
+  max-width: 800px;
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(2, 90, 58, 0.1);
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.05),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #025a3a 0%, #34d399 50%, #025a3a 100%);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 10px 25px rgba(0, 0, 0, 0.1),
+    0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Card Content Layout */
+.inputFlex {
+  width: 100%;
+  gap: 1.5rem;
+}
+
+.inputFlex1 {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ticketHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.ticketName {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0;
+}
+
+.ticketPrice {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #025a3a;
+  background: linear-gradient(135deg, #025a3a 0%, #059669 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ticketDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ticketDetail {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.ticketDetail::before {
+  content: '•';
+  color: #025a3a;
+  font-weight: bold;
+}
+
+/* Ticket Actions */
+.ticketActions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-end;
+  min-width: 200px;
+}
+
+.radioGroup {
+  background: rgba(2, 90, 58, 0.05);
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 1px solid rgba(2, 90, 58, 0.1);
+}
+
+.menuButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.menuButton:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Add Ticket Card */
+.inputIMGcard {
+  width: 100%;
+  max-width: 300px;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px dashed #025a3a;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.inputIMGcard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(2, 90, 58, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.inputIMGcard:hover::before {
+  left: 100%;
+}
+
+.inputIMGcard:hover {
+  transform: translateY(-4px);
+  background: linear-gradient(135deg, #e6f7f1 0%, #d1f2eb 100%);
+  border-color: #059669;
+  box-shadow: 0 8px 20px rgba(2, 90, 58, 0.15);
+}
+
+.addButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 1rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #025a3a 0%, #059669 100%);
+  box-shadow: 0 4px 12px rgba(2, 90, 58, 0.3);
+}
+
+.addButton:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(2, 90, 58, 0.4);
+}
+
+.inputIMG {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  filter: brightness(0) invert(1);
+}
+
+.inputText {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  color: #025a3a;
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
+/* Invite Button */
+.inviteButton {
+  background: linear-gradient(135deg, #025a3a 0%, #059669 100%);
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(2, 90, 58, 0.2);
+}
+
+.inviteButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(2, 90, 58, 0.3);
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #64748b;
+}
+
+.emptyStateIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.emptyStateText {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.emptyStateSubtext {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .ticketStack {
+    padding: 0.5rem;
+    gap: 1rem;
+  }
+  
+  .sectionTitle {
+    font-size: 1.75rem;
+  }
+  
+  .sectionSubtitle {
+    font-size: 1rem;
+  }
+  
+  .card {
+    margin: 0 0.5rem;
+  }
+  
+  .inputFlex {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .ticketActions {
+    align-items: stretch;
+    min-width: auto;
+  }
+  
+  .ticketHeader {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+  
+  .ticketPrice {
+    font-size: 1.25rem;
+  }
+  
+  .radioGroup {
+    width: 100%;
+  }
+  
+  .inputIMGcard {
+    max-width: 100%;
+    margin: 0 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .ticketStack {
+    padding: 0.25rem;
+  }
+  
+  .card {
+    margin: 0 0.25rem;
+    padding: 1rem;
+  }
+  
+  .sectionTitle {
+    font-size: 1.5rem;
+  }
+  
+  .ticketName {
+    font-size: 1.1rem;
+  }
+  
+  .ticketPrice {
+    font-size: 1.1rem;
+  }
+  
+  .ticketDetail {
+    font-size: 0.8rem;
+  }
+  
+  .inputText {
+    font-size: 0.75rem;
+  }
+  
+  .inputIMG {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* Animation for new tickets */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Focus states for accessibility */
+.addButton:focus,
+.menuButton:focus,
+.inviteButton:focus {
+  outline: 2px solid #025a3a;
+  outline-offset: 2px;
+}
+
+/* Loading state */
+.loadingCard {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }

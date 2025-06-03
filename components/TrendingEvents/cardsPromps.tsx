@@ -1,106 +1,3 @@
-// "use client";
-// import React from "react";
-// import styled from "styled-components";
-// import { Card, Image, Text, Group, Button, Box } from "@mantine/core";
-// import Link from "next/link";
-
-// interface EventCardProps {
-//   image: string;
-//   title: string;
-//   date: string;
-//   time: string;
-//   organizer: string;
-//   location: string;
-// }
-
-// const EventCard: React.FC<EventCardProps> = ({
-//   image,
-//   title,
-//   date,
-//   time,
-//   organizer,
-//   location,
-// }) => {
-//   return (
-//     <StyledCard>
-//       <Card.Section>
-//         <StyledImage src={image} alt={title} />
-//       </Card.Section>
-
-//       <Group position="apart" mt="md" mb="xs">
-//         <CardTitle>{title}</CardTitle>
-//       </Group>
-
-//       <Text size="sm" color="dimmed">
-//         📅 {date}, {time}
-//       </Text>
-//       <Text size="sm" color="dimmed">
-//         📺 {organizer}
-//       </Text>
-//       <Text size="sm" color="dimmed">
-//         📍 {location}
-//       </Text>
-
-//       <Box mt="md">
-//         <StyledLink href="/eventSchedule/events">
-//           <LightButton>View Details</LightButton>
-//         </StyledLink>
-//       </Box>
-//     </StyledCard>
-//   );
-// };
-
-// export default EventCard;
-
-// // Styled Components
-
-// // Styled Card replacing .card
-// const StyledCard = styled(Card)`
-//   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-//   padding: 16px;
-//   border-radius: 8px;
-//   border: 1px solid #ddd;
-//   width: 260px;
-//   background-color: #fff;
-// `;
-
-// const StyledImage = styled(Image)`
-//   /* Add any specific styles if .cardIMG had styles */
-// `;
-
-// // Styled Text replacing .cardTitle
-// const CardTitle = styled(Text)`
-//   font-size: 16px;
-//   font-weight: 500;
-//   color: #000000;
-// `;
-
-// // Styled Button replacing .lightButton
-// const LightButton = styled(Button)`
-//   background-color: #ebf8ff;
-//   color: rgb(164, 150, 255);
-//   border: none;
-//   border-radius: 8px;
-//   width: 100%;
-//   margin-top: 16px;
-//   padding: 10px 16px;
-//   cursor: pointer;
-//   text-align: center;
-//   font-size: 16px;
-
-//   /* Optional: Add hover effects */
-//   &:hover {
-//     background-color: #d6eaff;
-//     color: skyblue;
-//   }
-// `;
-
-// // Styled Link (optional: to remove default link styles)
-// const StyledLink = styled(Link)`
-//   text-decoration: underline;
-//   display: block; /* Ensure it occupies full width if needed */
-// `;
-
 
 "use client";
 import React from "react";
@@ -166,7 +63,7 @@ const EventCard: React.FC<EventCardProps> = ({
             </MetaItem>
           </MetaInfo>
 
-          <StyledLink href="/eventSchedule/events">
+          <StyledLink href="/eventunavailable">
             <ViewDetailsButton>View Details</ViewDetailsButton>
           </StyledLink>
         </CardBody>

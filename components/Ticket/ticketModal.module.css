@@ -1,4 +1,4 @@
-.textInput {
+/* .textInput {
       margin-top: 30px;
     }
     
@@ -63,4 +63,434 @@
     .unlimitedButton:hover{
       color: #025a3a;
       background-color: transparent;
-    }
+    } */
+
+
+
+
+    /* Modal Content Styling */
+.modalContent {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+  border-radius: 16px;
+}
+
+/* Form Section Styling */
+.formSection {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(2, 90, 58, 0.08);
+  transition: all 0.3s ease;
+}
+
+.formSection:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #025a3a;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e6f7f1;
+}
+
+/* Input Styling */
+.textInput {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.textInput input {
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background-color: #fff;
+}
+
+.textInput input:focus {
+  border-color: #025a3a;
+  box-shadow: 0 0 0 3px rgba(2, 90, 58, 0.1);
+}
+
+.textInput input:hover {
+  border-color: #cbd5e0;
+}
+
+.textInput label {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* Number Input Styling */
+.numberInput {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.numberInput input {
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background-color: #fff;
+}
+
+.numberInput input:focus {
+  border-color: #025a3a;
+  box-shadow: 0 0 0 3px rgba(2, 90, 58, 0.1);
+}
+
+.numberInput input:disabled {
+  background-color: #f7fafc;
+  color: #a0aec0;
+  cursor: not-allowed;
+}
+
+.numberInput label {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* Radio Group Styling */
+.radioGroup {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.radioGroup label {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.radioFlex {
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.radioOption {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #fff;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-align: center;
+}
+
+.radioOption:hover {
+  border-color: #025a3a;
+  background-color: rgba(2, 90, 58, 0.02);
+}
+
+.radioOption.selected {
+  border-color: #025a3a;
+  background-color: rgba(2, 90, 58, 0.05);
+  color: #025a3a;
+  font-weight: 600;
+}
+
+/* Quantity Section */
+.unlimited {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn {
+  flex: 1;
+  padding-bottom: 0;
+}
+
+/* Button Styling */
+.submitBtn {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  gap: 1rem;
+}
+
+.submitButton {
+  cursor: pointer;
+  border: 1px solid #025a3a;
+  color: #025a3a;
+  background-color: transparent;
+  min-width: 140px;
+  height: 3rem;
+  padding: 0.75rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.submitButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(2, 90, 58, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.submitButton:hover::before {
+  left: 100%;
+}
+
+.submitButton:hover {
+  background: linear-gradient(135deg, #025a3a 0%, #059669 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(2, 90, 58, 0.3);
+}
+
+.submitButton:active {
+  transform: translateY(0);
+}
+
+.unlimitedButton {
+  cursor: pointer;
+  border: 1px solid #025a3a;
+  color: #ffffff;
+  background: linear-gradient(135deg, #025a3a 0%, #059669 100%);
+  min-width: 120px;
+  height: 3rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(2, 90, 58, 0.2);
+}
+
+.unlimitedButton:hover {
+  background: linear-gradient(135deg, #059669 0%, #025a3a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(2, 90, 58, 0.3);
+}
+
+.unlimitedButton.outline {
+  background: transparent;
+  color: #025a3a;
+  box-shadow: none;
+}
+
+.unlimitedButton.outline:hover {
+  background: rgba(2, 90, 58, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(2, 90, 58, 0.1);
+}
+
+/* Cancel Button */
+.cancelButton {
+  cursor: pointer;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  background-color: transparent;
+  min-width: 120px;
+  height: 3rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e0;
+  color: #374151;
+}
+
+/* Price Display */
+.priceDisplay {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #025a3a;
+  text-align: center;
+  padding: 1rem;
+  background: rgba(2, 90, 58, 0.05);
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+/* Form Validation */
+.errorMessage {
+  color: #e53e3e;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+.successMessage {
+  color: #059669;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+/* Loading State */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.loadingSpinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 50%;
+  border-top-color: #025a3a;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modalContent {
+    padding: 1rem;
+  }
+  
+  .formSection {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .unlimited {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+  
+  .unlimitedButton {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .radioFlex {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .radioOption {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .submitBtn {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .submitButton,
+  .cancelButton {
+    width: 100%;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .modalContent {
+    padding: 0.75rem;
+  }
+  
+  .formSection {
+    padding: 0.75rem;
+  }
+  
+  .sectionTitle {
+    font-size: 1rem;
+  }
+  
+  .textInput input,
+  .numberInput input {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 0.7rem 0.875rem;
+  }
+  
+  .submitButton,
+  .cancelButton,
+  .unlimitedButton {
+    height: 2.75rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Focus states for accessibility */
+.submitButton:focus,
+.cancelButton:focus,
+.unlimitedButton:focus {
+  outline: 2px solid #025a3a;
+  outline-offset: 2px;
+}
+
+/* Animation for form sections */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.formSection {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Ticket type indicators */
+.ticketTypeIndicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+
+.ticketTypeIndicator.paid {
+  background-color: #059669;
+}
+
+.ticketTypeIndicator.free {
+  background-color: #3b82f6;
+}
+
+.ticketTypeIndicator.invite {
+  background-color: #f59e0b;
+}
