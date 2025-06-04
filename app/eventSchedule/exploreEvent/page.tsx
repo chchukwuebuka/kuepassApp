@@ -1,467 +1,105 @@
-// "use client";
-
-// import { useState, useEffect } from "react";
-// import Link from "next/link";
-// import { Image, Stack } from "@mantine/core";
-// import Navbar from "@/components/navbar";
-// import styles from "./styles.module.css";
-// import { authenticatedRequest, getAuthToken, isAuthenticated  } from "@/app/services/auth";
-// import ProtectedRoute from "@/app/components/ProtectedRoute";
-
-// const API_BASE_URL =
-//   process.env.NEXT_PUBLIC_API_BASE_URL ||
-//   "https://keupass-48c2ae65f897.herokuapp.com/api";
-
-// interface EventData {
-//   id: string;
-//   title: string;
-//   start_date: string;
-//   end_date: string;
-//   location: string;
-//   is_active?: boolean;
-//   creator?: { id: number; username: string };
-//   customization?: {
-//     id: string;
-//     banner_url: string;
-//     font: string;
-//     card_color: string;
-//     event: string;
-//     is_active: boolean;
-//     created_at: string;
-//     updated_at: string;
-//   };
-//   merchandise?: Array<{
-//     id: string;
-//     name: string;
-//     description: string;
-//     price: string;
-//     event: string;
-//     created_at: string;
-//     updated_at: string;
-//   }>;
-//   countdowns?: Array<{
-//     id: string;
-//     title: string;
-//     event: string;
-//     countdown_date: string;
-//     created_at: string;
-//     updated_at: string;
-//   }>;
-// }
-
-// interface AttendeeData {
-//   id: string;
-//   event: string;
-//   user: number;
-//   email: string;
-//   name: string;
-//   registration_date: string;
-//   responses?: Array<{ [key: string]: any }>;
-// }
-
-// interface UserData {
-//   success: boolean;
-//   message: string;
-//   data: {
-//     id: number;
-//     username: string;
-//     email: string;
-//     banner_url?: string;
-//     profile_url?: string;
-//     country: string;
-//     currency: string;
-//     language: string;
-//     active: boolean;
-//     phone_number: string | null;
-//   };
-// }
-
-// interface Event {
-//   id: string;
-//   title: string;
-//   category: "Upcoming" | "Ongoing" | "Ended";
-//   image: string;
-//   date: string;
-//   location: string;
-//   name: string;
-//   ownership: "Created" | "Registered" | "None";
-// }
-
-// type CategoryFilter = "All" | Event["category"];
-// type OwnershipFilter = "All" | "Created" | "Registered";
-
-// function unwrap<T>(resp: { data: T } | T): T {
-//   return (resp as any).data ?? (resp as any);
-// }
-
-// const ExploreEvents: React.FC = () => {
-//   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("All");
-//   const [ownershipFilter, setOwnershipFilter] =
-//     useState<OwnershipFilter>("All");
-//   const [events, setEvents] = useState<Event[]>([]);
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [error, setError] = useState<string | null>(null);
-
-//   const formatDateRange = (start: string, end: string): string => {
-//     const s = new Date(start),
-//       e = new Date(end);
-//     const opts: Intl.DateTimeFormatOptions = {
-//       month: "short",
-//       day: "numeric",
-//       year: "numeric",
-//     };
-//     return s.toDateString() === e.toDateString()
-//       ? s.toLocaleDateString("en-US", opts)
-//       : `${s.toLocaleDateString("en-US", opts)} - ${e.toLocaleDateString(
-//           "en-US",
-//           opts
-//         )}`;
-//   };
-
-//   const getEventCategory = (start: string, end: string): Event["category"] => {
-//     const now = new Date(),
-//       s = new Date(start),
-//       e = new Date(end);
-//     if (now < s) return "Upcoming";
-//     if (now <= e) return "Ongoing";
-//     return "Ended";
-//   };
-
-//   const onOwnershipChange = (newFilter: OwnershipFilter) => {
-//     setOwnershipFilter(newFilter);
-//     setCategoryFilter("All");
-//   };
-
-//   useEffect(() => {
-//     const fetchAll = async () => {
-//       const token = localStorage.getItem("token");
-//       if (!token) {
-//         setError("Please log in to view events.");
-//         setIsLoading(false);
-//         return;
-//       }
-
-//       setIsLoading(true);
-//       setError(null);
-
-//       try {
-//         const [evResp, atResp, uResp] = await Promise.all([
-//           authenticatedRequest<{ data: EventData[] }>(
-//             `${API_BASE_URL}/events/`,
-//             "GET"
-//           ),
-//           authenticatedRequest<AttendeeData[]>(
-//             `${API_BASE_URL}/attendees/`,
-//             "GET"
-//           ),
-//           authenticatedRequest<UserData>(`${API_BASE_URL}/users/me/`, "GET"),
-//         ]);
-
-//         const allEvents = unwrap(evResp) as EventData[];
-//         const allAttendees = unwrap(atResp) as AttendeeData[];
-//         const userId = uResp.data.id;
-//         const myRegs = allAttendees.filter((a) => a.user === userId);
-//         const regIds = new Set(myRegs.map((a) => a.event));
-
-//         const mapped: Event[] = allEvents.map((e) => {
-//           const img = e.customization?.banner_url || "/images/placeholder.jpg";
-//           const owner =
-//             e.creator && String(e.creator.id) === String(userId)
-//               ? "Created"
-//               : regIds.has(e.id)
-//               ? "Registered"
-//               : "None";
-//           return {
-//             id: e.id,
-//             title: e.title,
-//             category: getEventCategory(e.start_date, e.end_date),
-//             image: img,
-//             date: formatDateRange(e.start_date, e.end_date),
-//             location: e.location,
-//             name: e.creator?.username || "Unknown Host",
-//             ownership: owner,
-//           };
-//         });
-
-//         setEvents(mapped);
-//       } catch (err: any) {
-//         console.error("Fetch error:", err);
-//         setError(err.message || "Failed to fetch events. Please try again.");
-//       } finally {
-//         setIsLoading(false);
-//       }
-//     };
-
-//     fetchAll();
-//   }, []);
-
-//   const filtered = events.filter((ev) => {
-//     const okCat = categoryFilter === "All" || ev.category === categoryFilter;
-//     const okOwn = ownershipFilter === "All" || ev.ownership === ownershipFilter;
-//     return okCat && okOwn;
-//   });
-
-//   const FilterBtn: React.FC<{
-//     label: string;
-//     active: boolean;
-//     onClick: () => void;
-//   }> = ({ label, active, onClick }) => (
-//     <button
-//       className={`${styles.avatarButton} ${active ? styles.activeButton : ""}`}
-//       onClick={onClick}
-//     >
-//       {label}
-//     </button>
-//   );
-
-//   const EventCard: React.FC<{ e: Event }> = ({ e }) => {
-//     const [src, setSrc] = useState(e.image);
-//     const onError = () => setSrc("/images/placeholder.jpg");
-
-//     return (
-//       <div className={styles.card}>
-//         <div className={styles.imageContainer}>
-//           <Image
-//             src={src}
-//             alt={e.title}
-//             className={styles.cardImage}
-//             onError={onError}
-//             fallbackSrc="/images/placeholder.jpg"
-//           />
-//           <div className={styles.categoryBadge}>
-//             <span
-//               className={`${styles.cardSubtitles} ${
-//                 styles[`category${e.category}`]
-//               }`}
-//             >
-//               {e.category}
-//             </span>
-//           </div>
-//         </div>
-//         <div className={styles.cardDetails}>
-//           <h3 className={styles.cardTitle}>{e.title}</h3>
-//           <p className={styles.cardSubtitle}>
-//             <span className={styles.iconText}>📅</span> {e.date}
-//           </p>
-//           <p className={styles.cardSubtitle}>
-//             <span className={styles.iconText}>📍</span> {e.location}
-//           </p>
-//           <div className={styles.cardFooter}>
-//             <p className={styles.cardHost}>
-//               <span className={styles.hostLabel}>Host:</span> {e.name}
-//             </p>
-//             {e.ownership !== "None" && (
-//               <div className={styles.ownershipBadge}>{e.ownership}</div>
-//             )}
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   };
-
-//   return (
-//     <ProtectedRoute>
-//       <div className={styles.container}>
-//         <Stack className={styles.navStark}>
-//           <Navbar />
-//         </Stack>
-
-//         <div className={styles.titlePage}>
-//           <h2 className={styles.title}>Explore Events</h2>
-//         </div>
-
-//         <div className={styles.filterContainer}>
-//           <div className={styles.filters}>
-//             {(["All", "Created", "Registered"] as OwnershipFilter[]).map(
-//               (f) => (
-//                 <FilterBtn
-//                   key={f}
-//                   label={f}
-//                   active={ownershipFilter === f}
-//                   onClick={() => onOwnershipChange(f)}
-//                 />
-//               )
-//             )}
-//           </div>
-//           <div className={styles.filters}>
-//             {(["All", "Upcoming", "Ongoing", "Ended"] as CategoryFilter[]).map(
-//               (f) => (
-//                 <FilterBtn
-//                   key={f}
-//                   label={f}
-//                   active={categoryFilter === f}
-//                   onClick={() => setCategoryFilter(f)}
-//                 />
-//               )
-//             )}
-//           </div>
-//         </div>
-
-//         {isLoading ? (
-//           <div className={styles.noEvents}>
-//             <p>Loading events…</p>
-//           </div>
-//         ) : error ? (
-//           <div className={styles.noEvents}>
-//             <p>{error}</p>
-//           </div>
-//         ) : filtered.length === 0 ? (
-//           <div className={styles.noEvents}>
-//             <p>No events match your filters.</p>
-//           </div>
-//         ) : (
-//           <div className={styles.cardsGrid}>
-//             {filtered.map((e) => (
-//               <div key={e.id} className={styles.cardWrapper}>
-//                 <Link
-//                   href={
-//                     e.ownership === "Created"
-//                       ? `/dashboard?eventId=${e.id}`
-//                       : e.ownership === "Registered"
-//                       ? `/eventSchedule/eventDetails/${e.id}`
-//                       : `/eventSchedule/events/${e.id}`
-//                   }
-//                   className={styles.eventLink}
-//                 >
-//                   <EventCard e={e} />
-//                 </Link>
-//               </div>
-//             ))}
-//           </div>
-//         )}
-//       </div>
-//     </ProtectedRoute>
-//   );
-// };
-
-// export default ExploreEvents;
-
-
 "use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Image, Stack, Text, Button, Center, Loader, Paper } from "@mantine/core"; // Added Paper, Button, Loader for error/loading
-import Navbar from "@/components/navbar"; // Assuming this path is correct
-import styles from "./styles.module.css"; // Assuming this path exists for ExploreEvents
-import { authenticatedRequest, getAuthToken, isAuthenticated } from "@/app/services/auth"; // Import getAuthToken and isAuthenticated
-// import ProtectedRoute from "@/app/components/ProtectedRoute"; // Using manual auth check instead for this page logic
+import {
+  Image,
+  Stack,
+  Text,
+  Button,
+  Center,
+  Loader,
+  Paper,
+} from "@mantine/core";
+import Navbar from "@/components/navbar";
+import styles from "./styles.module.css";
+import {
+  getAuthToken,
+  isAuthenticated,
+} from "@/app/services/auth"; // Remove authenticatedRequest import
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   "https://keupass-48c2ae65f897.herokuapp.com/api";
 
-// Define a more precise type for the API response structure for events list
-interface ApiEventResponse {
-  success: boolean;
-  data: EventData[];
-  message?: string;
-}
-interface ApiSingleEventResponse { // If your authenticatedRequest returns this for single event
-    success: boolean;
-    data: EventData;
-    message?: string;
-}
-interface ApiAttendeesResponse {
-    success: boolean;
-    data: AttendeeData[];
-    message?: string;
-}
-interface ApiUserResponse { // Assuming /users/me/ returns this structure
-    success: boolean;
-    data: {
-        id: number;
-        username: string;
-        email: string;
-        // ... other UserData fields your backend returns for /me/
-    };
-    message?: string;
-}
-
-
-interface EventData { // Full event data from backend
+interface EventData {
   id: string;
   title: string;
   start_date: string;
   end_date: string;
   location: string;
-  is_active?: boolean;
   creator?: { id: number; username: string };
   customization?: {
-    id: string;
     banner_url: string;
-    font: string;
-    card_color: string;
-    event: string;
-    is_active: boolean;
-    created_at: string;
-    updated_at: string;
   };
-  // Add other fields if present in your backend EventSerializer
-  description?: string; 
+  description?: string;
   price?: string;
 }
 
 interface AttendeeData {
   id: string;
-  event: string; // Event ID
-  user: number;  // User ID
-  email: string; // Attendee email, might differ from user's main email if registered by someone else
+  event: string;
+  user: number;
+  email: string;
   name: string;
   registration_date: string;
 }
 
-interface MappedEvent { // Simplified structure for display
+interface ApiUserResponse {
+  success: boolean;
+  data: {
+    id: number;
+    username: string;
+    email: string;
+  };
+  message?: string;
+}
+
+interface MappedEvent {
   id: string;
   title: string;
   category: "Upcoming" | "Ongoing" | "Ended";
   image: string;
   date: string;
   location: string;
-  name: string; // Host name
+  name: string;
   ownership: "Created" | "Registered" | "None";
 }
 
 type CategoryFilter = "All" | MappedEvent["category"];
 type OwnershipFilter = "All" | "Created" | "Registered";
 
-// Helper function to unwrap data if your authenticatedRequest or backend always wraps it
-// Ensure this matches how your authenticatedRequest actually returns data.
-// If authenticatedRequest already returns the plain data on success (after checking response.ok), 
-// then this unwrap might not be needed or needs to be adjusted.
-function unwrapOrReturn<T>(response: T | { data?: T; success?: boolean }): T | [] {
-    if (typeof response === 'object' && response !== null) {
-        if ('data' in response && (response as any).success === true) {
-            return (response as { data: T }).data || ([] as any); // Return data or empty array if data is nil
-        }
-        if (Array.isArray(response)) { // If response itself is the array
-            return response;
-        }
-        // If it's an object but not the expected wrapper, and not an array, it might be an error object or unexpected
-        // For this function, if not wrapped success or direct array, assume it's not the data we want for lists
-        console.warn("unwrapOrReturn: Unexpected response structure, returning empty array.", response);
-    }
-    return [] as any; // Fallback for unexpected types
-}
-
-
 const ExploreEvents: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("All");
-  const [ownershipFilter, setOwnershipFilter] = useState<OwnershipFilter>("All");
+  const [ownershipFilter, setOwnershipFilter] =
+    useState<OwnershipFilter>("All");
   const [events, setEvents] = useState<MappedEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const formatDateRange = (start: string, end: string): string => {
-    const s = new Date(start), e = new Date(end);
-    const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" };
+    const s = new Date(start),
+      e = new Date(end);
+    const opts: Intl.DateTimeFormatOptions = {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    };
     return s.toDateString() === e.toDateString()
       ? s.toLocaleDateString("en-US", opts)
-      : `${s.toLocaleDateString("en-US", opts)} - ${e.toLocaleDateString("en-US", opts)}`;
+      : `${s.toLocaleDateString("en-US", opts)} - ${e.toLocaleDateString(
+          "en-US",
+          opts
+        )}`;
   };
 
-  const getEventCategory = (start: string, end: string): MappedEvent["category"] => {
-    const now = new Date(), s = new Date(start), e = new Date(end);
+  const getEventCategory = (
+    start: string,
+    end: string
+  ): MappedEvent["category"] => {
+    const now = new Date(),
+      s = new Date(start),
+      e = new Date(end);
     if (now < s) return "Upcoming";
     if (now <= e) return "Ongoing";
     return "Ended";
@@ -469,61 +107,72 @@ const ExploreEvents: React.FC = () => {
 
   const onOwnershipChange = (newFilter: OwnershipFilter) => {
     setOwnershipFilter(newFilter);
-    setCategoryFilter("All"); // Reset category filter when ownership changes
+    setCategoryFilter("All");
   };
 
   useEffect(() => {
     const fetchAllEventsAndUserData = async () => {
-      // Use your utility function from auth.ts
-      if (!isAuthenticated()) { 
-        console.warn("[ExploreEvents] User not authenticated. Showing login prompt.");
-        setError("Please log in to view events.");
-        setIsLoading(false);
-        setEvents([]); // Ensure events are cleared
-        return;
-      }
-
       setIsLoading(true);
       setError(null);
 
       try {
-        // Your authenticatedRequest should handle adding the Authorization header
-        console.log("[ExploreEvents] Fetching events, attendees, and user data...");
-        const [eventResponse, attendeeResponse, userResponse] = await Promise.all([
-          authenticatedRequest<ApiEventResponse | EventData[]>(`${API_BASE_URL}/events/`, "GET"),
-          authenticatedRequest<ApiAttendeesResponse | AttendeeData[]>(`${API_BASE_URL}/attendees/`, "GET"), // Fetch all attendees, then filter
-          authenticatedRequest<ApiUserResponse>(`${API_BASE_URL}/users/me/`, "GET")
-        ]);
-
-        console.log("[ExploreEvents] Events raw response:", eventResponse);
-        console.log("[ExploreEvents] Attendees raw response:", attendeeResponse);
-        console.log("[ExploreEvents] User /me raw response:", userResponse);
-
-        // Unwrap data based on typical structure { success: true, data: [...] } or direct array
-        const allEvents = unwrapOrReturn(eventResponse) as EventData[];
-        const allAttendees = unwrapOrReturn(attendeeResponse) as AttendeeData[];
-        
-        if (!userResponse || !userResponse.success || !userResponse.data || !userResponse.data.id) {
-            console.error("[ExploreEvents] Failed to fetch valid user data from /users/me. Response:", userResponse);
-            throw new Error("Could not verify current user session. Please try logging in again.");
+        // 1) Fetch events publicly (no auth token needed)
+        const eventsRes = await fetch(`${API_BASE_URL}/events/`);
+        if (!eventsRes.ok) {
+          throw new Error(`Failed to fetch events: ${eventsRes.status}`);
         }
-        const userId = userResponse.data.id;
-        console.log("[ExploreEvents] Current User ID:", userId);
+        const eventsJson = await eventsRes.json();
+        const allEvents: EventData[] = eventsJson.data || []; // adjust if your API returns differently
 
-        const registeredEventIds = new Set(
-          allAttendees.filter(a => a.user === userId).map(a => a.event)
-        );
-        console.log("[ExploreEvents] Registered Event IDs for user:", registeredEventIds);
+        // 2) Check if we have a token; if so, fetch /users/me and /attendees/
+        const token = getAuthToken(); // returns string|null
+        let userId: number | null = null;
+        let allAttendees: AttendeeData[] = [];
 
-        const mappedEvents: MappedEvent[] = allEvents.map((e: EventData) => {
-          const bannerImage = e.customization?.banner_url || (e as any).banner_url || "/images/placeholder.jpg";
-          const ownershipStatus: MappedEvent["ownership"] =
-            e.creator && e.creator.id === userId
-              ? "Created"
-              : registeredEventIds.has(e.id)
-              ? "Registered"
-              : "None";
-          
+        if (token) {
+          // 2a) Fetch current user
+          const userRes = await fetch(`${API_BASE_URL}/users/me/`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (userRes.ok) {
+            const userJson: ApiUserResponse = await userRes.json();
+            if (userJson.success && userJson.data.id) {
+              userId = userJson.data.id;
+            }
+          }
+
+          // 2b) Fetch attendees (only if user is logged in)
+          const attendeeRes = await fetch(`${API_BASE_URL}/attendees/`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (attendeeRes.ok) {
+            const attendeeJson = await attendeeRes.json();
+            allAttendees = attendeeJson.data || [];
+          }
+        }
+
+        // If not logged in, userId === null and allAttendees remains empty
+
+        // Build a set of event IDs the user has registered for
+        const registeredEventIds = new Set<string>();
+        if (userId !== null) {
+          allAttendees
+            .filter((a) => a.user === userId)
+            .forEach((a) => registeredEventIds.add(a.event));
+        }
+
+        // Map events into the shape the UI needs
+        const mappedEvents: MappedEvent[] = allEvents.map((e) => {
+          const bannerImage =
+            e.customization?.banner_url || "/images/placeholder.jpg";
+
+          let ownershipStatus: MappedEvent["ownership"] = "None";
+          if (userId !== null && e.creator && e.creator.id === userId) {
+            ownershipStatus = "Created";
+          } else if (userId !== null && registeredEventIds.has(e.id)) {
+            ownershipStatus = "Registered";
+          }
+
           return {
             id: e.id,
             title: e.title,
@@ -535,44 +184,51 @@ const ExploreEvents: React.FC = () => {
             ownership: ownershipStatus,
           };
         });
-        console.log("[ExploreEvents] Mapped events count:", mappedEvents.length);
-        setEvents(mappedEvents);
 
+        setEvents(mappedEvents);
       } catch (err: any) {
-        console.error("[ExploreEvents] Error fetching data:", err);
-        if (err.message && (err.message.includes("401") || err.message.toLowerCase().includes("unauthorized"))) {
-            setError("Your session might have expired or you are not authorized. Please log in again.");
-        } else {
-            setError(err.message || "Failed to fetch events. Please try again.");
-        }
-        setEvents([]); // Clear events on error
+        console.error("[ExploreEvents] Error:", err);
+        setError(
+          err.message || "Failed to load events. Please try again later."
+        );
+        setEvents([]);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchAllEventsAndUserData();
-  }, []); // Empty dependency array, runs once on mount after login check
+  }, []);
 
   const filteredEvents = events.filter((ev) => {
-    const categoryMatch = categoryFilter === "All" || ev.category === categoryFilter;
-    const ownershipMatch = ownershipFilter === "All" || ev.ownership === ownershipFilter;
+    const categoryMatch =
+      categoryFilter === "All" || ev.category === categoryFilter;
+    const ownershipMatch =
+      ownershipFilter === "All" || ev.ownership === ownershipFilter;
     return categoryMatch && ownershipMatch;
   });
 
-  // FilterButton and EventCard sub-components remain the same from your code
-  const FilterBtn: React.FC<{ label: string; active: boolean; onClick: () => void;}> = ({ label, active, onClick }) => (
-    <button className={`${styles.avatarButton} ${active ? styles.activeButton : ""}`} onClick={onClick}>
+  const FilterBtn: React.FC<{
+    label: string;
+    active: boolean;
+    onClick: () => void;
+  }> = ({ label, active, onClick }) => (
+    <button
+      className={`${styles.avatarButton} ${active ? styles.activeButton : ""}`}
+      onClick={onClick}
+    >
       {label}
     </button>
   );
 
-  const EventCardDisplay: React.FC<{ eventData: MappedEvent }> = ({ eventData }) => { // Renamed prop
+  const EventCardDisplay: React.FC<{ eventData: MappedEvent }> = ({
+    eventData,
+  }) => {
     const [imageSrc, setImageSrc] = useState(eventData.image);
-    const handleImageError = () => setImageSrc("/images/placeholder.jpg"); // Fallback image
+    const handleImageError = () => setImageSrc("/images/placeholder.jpg");
 
-    useEffect(() => { // Reset imageSrc if eventData.image changes
-        setImageSrc(eventData.image);
+    useEffect(() => {
+      setImageSrc(eventData.image);
     }, [eventData.image]);
 
     return (
@@ -583,22 +239,34 @@ const ExploreEvents: React.FC = () => {
             alt={eventData.title}
             className={styles.cardImage}
             onError={handleImageError}
-            fallbackSrc="/images/placeholder.jpg" // Mantine's built-in fallback
+            fallbackSrc="/images/placeholder.jpg"
           />
           <div className={styles.categoryBadge}>
-            <span className={`${styles.cardSubtitles} ${styles[`category${eventData.category}`]}`}>
+            <span
+              className={`${styles.cardSubtitles} ${
+                styles[`category${eventData.category}`]
+              }`}
+            >
               {eventData.category}
             </span>
           </div>
         </div>
         <div className={styles.cardDetails}>
           <h3 className={styles.cardTitle}>{eventData.title}</h3>
-          <p className={styles.cardSubtitle}><span className={styles.iconText}>📅</span> {eventData.date}</p>
-          <p className={styles.cardSubtitle}><span className={styles.iconText}>📍</span> {eventData.location}</p>
+          <p className={styles.cardSubtitle}>
+            <span className={styles.iconText}>📅</span> {eventData.date}
+          </p>
+          <p className={styles.cardSubtitle}>
+            <span className={styles.iconText}>📍</span> {eventData.location}
+          </p>
           <div className={styles.cardFooter}>
-            <p className={styles.cardHost}><span className={styles.hostLabel}>Host:</span> {eventData.name}</p>
+            <p className={styles.cardHost}>
+              <span className={styles.hostLabel}>Host:</span> {eventData.name}
+            </p>
             {eventData.ownership !== "None" && (
-              <div className={styles.ownershipBadge}>{eventData.ownership}</div>
+              <div className={styles.ownershipBadge}>
+                {eventData.ownership}
+              </div>
             )}
           </div>
         </div>
@@ -607,7 +275,6 @@ const ExploreEvents: React.FC = () => {
   };
 
   return (
-    // <ProtectedRoute> // If ProtectedRoute handles the !isAuthenticated() case, you might not need the manual check
     <div className={styles.container}>
       <Stack className={styles.navStark}>
         <Navbar />
@@ -619,50 +286,82 @@ const ExploreEvents: React.FC = () => {
 
       <div className={styles.filterContainer}>
         <div className={styles.filters}>
-          {(["All", "Created", "Registered"] as OwnershipFilter[]).map((f) => (
-            <FilterBtn key={f} label={f} active={ownershipFilter === f} onClick={() => onOwnershipChange(f)} />
-          ))}
+          {(["All", "Created", "Registered"] as OwnershipFilter[]).map(
+            (f) => (
+              <FilterBtn
+                key={f}
+                label={f}
+                active={ownershipFilter === f}
+                onClick={() => onOwnershipChange(f)}
+              />
+            )
+          )}
         </div>
         <div className={styles.filters}>
-          {(["All", "Upcoming", "Ongoing", "Ended"] as CategoryFilter[]).map((f) => (
-            <FilterBtn key={f} label={f} active={categoryFilter === f} onClick={() => setCategoryFilter(f)} />
-          ))}
+          {(["All", "Upcoming", "Ongoing", "Ended"] as CategoryFilter[]).map(
+            (f) => (
+              <FilterBtn
+                key={f}
+                label={f}
+                active={categoryFilter === f}
+                onClick={() => setCategoryFilter(f)}
+              />
+            )
+          )}
         </div>
       </div>
 
       {isLoading ? (
-        <Center style={{padding: "2rem"}}><Loader /></Center>
+        <Center style={{ padding: "2rem" }}>
+          <Loader />
+        </Center>
       ) : error ? (
-        <Paper p="lg" m="lg" withBorder shadow="xs" style={{textAlign: 'center'}}>
-            <Text color="red">{error}</Text>
-            {error.toLowerCase().includes("log in") && 
-                <Button component={Link} href="/auth/signin" mt="md">Go to Login</Button>
-            }
+        <Paper
+          p="lg"
+          m="lg"
+          withBorder
+          shadow="xs"
+          style={{ textAlign: "center" }}
+        >
+          <Text color="red">{error}</Text>
+          {error.toLowerCase().includes("log in") && (
+            <Button component={Link} href="/auth/signin" mt="md">
+              Go to Login
+            </Button>
+          )}
         </Paper>
       ) : filteredEvents.length === 0 ? (
-        <Paper p="lg" m="lg" withBorder shadow="xs" style={{textAlign: 'center'}}>
-            <Text>No events match your filters or you haven't created/registered for any events yet.</Text>
+        <Paper
+          p="lg"
+          m="lg"
+          withBorder
+          shadow="xs"
+          style={{ textAlign: "center" }}
+        >
+          <Text>
+            No events match your filters or you haven't created/registered for
+            any events yet.
+          </Text>
         </Paper>
       ) : (
         <div className={styles.cardsGrid}>
-          {filteredEvents.map((eventItem) => ( // Renamed 'e' to 'eventItem'
+          {filteredEvents.map((eventItem) => (
             <div key={eventItem.id} className={styles.cardWrapper}>
               <Link
                 href={
                   eventItem.ownership === "Created"
-                    ? `/dashboard?eventId=${eventItem.id}` // Assuming dashboard for created events
-                    : `/eventSchedule/eventDetails/${eventItem.id}` // Default details page
+                    ? `/dashboard?eventId=${eventItem.id}`
+                    : `/eventSchedule/eventDetails/${eventItem.id}`
                 }
                 className={styles.eventLink}
               >
-                <EventCardDisplay eventData={eventItem} /> {/* Pass eventData prop */}
+                <EventCardDisplay eventData={eventItem} />
               </Link>
             </div>
           ))}
         </div>
       )}
     </div>
-    // </ProtectedRoute>
   );
 };
 
