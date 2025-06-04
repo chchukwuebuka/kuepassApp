@@ -1,229 +1,5 @@
-/* Container Styles
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
+/* 
 
-.title {
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.subtitle {
-  color: gray;
-}
-
-.formContainer {
-  display: flex;
-  gap: 40px;
-  width: 100%;
-  max-width: 54.375rem;
-  margin-top: 20px;
-}
-
-.formBox {
-  width: 34rem;
-  padding: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-  border: 3px dashed #ccc;
-}
-
-.formBox1 {
-  display: flex;
-  background-color: snow;
-  padding: 20px 40px;
-  border-radius: 10px;
-  gap: 30px;
-  color: rgb(30, 89, 65);
-  cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
-  margin-bottom: 20px;
-  width: 100%;
-}
-
-.formBox1:hover {
-  background-color: rgb(30, 89, 65);
-  color: white;
-}
-
-.formBox1.selected {
-  background-color: rgb(30, 89, 65);
-  color: white;
-}
-
-.formGroup {
-  margin-top: 15px;
-  margin-bottom: 10px;
-}
-
-.input {
-  width: 15.0625rem;
-  padding: 8px;
-  border: 1px solid rgb(30, 89, 65);
-  border-radius: 5px;
-  background-color: transparent;
-  color: rgb(30, 89, 65);
-  margin-top: 20px;
-}
-
-.inputPrice {
-  width: 92px;
-  padding: 8px;
-  border: 1px solid rgb(30, 89, 65);
-  border-radius: 5px;
-  background-color: transparent;
-  color: rgb(30, 89, 65);
-}
-
-.input,
-.inputPrice {
-  background-color: transparent;
-  border: 1px solid #ccc;
-  color: inherit;
-  padding: 8px;
-  border-radius: 4px;
-}
-
-.formBox1:hover .input,
-.formBox1.selected .input,
-.formBox1:hover .inputPrice,
-.formBox1.selected .inputPrice {
-  border-color: white;
-}
-
-.formPrice {
-  margin-left: 30px;
-}
-
-.separator {
-  border-top: 1px solid #ccc;
-  margin: 20px 0;
-  padding-top: 10px;
-}
-
-.questionsSection {
-  margin-top: 20px;
-}
-
-.questionsSectionTitle {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
-
-.questionItem {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-  width: 100%;
-}
-
-.questionLabel {
-  color: rgb(30, 89, 65);
-}
-
-.required {
-  color: red;
-  margin-left: 2px;
-}
-
-.questionInput {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: transparent;
-  color: inherit;
-}
-
-.summaryBox {
-  width: 34rem;
-  height: 100vh;
-  background: white;
-  padding: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-  border: 1px solid #ccc;
-}
-
-.summaryTitle {
-  font-size: 20px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.summaryContent {
-  margin-top: 20px;
-}
-
-.summaryItem {
-  display: flex;
-  justify-content: space-between;
-  font-size: 16px;
-  margin-top: 50px;
-}
-
-.summaryTotal {
-  display: flex;
-  justify-content: space-between;
-  font-size: 16px;
-  font-weight: bold;
-  margin-top: 50px;
-  border-top: 1px solid #ccc;
-  padding-top: 10px;
-}
-
-.purchaseBtn {
-  width: 10.125rem;
-  margin-top: 20px;
-  background-color: #025a3a;
-  color: white;
-  height: 2.75rem;
-  font-weight: bold;
-  border: none;
-  border-radius: 46px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.purchaseBtn:hover {
-  background-color: #023825;
-}
-
-.Btn {
-  display: flex;
-  justify-content: center;
-}
-
-.purchaseBtn:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.purchaseBtn:not(:disabled):hover {
-  background-color: rgb(25, 75, 55);
-}
-
-.noSelection {
-  text-align: center;
-  color: #666;
-  font-style: italic;
-}
-
-.phonNumber {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 20px;
-} */
-
-
-
-/* Container Styles */
 .container {
   display: flex;
   flex-direction: column;
@@ -250,7 +26,6 @@
   text-align: center;
 }
 
-/* Form Section */
 .formContainer {
   display: flex;
   flex-direction: row;
@@ -407,7 +182,6 @@
   padding-top: 1rem;
 }
 
-/* Questions Section */
 .questionsSection {
   margin-top: 2rem;
   padding-top: 1.5rem;
@@ -459,7 +233,6 @@
   outline: none;
 }
 
-/* Summary Section */
 .summaryBox {
   flex: 2;
   height: auto;
@@ -575,7 +348,6 @@
   width: 100%;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .container {
     padding: 1rem;
@@ -609,7 +381,6 @@
   }
 }
 
-/* Animation for selected ticket */
 @keyframes pulse {
   0% {
     box-shadow: 0 0 0 0 rgba(2, 90, 58, 0.4);
@@ -626,26 +397,523 @@
   animation: pulse 2s infinite;
 }
 
-/* Price tag styling */
-/* .formPrice::before {
-  content: 'PRICE';
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: #64748b;
-  margin-bottom: 0.25rem;
-} */
-
 .formBox1.selected .formPrice::before {
   color: rgba(255, 255, 255, 0.7);
 }
 
-/* Enhance focus states for accessibility */
 .input:focus, 
 .inputPrice:focus, 
 .questionInput:focus,
 .purchaseBtn:focus {
   outline: none;
   box-shadow: 0 0 0 3px rgba(2, 90, 58, 0.3);
+} */
+
+
+
+/* Page Layout */
+.pageWrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fffe 0%, #e6f7f1 100%);
+  padding: 2rem 0;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Header Section */
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.headerContent {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.headerBadge {
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #025a3a;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.eventInfoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.eventInfoCard {
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(2, 90, 58, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+/* Form Container */
+.formContainer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin-top: 2rem;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  gap: 2rem;
+}
+
+.formSection {
+  flex: 0 0 500px; /* Fixed width of 700px */
+  min-width: 0; /* Prevents flex item from overflowing */
+}
+
+.summarySection {
+  flex: 0 0 400px; /* Fixed width of 600px */
+  min-width: 0; /* Prevents flex item from overflowing */
+}
+
+.formBox {
+  width: 100%;
+  padding: 2rem;
+  border-radius: 20px;
+  border: 1px solid rgba(2, 90, 58, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 40px rgba(2, 90, 58, 0.08);
+}
+
+.summaryBox {
+  width: 100%;
+  padding: 2rem;
+  border-radius: 20px;
+  border: 1px solid rgba(2, 90, 58, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 40px rgba(2, 90, 58, 0.08);
+  position: sticky;
+  top: 2rem;
+}
+
+/* Section Headers */
+.sectionHeader {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(2, 90, 58, 0.1);
+}
+
+/* Ticket Cards */
+.ticketsGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.ticketCard {
+  position: relative;
+  background: linear-gradient(135deg, #025a3a 0%, #059669 100%);
+  border-radius: 16px;
+  padding: 1.5rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  border: 2px solid transparent;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.ticketCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ticketCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(2, 90, 58, 0.3);
+}
+
+.ticketCard:hover::before {
+  opacity: 1;
+}
+
+.ticketCard.selected {
+  border-color: #ffd700;
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(2, 90, 58, 0.4);
+  animation: pulse 2s infinite;
+}
+
+.ticketCard.selected::before {
+  opacity: 1;
+}
+
+.ticketHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.ticketIcon {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ticketBadge {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.ticketContent {
+  flex: 1;
+  margin-bottom: 1rem;
+}
+
+.ticketName {
+  color: white;
+  margin-bottom: 0.25rem;
+  font-size: 1.1rem;
+}
+
+.eventName {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+}
+
+.ticketPrice {
+  text-align: right;
+}
+
+.ticketPrice > :first-child {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.priceAmount {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.ticketPerforations {
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 80%;
+  background: repeating-linear-gradient(to bottom, transparent 0px, transparent 4px, #f8fffe 4px, #f8fffe 8px);
+  border-radius: 8px 0 0 8px;
+}
+
+.selectedIndicator {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: #ffd700;
+  color: #025a3a;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: bounce 1s infinite;
+}
+
+/* Form Inputs */
+.questionItem {
+  margin-bottom: 1.5rem;
+}
+
+.questionLabel {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #025a3a;
+  font-size: 0.95rem;
+}
+
+.required {
+  color: #e53e3e;
+  margin-left: 0.25rem;
+}
+
+.input,
+.questionInput {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(2, 90, 58, 0.2);
+  transition: all 0.2s ease;
+}
+
+.input:focus,
+.questionInput:focus {
+  border-color: #025a3a;
+  box-shadow: 0 0 0 3px rgba(2, 90, 58, 0.1);
+}
+
+/* Question Input Wrapper */
+.questionInputWrapper {
+  width: 100%;
+}
+
+/* Radio and Checkbox Options */
+.radioOption,
+.checkboxOption {
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(2, 90, 58, 0.1);
+  background: rgba(2, 90, 58, 0.02);
+  transition: all 0.2s ease;
+  margin-bottom: 0.5rem;
+}
+
+.radioOption:hover,
+.checkboxOption:hover {
+  background: rgba(2, 90, 58, 0.05);
+  border-color: rgba(2, 90, 58, 0.2);
+}
+
+.radioOption:has(input:checked),
+.checkboxOption:has(input:checked) {
+  background: rgba(2, 90, 58, 0.1);
+  border-color: #025a3a;
+  box-shadow: 0 2px 8px rgba(2, 90, 58, 0.1);
+}
+
+/* Questions Section */
+.questionsSection {
+  margin-top: 2rem;
+}
+
+/* Summary Section */
+.summaryHeader {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(2, 90, 58, 0.1);
+}
+
+.summaryContent {
+  margin-bottom: 2rem;
+}
+
+.summaryItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px dashed rgba(2, 90, 58, 0.1);
+}
+
+.summaryTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-top: 2px solid rgba(2, 90, 58, 0.1);
+  margin-top: 1rem;
+}
+
+.totalPrice {
+  color: #025a3a;
+}
+
+.purchaseBtn {
+  width: 100%;
+  background: linear-gradient(135deg, #025a3a 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 15px rgba(2, 90, 58, 0.3);
+}
+
+.purchaseBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(2, 90, 58, 0.4);
+}
+
+.purchaseBtn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Loading and Error States */
+.loadingContainer,
+.errorContainer {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fffe 0%, #e6f7f1 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loadingText {
+  color: #025a3a;
+  font-weight: 500;
+}
+
+.noSelection {
+  text-align: center;
+  color: #64748b;
+  font-style: italic;
+  padding: 2rem;
+  background: rgba(2, 90, 58, 0.02);
+  border-radius: 12px;
+  border: 1px dashed rgba(2, 90, 58, 0.2);
+}
+
+/* Animations */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 20px 40px rgba(2, 90, 58, 0.4), 0 0 0 0 rgba(255, 215, 0, 0.7);
+  }
+  70% {
+    box-shadow: 0 20px 40px rgba(2, 90, 58, 0.4), 0 0 0 10px rgba(255, 215, 0, 0);
+  }
+  100% {
+    box-shadow: 0 20px 40px rgba(2, 90, 58, 0.4), 0 0 0 0 rgba(255, 215, 0, 0);
+  }
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-4px);
+  }
+  60% {
+    transform: translateY(-2px);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .formContainer {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .formSection,
+  .summarySection {
+    width: 100%;
+    max-width: 700px;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .eventInfoGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .pageWrapper {
+    padding: 1rem 0;
+  }
+
+  .container {
+    padding: 0 0.5rem;
+  }
+
+  .formBox,
+  .summaryBox {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .ticketCard {
+    padding: 1.25rem;
+    min-height: 120px;
+  }
+
+  .ticketName {
+    font-size: 1rem;
+  }
+
+  .priceAmount {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .ticketCard {
+    padding: 1rem;
+    min-height: 100px;
+  }
+
+  .ticketHeader {
+    margin-bottom: 0.75rem;
+  }
+
+  .ticketContent {
+    margin-bottom: 0.75rem;
+  }
+
+  .purchaseBtn {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
 }

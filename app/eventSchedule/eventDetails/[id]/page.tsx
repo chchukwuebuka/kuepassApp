@@ -56,6 +56,7 @@ interface EventData {
   end_date: string;
   banner_url?: string; // Optional direct banner URL on the event itself
   location: string;
+  address: string;
   customization?: Customization; // Changed from customizations: Customization[] to match your "recent code"
   // If your API for /events/{id}/ returns a single customization object nested.
   // If it returns an array, it should be customizations: Customization[]
@@ -180,6 +181,7 @@ export default function EventDetails() {
   const [copied, setCopied] = useState(false);
   const [showEmailPromptModal, setShowEmailPromptModal] = useState(false); // Renamed
   const [guestEmail, setGuestEmail] = useState("");
+ 
 
   useEffect(() => {
     getCurrentUser().then((user) => {
@@ -395,20 +397,30 @@ export default function EventDetails() {
       minute: "2-digit",
     });
   };
+
+   // Share event link
   const handleShareLink = async () => {
-    /* ... same as before ... */
-    const url = window.location.href;
-    if (typeof navigator.share === "function") {
-      /* ... */
+    const url = window.location.href
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: event?.title || "Awesome Event",
+          text: `Join me at "${event?.title}"!`,
+          url,
+        })
+        return
+      } catch (err) {
+        console.warn("Share API error, falling back to copy:", err)
+      }
     }
     try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     } catch (err) {
-      console.error("Copy failed:", err);
+      console.error("Copy failed:", err)
     }
-  };
+  }
 
   const handleGenerateQR = async () => {
     /* ... your existing robust QR generation logic ... */
@@ -786,6 +798,14 @@ export default function EventDetails() {
                         <Text>{event.location}</Text>
                       </div>
                     )}
+                    {event.address && (
+                      <div className={styles.detailItem}>
+                        <Text fw={600} className={styles.detailLabel}>
+                          Address:
+                        </Text>
+                        <Text>{event.address}</Text>
+                      </div>
+                    )}
                   </Stack>
                 </div>
               </Paper>
@@ -818,13 +838,13 @@ export default function EventDetails() {
           </Grid.Col>
         </Grid>
         <Group className={styles.actionGroup}>
-          <Link href="/events">
+          <Link href="/">
             <Button
               className={styles.backButton}
               leftSection={<ArrowLeft size={18} />}
               size="lg"
             >
-              Back to Events
+              Back to Home
             </Button>
           </Link>
         </Group>

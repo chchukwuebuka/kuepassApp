@@ -862,3 +862,8 @@ const CreateEventForm: React.FC = () => {
 };
 
 export default CreateEventForm;
+
+
+
+
+{/* <Text> Lorem ipsum dolor sit, amet consectetur adipisicing elit. Eum eveniet error doloribus nobis officiis veritatis quas corporis nisi fugit. Porro hic non ut dolorum libero esse quasi quisquam cumque recusandae atque minus maiores ipsum labore fugiat id aspernatur exercitationem accusamus alias deserunt mollitia dignissimos vitae, suscipit facere. Animi, quam earum.</Text> */}

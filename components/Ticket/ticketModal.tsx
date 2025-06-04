@@ -1,19 +1,20 @@
+
 "use client";
+
 import React, { useState } from "react";
 import {
   Modal,
   Button,
   TextInput,
   NumberInput,
-  Radio, // RadioGroup is not directly used, but Radio is
-  Flex,
+  Radio,
+  Group,
   Stack,
   Text,
-  Group,
-  RadioGroup, // Explicitly import RadioGroup if needed, or ensure Flex+Group gives desired layout
+  Flex,
 } from "@mantine/core";
 import styles from "./ticketModal.module.css";
-import { Ticket } from "../../store/types"; // Assuming correct path to your types
+import { Ticket } from "../../store/types";
 
 interface TicketModalProps {
   isModalOpen: boolean;
@@ -25,7 +26,7 @@ interface TicketModalProps {
       quantity: number | "Unlimited";
       inviteEmail?: string;
     }
-  ) => void; // Adjust addTicket prop type
+  ) => void;
 }
 
 const TicketModal: React.FC<TicketModalProps> = ({
@@ -43,18 +44,20 @@ const TicketModal: React.FC<TicketModalProps> = ({
     inviteEmail?: string;
   } = {
     name: "",
-    price: 0, // Price will be a number
-    quantity: 0, // Quantity will be a number initially, or string "Unlimited"
+    price: 0,
+    quantity: 0,
     type: "Paid",
     inviteEmail: "",
   };
-  const [newTicket, setNewTicket] = useState(initialTicketState);
+
+  const [newTicket, setNewTicket] =
+    useState<typeof initialTicketState>(initialTicketState);
   const [isUnlimited, setIsUnlimited] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleTicketChange = (
     field: keyof typeof initialTicketState,
-    value: string | number | undefined // Allow undefined for NumberInput clear
+    value: string | number | undefined
   ) => {
     setNewTicket((prev) => ({
       ...prev,
@@ -74,15 +77,13 @@ const TicketModal: React.FC<TicketModalProps> = ({
             ? 1
             : isUnlimited
             ? "Unlimited"
-            : prev.quantity, // Invite typically for 1, can be adjusted
+            : prev.quantity,
         inviteEmail:
           ticketType === "Invite" ? prev.inviteEmail || "" : undefined,
       }));
       if (ticketType === "Invite") {
-        setIsUnlimited(false); // Invites usually have a fixed quantity (often 1)
+        setIsUnlimited(false); // Invites have a fixed quantity (1)
       }
-    } else {
-      console.warn(`Unexpected ticket type: ${value}`);
     }
   };
 
@@ -90,7 +91,7 @@ const TicketModal: React.FC<TicketModalProps> = ({
     e.preventDefault();
     setIsLoading(true);
 
-    // Validate inputs
+    // 1) Validation
     if (!newTicket.name.trim()) {
       alert("Ticket name is required.");
       setIsLoading(false);
@@ -106,7 +107,6 @@ const TicketModal: React.FC<TicketModalProps> = ({
     }
     if (newTicket.type === "Free" && newTicket.price !== 0) {
       alert("Price must be ₦0.00 for free tickets.");
-      // Optionally auto-correct: setNewTicket(prev => ({...prev, price: 0}));
       setIsLoading(false);
       return;
     }
@@ -121,25 +121,24 @@ const TicketModal: React.FC<TicketModalProps> = ({
     if (
       newTicket.type !== "Invite" &&
       !isUnlimited &&
-      (newTicket.quantity === undefined || Number(newTicket.quantity) <= 0)
+      (newTicket.quantity === undefined ||
+        Number(newTicket.quantity) <= 0)
     ) {
       alert("Please enter a valid quantity or select Unlimited.");
       setIsLoading(false);
       return;
     }
 
-    // Prepare ticket data to be sent to parent
+    // 2) Build the object parent expects
     const ticketToAdd = {
       ...newTicket,
       quantity: isUnlimited ? "Unlimited" : Number(newTicket.quantity),
     };
 
-    // Simulate API call or any async operation if needed inside modal, though addTicket is usually synchronous
-    // await new Promise(resolve => setTimeout(resolve, 500));
+    // 3) Call parent’s addTicket
+    addTicket(ticketToAdd);
 
-    addTicket(ticketToAdd); // This calls the function from the parent component
-
-    // Reset form state
+    // 4) Reset and close
     setNewTicket(initialTicketState);
     setIsUnlimited(false);
     setIsLoading(false);
@@ -152,7 +151,7 @@ const TicketModal: React.FC<TicketModalProps> = ({
   };
 
   const priceFormatter = (value: string | undefined): string => {
-    if (value === undefined || value === "") return "₦"; // Handle empty or undefined
+    if (value === undefined || value === "") return "₦";
     const num = parseFloat(value);
     return !Number.isNaN(num)
       ? `₦${num.toLocaleString(undefined, {
@@ -163,12 +162,12 @@ const TicketModal: React.FC<TicketModalProps> = ({
   };
 
   const toggleUnlimited = () => {
-    const currentlyUnlimited = !isUnlimited; // Value it will become
+    const currentlyUnlimited = !isUnlimited;
     setIsUnlimited(currentlyUnlimited);
     if (currentlyUnlimited) {
-      handleTicketChange("quantity", "Unlimited" as any); // Type assertion as quantity expects number here based on state
+      handleTicketChange("quantity", "Unlimited" as any);
     } else {
-      handleTicketChange("quantity", 0); // Reset to 0 or a default when unchecking
+      handleTicketChange("quantity", 0);
     }
   };
 
@@ -181,7 +180,7 @@ const TicketModal: React.FC<TicketModalProps> = ({
   return (
     <Modal
       opened={isModalOpen}
-      onClose={isLoading ? () => {} : closeModal} // Prevent closing while loading
+      onClose={isLoading ? () => {} : closeModal}
       title={
         <Text fw={700} size="xl">
           Create New Ticket
@@ -194,8 +193,9 @@ const TicketModal: React.FC<TicketModalProps> = ({
       closeOnClickOutside={!isLoading}
       closeOnEscape={!isLoading}
     >
-      <form onSubmit={handleSubmit} className={isLoading ? styles.loading : ""}>
+      <form onSubmit={handleSubmit}>
         <Stack spacing="lg">
+          {/* Basic Information Section */}
           <div className={styles.formSection}>
             <Text className={styles.sectionTitle}>Basic Information</Text>
             <TextInput
@@ -209,11 +209,11 @@ const TicketModal: React.FC<TicketModalProps> = ({
               maxLength={255}
               className={styles.textInput}
             />
-            <Radio.Group // Changed from RadioGroup to Radio.Group for Mantine v7
+            <Radio.Group
               name="ticketType"
               label="Ticket Type"
               value={newTicket.type}
-              onChange={(value) => handleTicketTypeChange(value)}
+              onChange={handleTicketTypeChange}
               required
               className={styles.radioGroup}
             >
@@ -225,6 +225,7 @@ const TicketModal: React.FC<TicketModalProps> = ({
             </Radio.Group>
           </div>
 
+          {/* Pricing Section (only for Paid) */}
           {newTicket.type === "Paid" && (
             <div className={styles.formSection}>
               <Text className={styles.sectionTitle}>Pricing</Text>
@@ -233,13 +234,10 @@ const TicketModal: React.FC<TicketModalProps> = ({
                 placeholder="Enter ticket price"
                 value={newTicket.price}
                 onChange={(value) =>
-                  handleTicketChange(
-                    "price",
-                    typeof value === "number" ? value : 0
-                  )
+                  handleTicketChange("price", typeof value === "number" ? value : 0)
                 }
                 required
-                min={0.01} // Smallest positive value for paid tickets
+                min={0.01}
                 step={0.01}
                 precision={2}
                 parser={priceParser}
@@ -254,27 +252,21 @@ const TicketModal: React.FC<TicketModalProps> = ({
             </div>
           )}
 
+          {/* Availability Section (for Paid & Free) */}
           {newTicket.type !== "Invite" && (
             <div className={styles.formSection}>
               <Text className={styles.sectionTitle}>Availability</Text>
               <Flex align="flex-end" gap="md" className={styles.unlimited}>
-                {" "}
-                {/* Use Flex for alignment */}
                 <NumberInput
-                  style={{ flexGrow: 1 }} // Allow NumberInput to take available space
+                  style={{ flexGrow: 1 }}
                   label="Quantity"
                   placeholder="Enter number of tickets"
-                  value={
-                    isUnlimited ? undefined : (newTicket.quantity as number)
-                  } // Cast for NumberInput when not unlimited
+                  value={isUnlimited ? undefined : (newTicket.quantity as number)}
                   onChange={(value) =>
-                    handleTicketChange(
-                      "quantity",
-                      typeof value === "number" ? value : 0
-                    )
+                    handleTicketChange("quantity", typeof value === "number" ? value : 0)
                   }
                   required={!isUnlimited}
-                  min={1} // Minimum 1 if not unlimited
+                  min={1}
                   disabled={isUnlimited}
                   className={styles.numberInput}
                 />
@@ -282,7 +274,7 @@ const TicketModal: React.FC<TicketModalProps> = ({
                   type="button"
                   onClick={toggleUnlimited}
                   variant={isUnlimited ? "filled" : "outline"}
-                  className={styles.unlimitedButton} // Keep your existing style
+                  className={styles.unlimitedButton}
                 >
                   {isUnlimited ? "Set Limit" : "Unlimited"}
                 </Button>
@@ -290,6 +282,7 @@ const TicketModal: React.FC<TicketModalProps> = ({
             </div>
           )}
 
+          {/* Invitation Section (only for Invite) */}
           {newTicket.type === "Invite" && (
             <div className={styles.formSection}>
               <Text className={styles.sectionTitle}>Invitation Details</Text>
@@ -307,6 +300,7 @@ const TicketModal: React.FC<TicketModalProps> = ({
             </div>
           )}
 
+          {/* Submit / Cancel Buttons */}
           <Group justify="flex-end" mt="xl" className={styles.submitBtn}>
             <Button
               type="button"
