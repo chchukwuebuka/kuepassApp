@@ -30,39 +30,6 @@ interface FetchedEventData {
   creator?: { username?: string };
 }
 
-const staticPlaceholderEvents: EventCardProps[] = [
-  {
-    eventId: "static-event-1",
-    image: "/images/osite.png",
-    title: "Osi-ite Cooking Competition",
-    date: "Dec 10, 2023",
-    time: "10:00 AM",
-    organizer: "Crisp Tv Media",
-    location: "Enugu, Nigeria",
-    address: "123 Main Street, Enugu, Nigeria",
-  },
-  {
-    eventId: "static-event-2",
-    image: "/images/speak.png",
-    title: "Cico de mayo Event",
-    date: "Nov 05, 2023",
-    time: "10:00 AM",
-    organizer: "Crisp Tv Media",
-    location: "Enugu, Nigeria",
-    address: "456 Event Avenue, Enugu, Nigeria",
-  },
-  {
-    eventId: "static-event-3",
-    image: "/images/cinco.png",
-    title: "Speak Like a Pro",
-    date: "Nov 05, 2023",
-    time: "10:00 AM",
-    organizer: "Crisp Tv Media",
-    location: "Enugu, Nigeria",
-    address: "789 Conference Road, Enugu, Nigeria",
-  },
-];
-
 interface EventSectionProps {
   id?: string;
   title?: string;
@@ -74,13 +41,13 @@ export const EventSection: React.FC<EventSectionProps> = ({
   title = "Trending & Recent Events",
   initialDisplayLimit = 3,
 }) => {
-  const [dynamicEvents, setDynamicEvents] = useState<EventCardProps[]>([]);
+  const [events, setEvents] = useState<EventCardProps[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showAllDynamic, setShowAllDynamic] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
-    const fetchDynamicEvents = async () => {
+    const fetchEvents = async () => {
       setIsLoading(true);
       setError(null);
       try {
@@ -104,7 +71,7 @@ export const EventSection: React.FC<EventSectionProps> = ({
         }
 
         const now = new Date();
-        const mappedDynamicEvents: EventCardProps[] = fetchedEventsData.map(
+        const mappedEvents: EventCardProps[] = fetchedEventsData.map(
           (event) => ({
             eventId: event.id,
             image:
@@ -133,26 +100,21 @@ export const EventSection: React.FC<EventSectionProps> = ({
           })
         );
 
-        setDynamicEvents(mappedDynamicEvents);
+        setEvents(mappedEvents);
       } catch (err: any) {
-        console.error("EventSection: Failed to fetch dynamic events:", err);
+        console.error("EventSection: Failed to fetch events:", err);
         setError(err.message || "Could not load events at this time.");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchDynamicEvents();
+    fetchEvents();
   }, []);
 
-  const eventsToDisplayInitially = showAllDynamic
-    ? dynamicEvents
-    : dynamicEvents.slice(0, initialDisplayLimit);
-
-  const allDisplayedEvents = [
-    ...staticPlaceholderEvents,
-    ...eventsToDisplayInitially,
-  ];
+  const eventsToDisplay = showAll
+    ? events
+    : events.slice(0, initialDisplayLimit);
 
   return (
     <SectionWrapper id={id}>
@@ -176,17 +138,10 @@ export const EventSection: React.FC<EventSectionProps> = ({
           {!isLoading && !error && (
             <>
               <EventsGrid>
-                {allDisplayedEvents.map((event, index) => (
-                  <EventCardWrapper key={event.eventId || `dynamic-${index}`}>
+                {eventsToDisplay.map((event, index) => (
+                  <EventCardWrapper key={event.eventId || `event-${index}`}>
                     <Link
-                      href={
-                        event.eventId &&
-                        event.eventId.startsWith("static-event-")
-                          ? `/event-unavailable?title=${encodeURIComponent(
-                              event.title
-                            )}`
-                          : `/eventSchedule/eventDetails/${event.eventId}`
-                      }
+                      href={`/eventSchedule/eventDetails/${event.eventId}`}
                       style={{ textDecoration: "none" }}
                     >
                       <EventCard {...event} />
@@ -194,15 +149,13 @@ export const EventSection: React.FC<EventSectionProps> = ({
                   </EventCardWrapper>
                 ))}
               </EventsGrid>
-              {dynamicEvents.length > initialDisplayLimit &&
-                !showAllDynamic && (
-                  <Center mt="xl">
-                    <ViewMoreButton onClick={() => setShowAllDynamic(true)}>
-                      See More Events{" "}
-                      <ArrowIcon style={{ marginLeft: "8px" }} />
-                    </ViewMoreButton>
-                  </Center>
-                )}
+              {events.length > initialDisplayLimit && !showAll && (
+                <Center mt="xl">
+                  <ViewMoreButton onClick={() => setShowAll(true)}>
+                    See More Events <ArrowIcon style={{ marginLeft: "8px" }} />
+                  </ViewMoreButton>
+                </Center>
+              )}
             </>
           )}
         </SectionContent>
@@ -211,32 +164,47 @@ export const EventSection: React.FC<EventSectionProps> = ({
   );
 };
 
-// Styled Components (keep these as they are)
+// Styled Components
 const SectionWrapper = styled.section`
-  /* ... */
+  padding: 4rem 0;
+  background: linear-gradient(135deg, #f8fffe 0%, #e6f7f1 100%);
 `;
+
 const SectionContent = styled(Stack)`
-  /* ... */
+  gap: 2rem;
 `;
+
 const SectionHeader = styled(Flex)`
-  /* ... */
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
 `;
+
 const SectionTitle = styled(Text)`
-  /* ... */
+  font-size: 2rem;
+  font-weight: 700;
+  color: #025a3a;
+  margin: 0;
 `;
+
 const EventsGrid = styled(Flex)`
   gap: 1.5rem;
   flex-wrap: wrap;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: center;
 
   @media (max-width: 768px) {
     gap: 1rem;
     justify-content: center;
   }
 `;
+
 const EventCardWrapper = styled.div`
-  /* ... */
+  /* flex: 1 1 300px; */
+  max-width: 400px;
+  min-width: 280px;
 `;
+
 const ViewMoreButton = styled(MantineButton)`
   background-color: #056348;
   color: white;
@@ -245,6 +213,7 @@ const ViewMoreButton = styled(MantineButton)`
     background-color: #034f3a;
   }
 ` as typeof MantineButton;
+
 const ArrowIcon = styled(FaArrowRight)``;
 
 export default EventSection;

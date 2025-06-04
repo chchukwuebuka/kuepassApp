@@ -1,29 +1,35 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isAuthenticated } from "@/app/services/auth";
 
-interface ProtectedRouteProps {
+interface AuthGuardProps {
   children: React.ReactNode;
+  requireAuth?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+const AuthGuard: React.FC<AuthGuardProps> = ({
+  children,
+  requireAuth = false,
+}) => {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated()) {
+    if (requireAuth && !isAuthenticated()) {
       router.push(
         "/auth/signin?redirect=" + encodeURIComponent(window.location.pathname)
       );
     }
-  }, [router]);
+    setIsLoading(false);
+  }, [router, requireAuth]);
 
-  if (!isAuthenticated()) {
+  if (isLoading) {
     return null; // or a loading spinner
   }
 
   return <>{children}</>;
 };
 
-export default ProtectedRoute;
+export default AuthGuard;

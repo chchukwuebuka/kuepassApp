@@ -1,14 +1,14 @@
 import CreateEventForm from "@/components/CreateEventForm/EventForm";
-import ProtectedRoute from "@/app/components/ProtectedRoute";
+// import AuthGuard from "@/app/components/AuthGuard";
 import React from "react";
 
 function CreateEventFormPage() {
   return (
-    <ProtectedRoute>
+    // <AuthGuard requireAuth={true}>
       <div>
         <CreateEventForm />
       </div>
-    </ProtectedRoute>
+    // </AuthGuard>
   );
 }
 
