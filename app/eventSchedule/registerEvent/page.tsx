@@ -19,6 +19,9 @@ import {
   Divider,
   Container,
   Paper,
+  Select,
+  Checkbox,
+  Radio,
 } from "@mantine/core";
 import {
   IconTicket,
@@ -33,6 +36,7 @@ import ProtectedRoute from "@/app/components/ProtectedRoute";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
+// --- INTERFACES ---
 interface EventData {
   id: string;
   title: string;
@@ -55,19 +59,24 @@ interface Ticket {
   quantity: string;
 }
 
+interface QuestionOption {
+  id: string;
+  text: string;
+}
+
 interface Question {
   id: string;
-  type: "textarea" | "text" | "checkbox" | "select" | "radio";
+  type: "textarea" | "text" | "checkbox" | "select" | "radio" | "email"; // Added email to type union
   title: string;
   required: boolean;
   placeholder?: string;
-  options?: Array<{ id: string; text: string }>;
+  options?: QuestionOption[];
   order: number;
 }
 
 interface Answer {
   questionId: string;
-  value: string;
+  value: string | string[];
 }
 
 interface UserData {
@@ -87,10 +96,7 @@ interface AttendeeData {
   payment_status: string;
   registration_date?: string;
   responses?: Array<{
-    id: string;
-    question: string;
-    text_response: string;
-    selected_options: Array<any>;
+    /* ... */
   }>;
   is_validated?: boolean;
   validated_at?: string | null;
@@ -107,7 +113,6 @@ interface AttendeeRequestPayload {
   responses: Array<{
     question: string;
     text_response?: string;
-    selected_options?: Array<{ option: string }>;
   }>;
   [key: string]: unknown;
 }
@@ -157,7 +162,7 @@ export default function RegisterEvent() {
     const ticket = tickets.find((t) => t.id === selectedTicket);
     if (!ticket) return 0;
     const ticketPrice = Number.parseFloat(ticket.category_price) || 0;
-    return ticketPrice + fees;
+    return ticketPrice > 0 ? ticketPrice + fees : 0;
   };
 
   useEffect(() => {
@@ -172,7 +177,11 @@ export default function RegisterEvent() {
   }, [eventId]);
 
   async function fetchAllData() {
-    if (!eventId) return;
+    if (!eventId) {
+      setLoading(false);
+      setUiLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
 
@@ -184,9 +193,29 @@ export default function RegisterEvent() {
       }>(`${API_BASE_URL}/users/me/`, "GET");
       if (userResponse?.success && userResponse.data) {
         setUser(userResponse.data);
-        setPhoneNumber(userResponse.data.phone_number || "");
+        let initialPhoneNumber = (userResponse.data.phone_number || "").replace(
+          /\s/g,
+          ""
+        );
+        if (
+          initialPhoneNumber &&
+          /^\d+$/.test(initialPhoneNumber) &&
+          initialPhoneNumber.length >= 10 &&
+          !initialPhoneNumber.startsWith("+")
+        ) {
+          initialPhoneNumber = `+${initialPhoneNumber}`;
+        }
+        setPhoneNumber(initialPhoneNumber);
+        if (!initialPhoneNumber) {
+          setPhoneError("Phone number is required.");
+        } else if (!/^\+\d{10,15}$/.test(initialPhoneNumber)) {
+          setPhoneError(
+            "Fetched phone number is not in the correct international format (e.g., +2349012345678). Please update it."
+          );
+        } else {
+          setPhoneError(null);
+        }
       } else {
-        console.error("Failed to fetch user data:", userResponse?.message);
         setError(userResponse?.message || "Could not fetch user details.");
       }
 
@@ -198,7 +227,6 @@ export default function RegisterEvent() {
       if (eventResponse?.success && eventResponse.data) {
         setEvent(eventResponse.data);
       } else {
-        console.error("Failed to fetch event data:", eventResponse?.message);
         setError(eventResponse?.message || "Could not fetch event details.");
       }
 
@@ -210,53 +238,66 @@ export default function RegisterEvent() {
       if (ticketsResponse?.success && ticketsResponse.data) {
         setTickets(ticketsResponse.data || []);
       } else {
-        console.error("Failed to fetch tickets:", ticketsResponse?.message);
         setTickets([]);
       }
 
       const rawQuestionsResponse = await authenticatedRequest<
         Question[] | { success: boolean; data: Question[]; message?: string }
       >(`${API_BASE_URL}/event-forms/${eventId}/questions/`, "GET");
-
       let questionsData: Question[] | null = null;
-      let qFetchSuccess = false;
-
       if (Array.isArray(rawQuestionsResponse)) {
         questionsData = rawQuestionsResponse;
-        qFetchSuccess = true;
-      } else if (
-        rawQuestionsResponse?.success &&
-        rawQuestionsResponse.data
-      ) {
+      } else if (rawQuestionsResponse?.success && rawQuestionsResponse.data) {
         questionsData = rawQuestionsResponse.data;
-        qFetchSuccess = true;
-      } else {
-        console.error(
-          "Failed to fetch questions. Resp:",
-          rawQuestionsResponse
-        );
       }
 
-      if (qFetchSuccess && questionsData) {
-        setQuestions(
-          Array.isArray(questionsData)
-            ? questionsData.sort((a, b) => a.order - b.order)
-            : []
-        );
+      if (questionsData) {
+        setQuestions(questionsData.sort((a, b) => a.order - b.order));
       } else {
         setQuestions([]);
       }
     } catch (err: any) {
-      console.error("Error in fetchAllData:", err);
-      setError(err.message || "Failed to load event data.");
+      setError(err.message || "Failed to load event data comprehensively.");
     } finally {
       setLoading(false);
     }
   }
 
-  const handlePhoneChange = (value: string) => {
-    setPhoneNumber(value);
-    setPhoneError(value ? null : "Phone number is required.");
+  const handlePhoneChange = (valueFromOnChange: string) => {
+    let processedValue = valueFromOnChange.replace(/\s/g, "");
+    if (
+      processedValue &&
+      /^\d+$/.test(processedValue) &&
+      processedValue.length >= 10 &&
+      !processedValue.startsWith("+")
+    ) {
+      processedValue = `+${processedValue}`;
+    }
+    setPhoneNumber(processedValue);
+    if (!processedValue) {
+      setPhoneError("Phone number is required.");
+    } else if (!/^\+\d{10,15}$/.test(processedValue)) {
+      setPhoneError(
+        "Phone number must be in international format with '+' and 10-15 digits (e.g., +2349012345678)."
+      );
+    } else {
+      setPhoneError(null);
+    }
+  };
+
+  const updateAnswer = (questionId: string, value: string | string[]) => {
+    setAnswers((prevAnswers) => {
+      const existingAnswerIndex = prevAnswers.findIndex(
+        (a) => a.questionId === questionId
+      );
+      const newAnswer = { questionId, value };
+      if (existingAnswerIndex > -1) {
+        const updatedAnswers = [...prevAnswers];
+        updatedAnswers[existingAnswerIndex] = newAnswer;
+        return updatedAnswers;
+      }
+      return [...prevAnswers, newAnswer];
+    });
   };
 
   const handlePurchase = async () => {
@@ -266,19 +307,27 @@ export default function RegisterEvent() {
       return;
     }
     if (!phoneNumber || phoneError) {
-      alert("Valid phone number required.");
+      alert(phoneError || "Valid phone number required.");
       return;
     }
+
     for (const q of questions.filter((q) => q.required)) {
       const ans = answers.find((a) => a.questionId === q.id);
-      if (!ans?.value.trim()) {
+      let isMissing = true;
+      if (ans?.value !== undefined && ans.value !== null) {
+        if (Array.isArray(ans.value))
+          isMissing = ans.value.join("").trim() === "";
+        else if (typeof ans.value === "string")
+          isMissing = ans.value.trim() === "";
+      }
+      if (isMissing) {
         alert(`Please answer: "${q.title}"`);
         return;
       }
     }
 
     setPaymentLoading(true);
-
+    setError(null);
     try {
       const attendeePayload: AttendeeRequestPayload = {
         event: eventId!,
@@ -288,66 +337,71 @@ export default function RegisterEvent() {
         name: user.username,
         phone_number: phoneNumber,
         payment_status: "pending",
-        responses: answers.map((a) => ({
-          question: a.questionId,
-          text_response: a.value,
-        })),
+        responses: answers
+          .map((a) => {
+            const qD = questions.find((q) => q.id === a.questionId);
+            if (!qD) return null;
+            return {
+              question: a.questionId,
+              text_response: Array.isArray(a.value)
+                ? a.value.join(", ")
+                : typeof a.value === "string"
+                ? a.value
+                : "",
+            };
+          })
+          .filter(
+            (r) =>
+              r !== null &&
+              ((r.text_response && r.text_response.trim() !== "") ||
+                questions.find((q) => q.id === r.question)?.required)
+          ) as AttendeeRequestPayload["responses"],
       };
 
-      const attendeeCreationResult = await authenticatedRequest<
-        AttendeeData | { message: string }
-      >(`${API_BASE_URL}/attendees/`, "POST", attendeePayload);
+      attendeePayload.responses = attendeePayload.responses.filter((r) => {
+        const qDetails = questions.find((q) => q.id === r.question);
+        if (qDetails?.required) return true;
+        if (r.text_response && r.text_response.trim() !== "") return true;
+        return false;
+      });
 
-      if (
-        !(
-          attendeeCreationResult &&
-          (attendeeCreationResult as AttendeeData).id
-        )
-      ) {
-        const errorMessage =
-          (attendeeCreationResult as { message?: string })?.message ||
+      const creationResult = await authenticatedRequest<
+        AttendeeData | { message: string; errors?: any }
+      >(`${API_BASE_URL}/attendees/`, "POST", attendeePayload);
+      if (!(creationResult && (creationResult as AttendeeData).id)) {
+        let errMsg =
+          (creationResult as { message?: string })?.message ||
           "Could not create attendee record.";
-        alert(errorMessage);
-        console.error("Attendee creation failed:", attendeeCreationResult);
+        if ((creationResult as { errors?: any })?.errors)
+          errMsg += ` Details: ${JSON.stringify(
+            (creationResult as { errors: any }).errors
+          )}`;
+        alert(errMsg);
+        console.error("Attendee creation failed:", creationResult);
         setPaymentLoading(false);
         return;
       }
-
-      const attendee = attendeeCreationResult as AttendeeData;
+      const attendee = creationResult as AttendeeData;
       const ticketObj = tickets.find((t) => t.id === selectedTicket);
-
-      if (ticketObj?.category_name === "Free") {
+      if (ticketObj?.category_name === "Free" || calculateTotal() <= 0) {
         setShowModal(true);
         setPaymentLoading(false);
         return;
       }
-
-      const totalAmountForBackend = calculateTotal();
-      if (totalAmountForBackend <= 0) {
-        alert("Ticket price is invalid. Cannot proceed with payment.");
-        setPaymentLoading(false);
-        return;
-      }
-
       const paymentInitPayload = {
         attendee_id: attendee.id,
-        amount: totalAmountForBackend.toString(),
+        amount: calculateTotal().toString(),
       };
-
       const initResponse =
         await authenticatedRequest<PaymentInitializationApiResponse>(
           `${API_BASE_URL}/payment/initialize/`,
           "POST",
           paymentInitPayload
         );
-
       if (initResponse?.success && initResponse.data?.authorization_url) {
         window.location.href = initResponse.data.authorization_url;
       } else {
-        const msg =
-          initResponse?.message ||
-          "Failed to initialize payment. Please try again.";
-        alert(msg);
+        alert(initResponse?.message || "Failed to initialize payment.");
         console.error("Payment initialization failed:", initResponse);
         setPaymentLoading(false);
       }
@@ -360,12 +414,11 @@ export default function RegisterEvent() {
 
   const closeModal = () => {
     setShowModal(false);
-    if (eventId) {
-      setTimeout(() => router.push(`/eventSchedule/events/${eventId}`), 3000);
-    }
+    if (eventId)
+      setTimeout(() => router.push(`/eventSchedule/events/${eventId}`), 2000);
   };
-
   const getTicketTypeIcon = (type: string) => {
+    /* ... unchanged ... */
     switch (type) {
       case "Free":
         return <IconTicket size={20} />;
@@ -377,16 +430,16 @@ export default function RegisterEvent() {
         return <IconTicket size={20} />;
     }
   };
-
   const getTicketTypeBadge = (type: string) => {
-    const colors = {
+    /* ... unchanged ... */
+    const colors: { [key: string]: string } = {
       Free: "green",
       Paid: "blue",
       Invite: "orange",
     };
     return (
       <Badge
-        color={colors[type as keyof typeof colors] || "gray"}
+        color={colors[type] || "gray"}
         variant="light"
         size="sm"
         className={styles.ticketBadge}
@@ -398,72 +451,56 @@ export default function RegisterEvent() {
 
   if (uiLoading || !isMounted) {
     return (
-      <div className={styles.loadingContainer}>
-        <Center style={{ height: "80vh", flexDirection: "column" }}>
-          <Loader size="lg" color="#025a3a" />
-          <Text mt="md" className={styles.loadingText}>
-            Initializing...
-          </Text>
-        </Center>
-      </div>
+      <Center style={{ height: "80vh", flexDirection: "column" }}>
+        <Loader size="lg" color="#025a3a" />
+        <Text mt="md">Initializing...</Text>
+      </Center>
     );
   }
-
   if (loading) {
     return (
-      <div className={styles.loadingContainer}>
-        <Center style={{ height: "80vh", flexDirection: "column" }}>
-          <Loader size="lg" color="#025a3a" />
-          <Text mt="md" className={styles.loadingText}>
-            Loading event details...
-          </Text>
-        </Center>
-      </div>
+      <Center style={{ height: "80vh", flexDirection: "column" }}>
+        <Loader size="lg" color="#025a3a" />
+        <Text mt="md">Loading event details...</Text>
+      </Center>
     );
   }
-
   if (error || !event || !user) {
     return (
-      <div className={styles.errorContainer}>
-        <Center
-          style={{
-            height: "80vh",
-            textAlign: "center",
-            flexDirection: "column",
-            padding: "20px",
-          }}
-        >
-          <Text color="red" size="lg" mb="md">
-            {error || "Event/User data could not be loaded."}
-          </Text>
-          <Text>Please refresh.</Text>
-        </Center>
-      </div>
+      <Center
+        style={{
+          height: "80vh",
+          textAlign: "center",
+          flexDirection: "column",
+          padding: "20px",
+        }}
+      >
+        <Text color="red" size="lg" mb="md">
+          {error || "Event/User data could not be loaded."}
+        </Text>
+        <Text>Please refresh.</Text>
+      </Center>
     );
   }
 
-  // Expanded palette of fallback colors
   const fallbackColors = [
-    "#059669", // green
-    "#2563eb", // blue
-    "#d97706", // orange
-    "#701a75", // purple
-    "#ea580c", // amber
-    "#be185d", // pink
-    "#047857", // teal
-    "#facc15", // yellow
-    "#1e293b", // slate
-    "#7c3aed", // violet
+    "#059669",
+    "#2563eb",
+    "#d97706",
+    "#701a75",
+    "#ea580c",
+    "#be185d",
+    "#047857",
+    "#facc15",
+    "#1e293b",
+    "#7c3aed",
   ];
-
-  // Determine current half-hour interval index
   const intervalIndex = Math.floor(Date.now() / (30 * 60 * 1000));
 
   return (
     <ProtectedRoute>
       <div className={styles.pageWrapper}>
         <Container size="xl" className={styles.container}>
-          {/* Header Section */}
           <div className={styles.header}>
             <div className={styles.headerContent}>
               <Badge
@@ -478,8 +515,6 @@ export default function RegisterEvent() {
               <p className={styles.subtitle}>
                 You are just one step away from securing your spot!
               </p>
-
-              {/* Event Info Cards */}
               <div className={styles.eventInfoGrid}>
                 <Card className={styles.eventInfoCard}>
                   <Group gap="xs">
@@ -494,7 +529,6 @@ export default function RegisterEvent() {
                     {new Date(event.start_date).toLocaleDateString()}
                   </Text>
                 </Card>
-
                 <Card className={styles.eventInfoCard}>
                   <Group gap="xs">
                     <ThemeIcon size="sm" variant="light" color="green">
@@ -508,7 +542,6 @@ export default function RegisterEvent() {
                     {event.location}
                   </Text>
                 </Card>
-
                 <Card className={styles.eventInfoCard}>
                   <Group gap="xs">
                     <ThemeIcon size="sm" variant="light" color="green">
@@ -528,10 +561,8 @@ export default function RegisterEvent() {
           </div>
 
           <div className={styles.formContainer}>
-            {/* Main Form Section */}
             <div className={styles.formSection}>
               <Paper className={styles.formBox}>
-                {/* User Info Section */}
                 <div className={styles.sectionHeader}>
                   <Group gap="sm">
                     <ThemeIcon variant="light" color="green">
@@ -542,7 +573,6 @@ export default function RegisterEvent() {
                     </Text>
                   </Group>
                 </div>
-
                 <div className={styles.questionItem}>
                   <label
                     htmlFor="phone-number-input"
@@ -574,10 +604,7 @@ export default function RegisterEvent() {
                     </Text>
                   )}
                 </div>
-
                 <Divider my="xl" />
-
-                {/* Ticket Selection Section */}
                 <div className={styles.sectionHeader}>
                   <Group gap="sm">
                     <ThemeIcon variant="light" color="green">
@@ -588,31 +615,26 @@ export default function RegisterEvent() {
                     </Text>
                   </Group>
                 </div>
-
                 {tickets.length === 0 && !loading && (
                   <div className={styles.noSelection}>
-                    No tickets are currently available for this event.
+                    No tickets available.
                   </div>
                 )}
-
                 <div className={styles.ticketsGrid}>
                   {tickets.map((ticket, idx) => {
-                    // First ticket uses backend color;
-                    // subsequent tickets use a color that changes every 30 minutes
-                    const cardColor =
+                    const actualCardColor =
                       idx === 0 && event.customization?.card_color
                         ? event.customization.card_color
                         : fallbackColors[
-                            (intervalIndex + (idx - 1)) % fallbackColors.length
+                            (intervalIndex + idx) % fallbackColors.length
                           ];
-
                     return (
                       <div
                         key={ticket.id}
                         className={`${styles.ticketCard} ${
                           selectedTicket === ticket.id ? styles.selected : ""
                         }`}
-                        style={{ background: cardColor }}
+                        style={{ background: actualCardColor }}
                         onClick={() =>
                           setSelectedTicket((cur) =>
                             cur === ticket.id ? null : ticket.id
@@ -625,7 +647,6 @@ export default function RegisterEvent() {
                           </div>
                           {getTicketTypeBadge(ticket.category_name)}
                         </div>
-
                         <div className={styles.ticketContent}>
                           <Text
                             fw={600}
@@ -638,7 +659,6 @@ export default function RegisterEvent() {
                             {event.title}
                           </Text>
                         </div>
-
                         <div className={styles.ticketPrice}>
                           <Text size="xs" className={styles.ticketPrice}>
                             PRICE
@@ -649,14 +669,12 @@ export default function RegisterEvent() {
                             className={styles.priceAmount}
                           >
                             ₦
-                            {Number.parseFloat(
-                              ticket.category_price
-                            ).toFixed(2)}
+                            {Number.parseFloat(ticket.category_price).toFixed(
+                              2
+                            )}
                           </Text>
                         </div>
-
                         <div className={styles.ticketPerforations}></div>
-
                         {selectedTicket === ticket.id && (
                           <div className={styles.selectedIndicator}>
                             <IconTicket size={16} />
@@ -669,13 +687,11 @@ export default function RegisterEvent() {
               </Paper>
             </div>
 
-            {/* Summary Section */}
             <div className={styles.summarySection}>
               <Paper className={styles.summaryBox}>
-                {/* Questions Section */}
                 {questions.length > 0 && selectedTicket && (
                   <>
-                    <Divider my="xl" />
+                    <Divider my="lg" />
                     <div className={styles.questionsSection}>
                       <div className={styles.sectionHeader}>
                         <Text fw={600} size="lg">
@@ -780,7 +796,6 @@ export default function RegisterEvent() {
                     </Text>
                   </Group>
                 </div>
-
                 <div className={styles.summaryContent}>
                   {selectedTicket &&
                   tickets.find((t) => t.id === selectedTicket) ? (
@@ -788,20 +803,31 @@ export default function RegisterEvent() {
                       <div className={styles.summaryItem}>
                         <Text size="sm">
                           Ticket (
-                          {
-                            tickets.find((t) => t.id === selectedTicket)
-                              ?.name
-                          }
-                          )
+                          {tickets.find((t) => t.id === selectedTicket)?.name})
                         </Text>
                         <Text fw={500}>
-                          ₦{(calculateTotal() - fees).toFixed(2)}
+                          ₦
+                          {Math.max(
+                            0,
+                            calculateTotal() -
+                              (Number.parseFloat(
+                                tickets.find((t) => t.id === selectedTicket)
+                                  ?.category_price || "0"
+                              ) > 0
+                                ? fees
+                                : 0)
+                          ).toFixed(2)}
                         </Text>
                       </div>
-                      <div className={styles.summaryItem}>
-                        <Text size="sm">Service Fee</Text>
-                        <Text fw={500}>₦{fees.toFixed(2)}</Text>
-                      </div>
+                      {Number.parseFloat(
+                        tickets.find((t) => t.id === selectedTicket)
+                          ?.category_price || "0"
+                      ) > 0 && (
+                        <div className={styles.summaryItem}>
+                          <Text size="sm">Service Fee</Text>
+                          <Text fw={500}>₦{fees.toFixed(2)}</Text>
+                        </div>
+                      )}
                       <Divider my="md" />
                       <div className={styles.summaryTotal}>
                         <Text fw={700} size="lg">
@@ -814,11 +840,10 @@ export default function RegisterEvent() {
                     </>
                   ) : (
                     <div className={styles.noSelection}>
-                      Please select a ticket to see the summary.
+                      Please select a ticket.
                     </div>
                   )}
                 </div>
-
                 <button
                   className={styles.purchaseBtn}
                   disabled={
@@ -832,28 +857,25 @@ export default function RegisterEvent() {
                   onClick={handlePurchase}
                 >
                   {paymentLoading ? (
-                    <Group gap="xs">
+                    <Group justify="center" gap="xs">
                       <Loader size="sm" color="white" />
                       <Text>Processing...</Text>
                     </Group>
                   ) : (
-                    <Group gap="xs">
+                    <Group justify="center" gap="xs">
                       <IconCreditCard size={20} />
-                      <Text>Proceed to Payment</Text>
+                      <Text>
+                        {calculateTotal() > 0
+                          ? "Proceed to Payment"
+                          : "Register for Free"}
+                      </Text>
                     </Group>
                   )}
                 </button>
-
-                {error && (
-                  <Text size="xs" color="red" ta="center" mt="xs">
-                    {error}
-                  </Text>
-                )}
               </Paper>
             </div>
           </div>
         </Container>
-
         <Modal
           show={showModal}
           onClose={closeModal}
@@ -861,7 +883,7 @@ export default function RegisterEvent() {
           message={
             event
               ? `Registered for "${event.title}". Confirmation sent. Redirecting...`
-              : "Registration successful!"
+              : "Registration successful! Redirecting..."
           }
         />
       </div>
