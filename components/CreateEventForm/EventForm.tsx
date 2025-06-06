@@ -1231,11 +1231,6 @@ export default function CreateEventForm() {
     card_color: string;
     is_active: boolean;
   }) => {
-    // console.log(
-    //   "Event Customization Payload for event ID:",
-    //   data.event,
-    //   JSON.stringify(data, null, 2)
-    // );
     try {
       await authenticatedRequest(
         `${API_BASE_URL}/event-customizations/`,
@@ -1278,7 +1273,6 @@ export default function CreateEventForm() {
       data?: { url: string };
       url?: string;
     }>(`${API_BASE_URL}/upload-image/`, "POST", formD);
-    // console.log("uploadImage: Response from backend:", res);
     const imageUrl = res.data?.url || (res as any).url;
     if (!res.success || !imageUrl)
       throw new Error(
@@ -1389,9 +1383,6 @@ export default function CreateEventForm() {
 
       if (!isValidUrl(finalBannerUrl) || finalBannerUrl.startsWith("blob:")) {
         finalBannerUrl = DEFAULT_BANNER_URL;
-        // console.warn(
-        //   "handleSubmit: bannerUrl invalid or blob. Defaulting to placeholder."
-        // );
       }
 
       if (!isValidHex(formData.cardColor)) {

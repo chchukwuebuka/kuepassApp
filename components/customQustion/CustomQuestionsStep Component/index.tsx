@@ -15,7 +15,16 @@ import {
   Badge,
   Checkbox,
 } from "@mantine/core";
-import { FaTrash, FaGripLines, FaPlus, FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaEye, FaEyeSlash } from "react-icons/fa";
+import {
+  FaTrash,
+  FaGripLines,
+  FaPlus,
+  FaCheckCircle,
+  FaExclamationCircle,
+  FaInfoCircle,
+  FaEye,
+  FaEyeSlash,
+} from "react-icons/fa";
 import { Question, QuestionType } from "../../../store/types";
 import styles from "./styles.module.css";
 import { v4 as uuidv4 } from "uuid";
@@ -30,24 +39,53 @@ export const CustomQuestionsStep: React.FC<CustomQuestionsStepProps> = ({
   questions,
   setQuestions,
 }) => {
-  const [activeQuestion, setActiveQuestion] = useState<Question | null>(null);
+  // --- REFACTORED STATE 1: Store only the ID of the active question ---
+  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
+
   const [isComplete, setIsComplete] = useState<boolean>(false);
   const [validationMessages, setValidationMessages] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState<boolean>(false);
 
+  // --- REFACTORED STATE 2: The active question object is now derived from the main array ---
+  // This ensures it's always up-to-date and acts as the single source of truth.
+  const activeQuestion =
+    questions.find((q) => q.id === activeQuestionId) || null;
+
+  // Check if a single question is complete
+  const isQuestionComplete = (question: Question): boolean => {
+    if (!question.title.trim()) return false;
+
+    if (["select", "radio", "checkbox"].includes(question.type)) {
+      if (!question.options || question.options.length < 2) return false;
+      if (question.options.some((opt) => !opt.text.trim())) return false;
+    }
+
+    return true;
+  };
+
   // Check for completion status whenever questions change
   useEffect(() => {
-    // If previously marked complete, validate to see if it's still complete
     if (isComplete) {
-      const isValid = validateForm(false); // Don't validate active question
+      const isValid = validateForm(false);
       if (!isValid) {
         setIsComplete(false);
       }
     }
-  }, [questions]);
+  }, [questions, activeQuestionId]); // Depend on activeQuestionId as well
 
-  // Handle adding a new question
+  // --- REFACTORED LOGIC: Improved handleAddQuestion ---
   const handleAddQuestion = () => {
+    // First, check if there's a currently active question that is incomplete.
+    if (activeQuestion && !isQuestionComplete(activeQuestion)) {
+      alert(
+        "Please complete the current question or cancel editing before adding a new one."
+      );
+      setValidationMessages(["The currently selected question is incomplete."]);
+      return; // Stop the user from creating a new question while another is unfinished
+    }
+
+    // If everything is fine, proceed to add the new question.
+    setValidationMessages([]);
     const newQuestion: Question = {
       id: uuidv4(),
       type: "text",
@@ -58,19 +96,19 @@ export const CustomQuestionsStep: React.FC<CustomQuestionsStepProps> = ({
     };
 
     setQuestions([...questions, newQuestion]);
-    setActiveQuestion(newQuestion);
+    setActiveQuestionId(newQuestion.id); // Set the new question as active
     setIsComplete(false);
   };
 
   // Handle removing a question
   const handleRemoveQuestion = (id: string) => {
     setQuestions(questions.filter((q) => q.id !== id));
-    if (activeQuestion?.id === id) {
-      setActiveQuestion(null);
+    if (activeQuestionId === id) {
+      setActiveQuestionId(null);
     }
   };
 
-  // Handle updating question details
+  // --- REFACTORED HANDLERS: These now only update the main 'questions' array ---
   const handleUpdateQuestion = (
     id: string,
     field: keyof Question,
@@ -80,13 +118,8 @@ export const CustomQuestionsStep: React.FC<CustomQuestionsStepProps> = ({
       q.id === id ? { ...q, [field]: value } : q
     );
     setQuestions(updatedQuestions);
-
-    if (activeQuestion?.id === id) {
-      setActiveQuestion({ ...activeQuestion, [field]: value });
-    }
   };
 
-  // Handle adding an option to multiple choice questions
   const handleAddOption = (questionId: string) => {
     const updatedQuestions = questions.map((q) => {
       if (q.id === questionId) {
@@ -97,21 +130,9 @@ export const CustomQuestionsStep: React.FC<CustomQuestionsStepProps> = ({
       }
       return q;
     });
-
     setQuestions(updatedQuestions);
-
-    if (activeQuestion?.id === questionId) {
-      setActiveQuestion({
-        ...activeQuestion,
-        options: [
-          ...(activeQuestion.options || []),
-          { id: uuidv4(), text: "" },
-        ],
-      });
-    }
   };
 
-  // Handle updating an option
   const handleUpdateOption = (
     questionId: string,
     optionId: string,
@@ -121,237 +142,126 @@ export const CustomQuestionsStep: React.FC<CustomQuestionsStepProps> = ({
       if (q.id === questionId && q.options) {
         return {
           ...q,
-          options: q.options.map((opt: { id: string; text: string }) =>
+          options: q.options.map((opt) =>
             opt.id === optionId ? { ...opt, text: value } : opt
           ),
         };
       }
       return q;
     });
-
     setQuestions(updatedQuestions);
-
-    if (activeQuestion?.id === questionId && activeQuestion.options) {
-      setActiveQuestion({
-        ...activeQuestion,
-        options: activeQuestion.options.map(
-          (opt: { id: string; text: string }) =>
-            opt.id === optionId ? { ...opt, text: value } : opt
-        ),
-      });
-    }
   };
 
-  // Handle removing an option
   const handleRemoveOption = (questionId: string, optionId: string) => {
     const updatedQuestions = questions.map((q) => {
       if (q.id === questionId && q.options) {
         return {
           ...q,
-          options: q.options.filter(
-            (opt: { id: string; text: string }) => opt.id !== optionId
-          ),
+          options: q.options.filter((opt) => opt.id !== optionId),
         };
       }
       return q;
     });
-
     setQuestions(updatedQuestions);
-
-    if (activeQuestion?.id === questionId && activeQuestion.options) {
-      setActiveQuestion({
-        ...activeQuestion,
-        options: activeQuestion.options.filter(
-          (opt: { id: string; text: string }) => opt.id !== optionId
-        ),
-      });
-    }
   };
 
-  // Reorder questions
+  // (Your original functions below will now work more reliably)
+
   const handleReorderQuestion = (fromIndex: number, toIndex: number) => {
     if (toIndex < 0 || toIndex >= questions.length) return;
-
     const reorderedQuestions = [...questions];
     const [movedItem] = reorderedQuestions.splice(fromIndex, 1);
     reorderedQuestions.splice(toIndex, 0, movedItem);
-
     setQuestions(reorderedQuestions);
   };
 
-  // Validate the form and update completion status
   const validateForm = (checkActiveQuestion = true) => {
-    // If we're ignoring the active question for validation (to allow navigation)
-    const questionsToValidate = checkActiveQuestion 
-      ? questions 
-      : questions.filter(q => !activeQuestion || q.id !== activeQuestion.id);
-    
+    const questionsToValidate = checkActiveQuestion
+      ? questions
+      : questions.filter((q) => q.id !== activeQuestionId);
+
     const messages: string[] = [];
-    
-    // Check if there are any questions
+
     if (questionsToValidate.length === 0 && questions.length === 0) {
       messages.push("Add at least one question to your registration form");
     }
-    
-    // Only validate completed questions, not the one currently being edited
+
     if (questionsToValidate.length > 0) {
-      // Check if all questions have titles
-      const untitledQuestions = questionsToValidate.filter(q => !q.title.trim());
+      const untitledQuestions = questionsToValidate.filter(
+        (q) => !q.title.trim()
+      );
       if (untitledQuestions.length > 0) {
-        messages.push(`${untitledQuestions.length} question(s) are missing titles`);
+        messages.push(
+          `${untitledQuestions.length} question(s) are missing titles`
+        );
       }
-      
-      // Check if multiple choice questions have options
-      const missingOptions = questionsToValidate.filter(q => 
-        (q.type === 'select' || q.type === 'radio' || q.type === 'checkbox') && 
-        (!q.options || q.options.length < 2)
+
+      const missingOptions = questionsToValidate.filter(
+        (q) =>
+          (q.type === "select" ||
+            q.type === "radio" ||
+            q.type === "checkbox") &&
+          (!q.options || q.options.length < 2)
       );
       if (missingOptions.length > 0) {
-        messages.push(`${missingOptions.length} multiple choice question(s) need at least 2 options`);
+        messages.push(
+          `${missingOptions.length} multiple choice question(s) need at least 2 options`
+        );
       }
-      
-      // Check for empty options in multiple choice questions
-      const emptyOptions = questionsToValidate.filter(q => 
-        q.options && q.options.some(opt => !opt.text.trim())
+
+      const emptyOptions = questionsToValidate.filter(
+        (q) => q.options && q.options.some((opt) => !opt.text.trim())
       );
       if (emptyOptions.length > 0) {
         messages.push(`${emptyOptions.length} question(s) have empty options`);
       }
     }
-    
+
     setValidationMessages(messages);
     return messages.length === 0;
   };
-  
-  // Mark the form as complete to proceed
+
   const handleMarkComplete = () => {
-    // First, check if there are any completed questions (besides the active one)
-    const completedQuestions = questions.filter(q => !activeQuestion || q.id !== activeQuestion.id);
-    
-    // If we have at least one completed question, validate those
-    if (completedQuestions.length > 0) {
-      const isValid = validateForm(false); // Only validate completed questions
-      if (isValid) {
-        // If active question is incomplete, confirm with user
-        if (activeQuestion && !isQuestionComplete(activeQuestion)) {
-          if (window.confirm('You have an incomplete question. Would you like to discard it and proceed?')) {
-            // Remove the incomplete question
-            setQuestions(completedQuestions);
-            setActiveQuestion(null);
-            setIsComplete(true);
-          }
-        } else {
-          setIsComplete(true);
-        }
-      }
-    } else if (questions.length > 0) {
-      // If we only have the active question
-      if (isQuestionComplete(questions[0])) {
+    if (activeQuestion && !isQuestionComplete(activeQuestion)) {
+      if (
+        window.confirm(
+          "You have an incomplete question. Would you like to discard it and proceed?"
+        )
+      ) {
+        const completedQuestions = questions.filter(
+          (q) => q.id !== activeQuestionId
+        );
+        setQuestions(completedQuestions);
+        setActiveQuestionId(null);
         setIsComplete(true);
-      } else {
-        setValidationMessages(["Complete your current question or discard it to proceed"]);
+        setValidationMessages([]);
       }
-    } else {
-      setValidationMessages(["Add at least one question to your registration form"]);
+      return;
+    }
+
+    // Validate all questions since none are actively being edited
+    setActiveQuestionId(null);
+    const isValid = validateForm(true); // check all questions
+    if (isValid) {
+      setIsComplete(true);
     }
   };
 
-  // Check if a single question is complete
-  const isQuestionComplete = (question: Question): boolean => {
-    if (!question.title.trim()) return false;
-    
-    if ((question.type === 'select' || question.type === 'radio' || question.type === 'checkbox')) {
-      if (!question.options || question.options.length < 2) return false;
-      if (question.options.some(opt => !opt.text.trim())) return false;
-    }
-    
-    return true;
-  };
-  
-  // Specifically for handling navigation - discard active incomplete question if needed
   const handleCancelActiveQuestion = () => {
-    if (activeQuestion) {
-      // Check if the question is already saved (exists in questions array)
-      const isExistingQuestion = questions.some(q => q.id === activeQuestion.id);
-      
-      if (isExistingQuestion) {
-        // If it's incomplete, ask if user wants to remove it
-        if (!isQuestionComplete(activeQuestion)) {
-          if (window.confirm('This question is incomplete. Would you like to remove it?')) {
-            setQuestions(questions.filter(q => q.id !== activeQuestion.id));
-          }
-        }
-      } else {
-        // If it's a new question that hasn't been added yet, just clear it
-        // (This shouldn't happen in current implementation, but added for safety)
-        setActiveQuestion(null);
-      }
-    }
-    
-    setActiveQuestion(null);
+    setActiveQuestionId(null);
     validateForm(false);
   };
 
-  // Toggle preview
   const togglePreview = () => {
     setShowPreview(!showPreview);
   };
 
   return (
     <Stack className={styles.customQuestionsContainer}>
-      {/* Form completion status */}
-      <Group className={styles.statusBar} position="apart">
-        <Text size="lg" className={styles.formQuestionsText}>
-          Registration Form Questions
-        </Text>
-        <Group spacing={10}>
-          <Button 
-            leftIcon={showPreview ? <FaEyeSlash /> : <FaEye />}
-            variant="subtle"
-            onClick={togglePreview}
-            className={styles.previewToggle}
-          >
-            {showPreview ? "Hide Preview" : "Show Preview"}
-          </Button>
-          
-          {isComplete ? (
-            <Badge 
-              color="green" 
-              size="lg"
-            >
-              <Group spacing={5}>
-                <FaCheckCircle size={14} />
-                <span>Ready to Proceed</span>
-              </Group>
-            </Badge>
-          ) : (
-            <Group spacing={8}>
-              {activeQuestion && (
-                <Button 
-                  variant="subtle" 
-                  color="gray" 
-                  onClick={handleCancelActiveQuestion}
-                >
-                  Cancel Editing
-                </Button>
-              )}
-              <Button 
-                color="green" 
-                onClick={handleMarkComplete}
-                disabled={questions.length === 0}
-              >
-                Mark as Complete
-              </Button>
-            </Group>
-          )}
-        </Group>
-      </Group>
-      
-      {/* Validation alerts */}
       {validationMessages.length > 0 && !isComplete && (
-        <Alert 
-          icon={<FaExclamationCircle />} 
-          title="Please fix the following issues:" 
+        <Alert
+          icon={<FaExclamationCircle />}
+          title="Please fix the following issues:"
           color="red"
           withCloseButton
           onClose={() => setValidationMessages([])}
@@ -364,38 +274,25 @@ export const CustomQuestionsStep: React.FC<CustomQuestionsStepProps> = ({
           </ul>
         </Alert>
       )}
-      
-      {/* Info message */}
+
       {questions.length === 0 && (
-        <Alert 
-          icon={<FaInfoCircle />} 
-          title="Create your registration form" 
+        <Alert
+          icon={<FaInfoCircle />}
+          title="Create your registration form"
           color="blue"
           className={styles.infoAlert}
         >
-          Add questions that attendees will answer when they register for your event.
-          You can create various question types like text fields, multiple choice, checkboxes, and more.
+          Add questions that attendees will answer when they register for your
+          event. You can create various question types like text fields,
+          multiple choice, checkboxes, and more.
         </Alert>
-      )}
-
-      {/* Form Preview (conditionally rendered) */}
-      {showPreview && (
-        <RegistrationFormPreview questions={questions.filter(q => 
-          // Only show questions that are complete in the preview
-          isQuestionComplete(q)
-        )} />
       )}
 
       <Group align="flex-start" spacing="lg" className={styles.editorGroup}>
         <Box className={styles.questionsSidebar}>
-          <Text
-            size="lg"
-            mb="md"
-            className={styles.formQuestionsText}
-          >
+          <Text size="lg" mb="md" className={styles.formQuestionsText}>
             Form Questions
           </Text>
-
           {questions.length === 0 ? (
             <Text
               color="dimmed"
@@ -413,11 +310,23 @@ export const CustomQuestionsStep: React.FC<CustomQuestionsStepProps> = ({
                   key={question.id}
                   p="xs"
                   className={`${styles.questionCard} ${
-                    activeQuestion?.id === question.id
+                    activeQuestionId === question.id
                       ? styles.activeQuestionCard
                       : ""
-                  } ${isQuestionComplete(question) ? "" : styles.incompleteQuestionCard}`}
-                  onClick={() => setActiveQuestion(question)}
+                  } ${
+                    isQuestionComplete(question)
+                      ? ""
+                      : styles.incompleteQuestionCard
+                  }`}
+                  onClick={() => {
+                    if (activeQuestion && !isQuestionComplete(activeQuestion)) {
+                      alert(
+                        "Please complete your current question before selecting another."
+                      );
+                      return;
+                    }
+                    setActiveQuestionId(question.id);
+                  }}
                 >
                   <Group position="apart">
                     <Group>
@@ -435,10 +344,14 @@ export const CustomQuestionsStep: React.FC<CustomQuestionsStepProps> = ({
                     </Group>
                     <Group spacing={8}>
                       {question.required && (
-                        <Badge size="xs" color="red" variant="filled">Required</Badge>
+                        <Badge size="xs" color="red" variant="filled">
+                          Required
+                        </Badge>
                       )}
                       {!isQuestionComplete(question) && (
-                        <Badge size="xs" color="orange" variant="filled">Incomplete</Badge>
+                        <Badge size="xs" color="orange" variant="filled">
+                          Incomplete
+                        </Badge>
                       )}
                       <ActionIcon
                         size="sm"
@@ -478,7 +391,11 @@ export const CustomQuestionsStep: React.FC<CustomQuestionsStepProps> = ({
                 label="Question Title"
                 value={activeQuestion.title}
                 onChange={(e) =>
-                  handleUpdateQuestion(activeQuestion.id, "title", e.target.value)
+                  handleUpdateQuestion(
+                    activeQuestion.id,
+                    "title",
+                    e.target.value
+                  )
                 }
                 placeholder="Enter your question here"
                 required
@@ -579,29 +496,35 @@ export const CustomQuestionsStep: React.FC<CustomQuestionsStepProps> = ({
               )}
 
               <Checkbox
-                label={activeQuestion.required ? "This question is required" : "Make this question required"}
+                label={
+                  activeQuestion.required
+                    ? "This question is required"
+                    : "Make this question required"
+                }
                 checked={activeQuestion.required}
-                onChange={(e) => handleUpdateQuestion(
-                  activeQuestion.id, 
-                  'required', 
-                  e.currentTarget.checked
-                )}
+                onChange={(e) =>
+                  handleUpdateQuestion(
+                    activeQuestion.id,
+                    "required",
+                    e.currentTarget.checked
+                  )
+                }
                 mt="md"
               />
-              
+
               <Group mt="lg" position="apart">
-                <Button 
-                  variant="outline" 
-                  color="gray" 
+                <Button
+                  variant="outline"
+                  color="gray"
                   onClick={handleCancelActiveQuestion}
                 >
                   Cancel
                 </Button>
-                <Button 
-                  color="teal" 
+                <Button
+                  color="teal"
                   onClick={() => {
                     if (isQuestionComplete(activeQuestion)) {
-                      setActiveQuestion(null);
+                      setActiveQuestionId(null);
                     } else {
                       alert("Please complete this question first");
                     }
@@ -613,24 +536,70 @@ export const CustomQuestionsStep: React.FC<CustomQuestionsStepProps> = ({
             </Stack>
           ) : (
             <Box className={styles.emptyEditor}>
-              <Text
-                color="dimmed"
-                className={styles.emptyEditorText}
-              >
+              <Text color="dimmed" className={styles.emptyEditorText}>
                 Select a question to edit or add a new question
               </Text>
             </Box>
           )}
         </Box>
       </Group>
-      
-      {/* Bottom notification about completion */}
-      <Alert 
-        color={isComplete ? "green" : "blue"} 
+
+      {showPreview && (
+        <RegistrationFormPreview
+          questions={questions.filter((q) => isQuestionComplete(q))}
+        />
+      )}
+
+      <Group className={styles.statusBar} position="apart">
+        <Text size="lg" className={styles.formQuestionsText}>
+          Registration Form Questions
+        </Text>
+        <Group spacing={10}>
+          <Button
+            leftIcon={showPreview ? <FaEyeSlash /> : <FaEye />}
+            variant="subtle"
+            onClick={togglePreview}
+            className={styles.previewToggle}
+          >
+            {showPreview ? "Hide Preview" : "Show Preview"}
+          </Button>
+
+          {isComplete ? (
+            <Badge color="green" size="lg">
+              <Group spacing={5}>
+                <FaCheckCircle size={14} />
+                <span>Ready to Proceed</span>
+              </Group>
+            </Badge>
+          ) : (
+            <Group spacing={8}>
+              {activeQuestion && (
+                <Button
+                  variant="subtle"
+                  color="gray"
+                  onClick={handleCancelActiveQuestion}
+                >
+                  Cancel Editing
+                </Button>
+              )}
+              <Button
+                color="green"
+                onClick={handleMarkComplete}
+                disabled={questions.length === 0}
+              >
+                Mark as Complete
+              </Button>
+            </Group>
+          )}
+        </Group>
+      </Group>
+
+      <Alert
+        color={isComplete ? "green" : "blue"}
         variant="light"
         className={styles.bottomAlert}
       >
-        {isComplete 
+        {isComplete
           ? "You've completed this section! Click 'Next' to proceed."
           : "Click 'Mark as Complete' when you're done creating questions to proceed to the next step."}
       </Alert>
