@@ -1,4 +1,5 @@
-// app/layout.tsx (or _app.tsx if you use the pages directory)
+import type { Metadata } from "next";
+
 import { Roboto } from "next/font/google";
 import { createTheme } from "@mantine/core";
 import ReduxProvider from "@/store/provider";
@@ -24,6 +25,35 @@ const theme = createTheme({
   },
 });
 
+export const metadata: Metadata = {
+  title: "Kuepass App",
+  description: "Welcome to our Kuepass App.",
+  icons: {
+    icon: [
+      {
+        url: "/icon.png",
+        sizes: "32x32",
+        type: "image/png",
+      },
+      {
+        url: "/icon.png",
+        sizes: "16x16",
+        type: "image/png",
+      },
+    ],
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+    other: [
+      {
+        rel: "mask-icon",
+        url: "/icon.png",
+        color: "#000",
+      },
+    ],
+  },
+};
+
+// STEP 3: No changes are needed to your actual RootLayout component.
 export default function RootLayout({
   children,
 }: {
