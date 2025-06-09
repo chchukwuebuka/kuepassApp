@@ -1,34 +1,3 @@
-// "use client";
-// import { useAppDispatch } from "./store";
-// import { showLoading, hideLoading } from "./loadingSlice";
-
-// export const useLoadingState = () => {
-//   const dispatch = useAppDispatch();
-
-//   const startLoading = () => {
-//     dispatch(showLoading());
-//   };
-
-//   const stopLoading = () => {
-//     dispatch(hideLoading());
-//   };
-
-//   // Helper to wrap async operations with loading state
-//   const withLoading = async <T,>(promise: Promise<T>): Promise<T> => {
-//     try {
-//       dispatch(showLoading());
-//       return await promise;
-//     } finally {
-//       dispatch(hideLoading());
-//     }
-//   };
-
-//   return {
-//     startLoading,
-//     stopLoading,
-//     withLoading,
-//   };
-// };
 
 "use client";
 import { useDispatch } from 'react-redux';
