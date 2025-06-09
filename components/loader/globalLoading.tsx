@@ -25,7 +25,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
 import { Box, Container, Text, Stack } from "@mantine/core";
 import Loading from "./loader";
-import styles from "./globaloading.module.css";
+import styles from "./globaLoading.module.css";
 
 const GlobalLoading: React.FC = () => {
   const isLoading = useSelector((state: RootState) => state.loading.isLoading);
