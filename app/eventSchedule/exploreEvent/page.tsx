@@ -13,10 +13,8 @@ import {
 } from "@mantine/core";
 import Navbar from "@/components/navbar";
 import styles from "./styles.module.css";
-import {
-  getAuthToken,
-  isAuthenticated,
-} from "@/app/services/auth"; // Remove authenticatedRequest import
+import { getAuthToken, isAuthenticated } from "@/app/services/auth"; // Remove authenticatedRequest import
+import { useLoadingState } from "@/store/loadingHook";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -76,6 +74,7 @@ const ExploreEvents: React.FC = () => {
   const [events, setEvents] = useState<MappedEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { withLoading } = useLoadingState();
 
   const formatDateRange = (start: string, end: string): string => {
     const s = new Date(start),
@@ -116,76 +115,78 @@ const ExploreEvents: React.FC = () => {
       setError(null);
 
       try {
-        // 1) Fetch events publicly (no auth token needed)
-        const eventsRes = await fetch(`${API_BASE_URL}/events/`);
-        if (!eventsRes.ok) {
-          throw new Error(`Failed to fetch events: ${eventsRes.status}`);
-        }
-        const eventsJson = await eventsRes.json();
-        const allEvents: EventData[] = eventsJson.data || []; // adjust if your API returns differently
+        await withLoading(async () => {
+          // 1) Fetch events publicly (no auth token needed)
+          const eventsRes = await fetch(`${API_BASE_URL}/events/`);
+          if (!eventsRes.ok) {
+            throw new Error(`Failed to fetch events: ${eventsRes.status}`);
+          }
+          const eventsJson = await eventsRes.json();
+          const allEvents: EventData[] = eventsJson.data || []; // adjust if your API returns differently
 
-        // 2) Check if we have a token; if so, fetch /users/me and /attendees/
-        const token = getAuthToken(); // returns string|null
-        let userId: number | null = null;
-        let allAttendees: AttendeeData[] = [];
+          // 2) Check if we have a token; if so, fetch /users/me and /attendees/
+          const token = getAuthToken(); // returns string|null
+          let userId: number | null = null;
+          let allAttendees: AttendeeData[] = [];
 
-        if (token) {
-          // 2a) Fetch current user
-          const userRes = await fetch(`${API_BASE_URL}/users/me/`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (userRes.ok) {
-            const userJson: ApiUserResponse = await userRes.json();
-            if (userJson.success && userJson.data.id) {
-              userId = userJson.data.id;
+          if (token) {
+            // 2a) Fetch current user
+            const userRes = await fetch(`${API_BASE_URL}/users/me/`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            if (userRes.ok) {
+              const userJson: ApiUserResponse = await userRes.json();
+              if (userJson.success && userJson.data.id) {
+                userId = userJson.data.id;
+              }
+            }
+
+            // 2b) Fetch attendees (only if user is logged in)
+            const attendeeRes = await fetch(`${API_BASE_URL}/attendees/`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            if (attendeeRes.ok) {
+              const attendeeJson = await attendeeRes.json();
+              allAttendees = attendeeJson.data || [];
             }
           }
 
-          // 2b) Fetch attendees (only if user is logged in)
-          const attendeeRes = await fetch(`${API_BASE_URL}/attendees/`, {
-            headers: { Authorization: `Bearer ${token}` },
+          // If not logged in, userId === null and allAttendees remains empty
+
+          // Build a set of event IDs the user has registered for
+          const registeredEventIds = new Set<string>();
+          if (userId !== null) {
+            allAttendees
+              .filter((a) => a.user === userId)
+              .forEach((a) => registeredEventIds.add(a.event));
+          }
+
+          // Map events into the shape the UI needs
+          const mappedEvents: MappedEvent[] = allEvents.map((e) => {
+            const bannerImage =
+              e.customization?.banner_url || "/images/placeholder.jpg";
+
+            let ownershipStatus: MappedEvent["ownership"] = "None";
+            if (userId !== null && e.creator && e.creator.id === userId) {
+              ownershipStatus = "Created";
+            } else if (userId !== null && registeredEventIds.has(e.id)) {
+              ownershipStatus = "Registered";
+            }
+
+            return {
+              id: e.id,
+              title: e.title,
+              category: getEventCategory(e.start_date, e.end_date),
+              image: bannerImage,
+              date: formatDateRange(e.start_date, e.end_date),
+              location: e.location,
+              name: e.creator?.username || "Unknown Host",
+              ownership: ownershipStatus,
+            };
           });
-          if (attendeeRes.ok) {
-            const attendeeJson = await attendeeRes.json();
-            allAttendees = attendeeJson.data || [];
-          }
-        }
 
-        // If not logged in, userId === null and allAttendees remains empty
-
-        // Build a set of event IDs the user has registered for
-        const registeredEventIds = new Set<string>();
-        if (userId !== null) {
-          allAttendees
-            .filter((a) => a.user === userId)
-            .forEach((a) => registeredEventIds.add(a.event));
-        }
-
-        // Map events into the shape the UI needs
-        const mappedEvents: MappedEvent[] = allEvents.map((e) => {
-          const bannerImage =
-            e.customization?.banner_url || "/images/placeholder.jpg";
-
-          let ownershipStatus: MappedEvent["ownership"] = "None";
-          if (userId !== null && e.creator && e.creator.id === userId) {
-            ownershipStatus = "Created";
-          } else if (userId !== null && registeredEventIds.has(e.id)) {
-            ownershipStatus = "Registered";
-          }
-
-          return {
-            id: e.id,
-            title: e.title,
-            category: getEventCategory(e.start_date, e.end_date),
-            image: bannerImage,
-            date: formatDateRange(e.start_date, e.end_date),
-            location: e.location,
-            name: e.creator?.username || "Unknown Host",
-            ownership: ownershipStatus,
-          };
+          setEvents(mappedEvents);
         });
-
-        setEvents(mappedEvents);
       } catch (err: any) {
         console.error("[ExploreEvents] Error:", err);
         setError(
@@ -264,9 +265,7 @@ const ExploreEvents: React.FC = () => {
               <span className={styles.hostLabel}>Host:</span> {eventData.name}
             </p>
             {eventData.ownership !== "None" && (
-              <div className={styles.ownershipBadge}>
-                {eventData.ownership}
-              </div>
+              <div className={styles.ownershipBadge}>{eventData.ownership}</div>
             )}
           </div>
         </div>
@@ -286,16 +285,14 @@ const ExploreEvents: React.FC = () => {
 
       <div className={styles.filterContainer}>
         <div className={styles.filters}>
-          {(["All", "Created", "Registered"] as OwnershipFilter[]).map(
-            (f) => (
-              <FilterBtn
-                key={f}
-                label={f}
-                active={ownershipFilter === f}
-                onClick={() => onOwnershipChange(f)}
-              />
-            )
-          )}
+          {(["All", "Created", "Registered"] as OwnershipFilter[]).map((f) => (
+            <FilterBtn
+              key={f}
+              label={f}
+              active={ownershipFilter === f}
+              onClick={() => onOwnershipChange(f)}
+            />
+          ))}
         </div>
         <div className={styles.filters}>
           {(["All", "Upcoming", "Ongoing", "Ended"] as CategoryFilter[]).map(

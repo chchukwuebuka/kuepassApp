@@ -7,13 +7,13 @@ import {
   Text,
   Container,
   Button as MantineButton,
-  Loader,
   Center,
 } from "@mantine/core";
 import { FaArrowRight } from "react-icons/fa";
 import Link from "next/link";
 import EventCard, { EventCardProps } from "./cardsPromps";
 import { authenticatedRequest } from "@/app/services/auth";
+import { useLoadingState } from "@/store/loadingHook";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -42,70 +42,69 @@ export const EventSection: React.FC<EventSectionProps> = ({
   initialDisplayLimit = 3,
 }) => {
   const [events, setEvents] = useState<EventCardProps[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const { withLoading } = useLoadingState();
 
   useEffect(() => {
     const fetchEvents = async () => {
-      setIsLoading(true);
       setError(null);
       try {
-        const response = await authenticatedRequest<any>(
-          `${API_BASE_URL}/events/?is_active=true&ordering=-start_date&limit=10`,
-          "GET"
-        );
-
-        let fetchedEventsData: FetchedEventData[] = [];
-        if (Array.isArray(response)) {
-          fetchedEventsData = response;
-        } else if (response?.success && Array.isArray(response.data)) {
-          fetchedEventsData = response.data;
-        } else if (response?.data && Array.isArray(response.data)) {
-          fetchedEventsData = response.data;
-        } else {
-          console.warn(
-            "EventSection: Unexpected events response format",
-            response
+        await withLoading(async () => {
+          const response = await authenticatedRequest<any>(
+            `${API_BASE_URL}/events/?is_active=true&ordering=-start_date&limit=10`,
+            "GET"
           );
-        }
 
-        const now = new Date();
-        const mappedEvents: EventCardProps[] = fetchedEventsData.map(
-          (event) => ({
-            eventId: event.id,
-            image:
-              event.customization?.banner_url ||
-              "/images/default-event-banner.jpg",
-            title: event.title,
-            date: new Date(event.start_date).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            }),
-            time: new Date(event.start_date).toLocaleTimeString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            organizer: event.creator?.username || "Kuepass Host",
-            location: event.location,
-            address: event.address,
-            category:
-              new Date(event.start_date) > now
-                ? "Upcoming"
-                : new Date(event.end_date) < now
-                ? "Past"
-                : "Ongoing",
-            isFeatured: false,
-          })
-        );
+          let fetchedEventsData: FetchedEventData[] = [];
+          if (Array.isArray(response)) {
+            fetchedEventsData = response;
+          } else if (response?.success && Array.isArray(response.data)) {
+            fetchedEventsData = response.data;
+          } else if (response?.data && Array.isArray(response.data)) {
+            fetchedEventsData = response.data;
+          } else {
+            console.warn(
+              "EventSection: Unexpected events response format",
+              response
+            );
+          }
 
-        setEvents(mappedEvents);
+          const now = new Date();
+          const mappedEvents: EventCardProps[] = fetchedEventsData.map(
+            (event) => ({
+              eventId: event.id,
+              image:
+                event.customization?.banner_url ||
+                "/images/default-event-banner.jpg",
+              title: event.title,
+              date: new Date(event.start_date).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              }),
+              time: new Date(event.start_date).toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              organizer: event.creator?.username || "Kuepass Host",
+              location: event.location,
+              address: event.address,
+              category:
+                new Date(event.start_date) > now
+                  ? "Upcoming"
+                  : new Date(event.end_date) < now
+                  ? "Past"
+                  : "Ongoing",
+              isFeatured: false,
+            })
+          );
+
+          setEvents(mappedEvents);
+        });
       } catch (err: any) {
         console.error("EventSection: Failed to fetch events:", err);
         setError(err.message || "Could not load events at this time.");
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -124,18 +123,13 @@ export const EventSection: React.FC<EventSectionProps> = ({
             <SectionTitle>{title}</SectionTitle>
           </SectionHeader>
 
-          {isLoading && (
-            <Center style={{ padding: "2rem" }}>
-              <Loader /> <Text ml="sm">Loading Events...</Text>
-            </Center>
-          )}
-          {error && !isLoading && (
+          {error && (
             <Center style={{ padding: "2rem" }}>
               <Text color="red">{error}</Text>
             </Center>
           )}
 
-          {!isLoading && !error && (
+          {!error && (
             <>
               <EventsGrid>
                 {eventsToDisplay.map((event, index) => (

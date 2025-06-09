@@ -37,6 +37,7 @@ import Link from "next/link";
 import CountdownTimer from "@/components/CountdownTimer"; // Ensure this path is correct
 import QRCode from "qrcode";
 import { authenticatedRequest } from "@/app/services/auth"; // Ensure this path is correct
+import { useLoadingState } from "@/store/loadingHook";
 // import AuthGuard from "@/app/components/AuthGuard"; // Commented out as per your code
 
 // --- INTERFACE DEFINITIONS ---
@@ -147,14 +148,13 @@ export default function EventDetails() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const id = params?.id;
+  const { withLoading } = useLoadingState();
 
   const [event, setEvent] = useState<EventData | null>(null);
   const [countdownDate, setCountdownDate] = useState<Date | null>(null);
   const [attendees, setAttendees] = useState<AttendeeData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingAttendees, setLoadingAttendees] = useState(false); // Kept this state if you want separate loading for attendees
   const [pageError, setPageError] = useState<string | null>(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0); // For manually refreshing attendee list
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const [showCheckInQRModal, setShowCheckInQRModal] = useState(false);
   const [checkInQrError, setCheckInQrError] = useState<string | null>(null);
@@ -180,32 +180,31 @@ export default function EventDetails() {
   useEffect(() => {
     if (!id) {
       setPageError("Event ID is missing.");
-      setLoading(false);
       return;
     }
-    setLoading(true);
     setPageError(null);
 
-    fetch(`${API_BASE_URL}/events/${id}/`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
+    withLoading(async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/events/${id}/`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
           throw new Error(
             errorData.message ||
               errorData.detail ||
-              `Failed to load event: ${res.status}`
+              `Failed to load event: ${response.status}`
           );
         }
-        return res.json();
-      })
-      .then((resData) => {
-        const eventData = resData?.data || resData; // Handle nested data or direct data
+
+        const resData = await response.json();
+        const eventData = resData?.data || resData;
         if (eventData && eventData.id) {
           setEvent(eventData as EventData);
         } else {
@@ -213,24 +212,28 @@ export default function EventDetails() {
             resData?.message || "Event data not found in response."
           );
         }
-      })
-      .catch((err) => {
+      } catch (err: any) {
         console.error("EventDetails - Error fetching event:", err);
         setPageError(err.message || "Failed to load event details.");
-      })
-      .finally(() => setLoading(false));
+      }
+    });
   }, [id]);
 
   useEffect(() => {
     if (!event || !id) return;
-    fetch(`${API_BASE_URL}/event-countdowns/?event_id=${id}`, {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    })
-      .then((res) => res.json())
-      .then((res) => {
+
+    withLoading(async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/event-countdowns/?event_id=${id}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+          }
+        );
+        const res = await response.json();
         if (res?.success && Array.isArray(res.data)) {
           const activeCountdown = res.data.find(
             (c: CountdownData) => c.event === id && c.is_active
@@ -243,30 +246,33 @@ export default function EventDetails() {
         } else {
           setCountdownDate(new Date(event.start_date));
         }
-      })
-      .catch(() => setCountdownDate(new Date(event.start_date)));
+      } catch (error) {
+        setCountdownDate(new Date(event.start_date));
+      }
+    });
   }, [event, id]);
 
   useEffect(() => {
     if (!id) return;
-    setLoadingAttendees(true); // Use this if you want a separate loader for attendees
-    authenticatedRequest<
-      | AttendeeData[]
-      | { success: boolean; data: AttendeeData[]; message?: string }
-    >(`${API_BASE_URL}/attendees/?event_id=${id}`, "GET")
-      .then((res) => {
+
+    withLoading(async () => {
+      try {
+        const res = await authenticatedRequest<
+          | AttendeeData[]
+          | { success: boolean; data: AttendeeData[]; message?: string }
+        >(`${API_BASE_URL}/attendees/?event_id=${id}`, "GET");
+
         let attendeeDataArray: AttendeeData[] = [];
         if (Array.isArray(res)) attendeeDataArray = res;
         else if (res?.success && Array.isArray(res.data))
           attendeeDataArray = res.data;
         setAttendees(attendeeDataArray);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.warn("EventDetails - Error fetching attendees:", err);
         setAttendees([]);
-      })
-      .finally(() => setLoadingAttendees(false));
-  }, [id, refreshTrigger, currentUser]); // Re-fetch attendees if currentUser changes (e.g., after login)
+      }
+    });
+  }, [id, refreshTrigger, currentUser]);
 
   useEffect(() => {
     if (event && headerContentRef.current && event.customization?.card_color) {
@@ -447,22 +453,12 @@ export default function EventDetails() {
     }
   };
 
-  if (loading) {
-    /* ... (loading JSX as provided) ... */
-    return (
-      <Center style={{ height: "100vh" }}>
-        <Loader size="lg" />
-        <Text ml="sm">Loading Event...</Text>
-      </Center>
-    );
-  }
   if (pageError || !event) {
-    /* ... (error JSX as provided) ... */
     return (
       <Center style={{ height: "100vh", padding: "20px" }}>
         <Paper shadow="xs" p="xl" withBorder>
           <Stack align="center">
-            <IconAlertTriangle size={48} color="red" />
+            <AlertTriangle size={48} color="red" />
             <Title order={3} ta="center">
               {pageError || "Event Not Found"}
             </Title>
@@ -707,7 +703,7 @@ export default function EventDetails() {
                   Event Starts In
                 </Title>
                 <Badge size="lg" className={styles.countdownBadge}>
-                  Don't Miss It!
+                  Don&lsquo;t Miss It!
                 </Badge>
               </Group>
               <CountdownTimer targetDate={countdownDate} />

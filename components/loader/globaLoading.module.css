@@ -1,4 +1,4 @@
-.global-loader-overlay {
+/* .global-loader-overlay {
       position: fixed;
       top: 0;
       left: 0;
@@ -9,4 +9,136 @@
       display: flex;
       justify-content: center;
       align-items: center;
+    } */
+
+
+
+    .globalLoaderOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 9999;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 255, 254, 0.98) 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    .loaderWrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      position: relative;
+      z-index: 10;
+    }
+    
+    .loadingText {
+      color: #025a3a;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    .loadingSubtext {
+      color: #64748b;
+      max-width: 300px;
+      line-height: 1.5;
+    }
+
+    .backgroundElement1,
+    .backgroundElement2,
+    .backgroundElement3 {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.1;
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    .backgroundElement1 {
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(45deg, #025a3a, #059669);
+      top: 10%;
+      left: 10%;
+      animation-delay: 0s;
+    }
+    
+    .backgroundElement2 {
+      width: 150px;
+      height: 150px;
+      background: linear-gradient(45deg, #059669, #34d399);
+      top: 60%;
+      right: 15%;
+      animation-delay: 2s;
+    }
+    
+    .backgroundElement3 {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(45deg, #34d399, #6ee7b7);
+      bottom: 20%;
+      left: 20%;
+      animation-delay: 4s;
+    }
+    
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+    
+    @keyframes pulse {
+      0%,
+      100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.7;
+      }
+    }
+    
+    @keyframes float {
+      0%,
+      100% {
+        transform: translateY(0px) scale(1);
+      }
+      33% {
+        transform: translateY(-20px) scale(1.05);
+      }
+      66% {
+        transform: translateY(10px) scale(0.95);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .backgroundElement1 {
+        width: 120px;
+        height: 120px;
+      }
+    
+      .backgroundElement2 {
+        width: 100px;
+        height: 100px;
+      }
+    
+      .backgroundElement3 {
+        width: 80px;
+        height: 80px;
+      }
+    
+      .loadingText {
+        font-size: 1.1rem;
+      }
+    
+      .loadingSubtext {
+        font-size: 0.875rem;
+      }
     }

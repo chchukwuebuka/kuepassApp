@@ -1,37 +1,254 @@
-/* Container for the loader */
+ /* Container for the loader
 .loaderContainer {
-      height: 100vh; /* Full-screen height */
+      height: 100vh; 
       display: flex;
       justify-content: center;
       align-items: center;
-      background-color: #ffffff; /* Optional: Set background color */
+      background-color: #ffffff; 
     }
-    
-    /* Rotating circle */
+ 
     .spinner {
-      width: 120px; /* Size of the spinner */
+
       height: 120px;
-      border: 5px solid #d3d3d3; /* Light gray border */
-      border-top: 5px solid #025a3a; /* Highlighted color for rotation */
+      border: 5px solid #d3d3d3; 
+      border-top: 5px solid #025a3a;
       border-radius: 50%;
       animation: spin 1s linear infinite;
       display: flex;
       justify-content: center;
       align-items: center;
     }
-    
-    /* Centered Image */
+
     .image {
-      border-radius: 50%; /* Optional: Make the image circular */
+      border-radius: 50%; 
     }
-    
-    /* Keyframes for the spinning animation */
+
     @keyframes spin {
       from {
         transform: rotate(0deg);
       }
       to {
         transform: rotate(360deg);
+      }
+    } */
+    
+
+
+
+     .loaderContainer {
+      position: relative;
+      padding: 2rem;
+    }
+    
+    .spinnerWrapper {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+   
+    .outerRing,
+    .middleRing,
+    .innerRing {
+      position: absolute;
+      border-radius: 50%;
+      border-style: solid;
+      animation: spin 3s linear infinite;
+    }
+    
+    .outerRing {
+      width: 140px;
+      height: 140px;
+      border: 3px solid transparent;
+      border-top: 3px solid #025a3a;
+      border-right: 3px solid #025a3a;
+      animation-duration: 2s;
+    }
+    
+    .middleRing {
+      width: 110px;
+      height: 110px;
+      border: 2px solid transparent;
+      border-bottom: 2px solid #059669;
+      border-left: 2px solid #059669;
+      animation-duration: 1.5s;
+      animation-direction: reverse;
+    }
+    
+    .innerRing {
+      width: 80px;
+      height: 80px;
+      border: 2px solid transparent;
+      border-top: 2px solid #34d399;
+      border-right: 2px solid #34d399;
+      animation-duration: 1s;
+    }
+    
+   
+    .logoContainer {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 50%;
+      padding: 8px;
+      box-shadow: 0 4px 20px rgba(2, 90, 58, 0.15);
+      border: 2px solid rgba(2, 90, 58, 0.1);
+    }
+    
+    .logo {
+      border-radius: 50%;
+      filter: drop-shadow(0 2px 8px rgba(2, 90, 58, 0.2));
+      animation: logoGlow 2s ease-in-out infinite alternate;
+    }
+   
+    .dot1,
+    .dot2,
+    .dot3,
+    .dot4 {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: #025a3a;
+      border-radius: 50%;
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    .dot1 {
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      animation-delay: 0s;
+      background: linear-gradient(45deg, #025a3a, #059669);
+    }
+    
+    .dot2 {
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      animation-delay: 0.75s;
+      background: linear-gradient(45deg, #059669, #34d399);
+    }
+    
+    .dot3 {
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      animation-delay: 1.5s;
+      background: linear-gradient(45deg, #34d399, #6ee7b7);
+    }
+    
+    .dot4 {
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      animation-delay: 2.25s;
+      background: linear-gradient(45deg, #6ee7b7, #a7f3d0);
+    }
+    
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    
+    @keyframes logoGlow {
+      from {
+        filter: drop-shadow(0 2px 8px rgba(2, 90, 58, 0.2));
+      }
+      to {
+        filter: drop-shadow(0 4px 16px rgba(2, 90, 58, 0.4));
+      }
+    }
+    
+    @keyframes float {
+      0%,
+      100% {
+        transform: translateY(0px) scale(1);
+        opacity: 0.7;
+      }
+      50% {
+        transform: translateY(-8px) scale(1.2);
+        opacity: 1;
+      }
+    }
+    
+
+    @media (max-width: 768px) {
+      .spinnerWrapper {
+        width: 120px;
+        height: 120px;
+      }
+    
+      .outerRing {
+        width: 120px;
+        height: 120px;
+      }
+    
+      .middleRing {
+        width: 95px;
+        height: 95px;
+      }
+    
+      .innerRing {
+        width: 70px;
+        height: 70px;
+      }
+    
+      .logo {
+        width: 50px;
+        height: 50px;
+      }
+    
+      .logoContainer {
+        padding: 6px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .spinnerWrapper {
+        width: 100px;
+        height: 100px;
+      }
+    
+      .outerRing {
+        width: 100px;
+        height: 100px;
+        border-width: 2px;
+      }
+    
+      .middleRing {
+        width: 80px;
+        height: 80px;
+        border-width: 2px;
+      }
+    
+      .innerRing {
+        width: 60px;
+        height: 60px;
+        border-width: 1px;
+      }
+    
+      .logo {
+        width: 40px;
+        height: 40px;
+      }
+    
+      .dot1,
+      .dot2,
+      .dot3,
+      .dot4 {
+        width: 4px;
+        height: 4px;
       }
     }
     
