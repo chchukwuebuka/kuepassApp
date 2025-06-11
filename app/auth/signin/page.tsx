@@ -349,7 +349,7 @@ const SignIn: React.FC = () => {
                 className={styles.socialButton}
                 leftSection={!googleLoading && <IconBrandGoogle size={18} />}
                 loading={googleLoading}
-                onClick={handleGoogleSignInClick} // Use the new handler
+                onClick={handleGoogleSignInClick}
               >
                 {googleLoading ? "Connecting..." : "Continue with Google"}
               </Button>
