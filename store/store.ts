@@ -22,7 +22,6 @@ export interface User {
   email: string; // Required (maxLength: 254)
   phone_number?: string; // Optional (maxLength: 20)
   name?: string; // Optional field from frontend
-  profilePicture?: string; // Optional field for profile picture
   profile_url?: string; // Alternative field for profile picture
   country?: string; // Optional (maxLength: 100, minLength: 1)
   currency?: string; // Optional (maxLength: 10, minLength: 1)
@@ -44,9 +43,17 @@ const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
+    // login(state, action: PayloadAction<User>) {
+    //   state.isLogged = true;
+    //   state.userInfo = action.payload;
+    // },
+
     login(state, action: PayloadAction<User>) {
       state.isLogged = true;
-      state.userInfo = action.payload;
+      state.userInfo = {
+        ...action.payload, 
+        profile_url: action.payload.profile_url || "/images/avatar.png", 
+      };
     },
     logout(state) {
       state.isLogged = false;
