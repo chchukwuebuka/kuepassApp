@@ -1,22 +1,4 @@
-// "use client";
-// import React from "react";
-// import { useSelector } from "react-redux";
-// import { RootState } from "../../store/store";
-// import Loading from "./loader";
 
-// const GlobalLoading: React.FC = () => {
-//   const isLoading = useSelector((state: RootState) => state.loading.isLoading);
-
-//   if (!isLoading) return null;
-
-//   return (
-//     <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
-//       <Loading />
-//     </div>
-//   );
-// };
-
-// export default GlobalLoading;
 
 "use client";
 
