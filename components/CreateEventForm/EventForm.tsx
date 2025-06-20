@@ -1,5 +1,6 @@
 
-// // components/CreateEventForm/CreateEventForm.tsx
+
+// components/CreateEventForm/CreateEventForm.tsx
 // "use client";
 
 // import React, { useState, FormEvent, useEffect } from "react";
@@ -63,9 +64,8 @@
 //   const [isInitializing, setIsInitializing] = useState<boolean>(true);
 //   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 //   const { withLoading } = useLoadingState();
-
-//   // --- NEW: State for the AI assist button's loading status ---
 //   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+//   const [isStep3Complete, setIsStep3Complete] = useState<boolean>(false);
 
 //   useEffect(() => {
 //     if (!isAuthenticated()) {
@@ -210,8 +210,9 @@
 //     return imageUrl;
 //   };
 
+//   // --- FINAL FIX #1: The type definition MUST expect 'event_id' to match your backend view ---
 //   const createQuestion = async (data: {
-//     event_id: string;
+//     event: string;
 //     type: string;
 //     title: string;
 //     required: boolean;
@@ -251,7 +252,6 @@
 //       alert("Ticket name is required.");
 //       return;
 //     }
-
 //     const newTicket: Ticket = {
 //       ...ticketDataFromModal,
 //       id: uuidv4(),
@@ -280,43 +280,52 @@
 //   const handleUpdateQuestions = (questions: Question[]) => {
 //     setFormData((p) => ({ ...p, questions }));
 //   };
-  
-//   // --- UPDATED: New AI handler function ---
-//   const handleAiAction = async (mode: 'generate' | 'refine' | 'complete') => {
-//     if (!formData.title) {
-//         alert("Please enter an event title first.");
-//         return;
-//     }
-//     if ((mode === 'refine' || mode === 'complete') && !formData.description) {
-//         alert("Please type something in the description before using this feature.");
-//         return;
-//     }
 
+//   const handleAiAction = async (mode: "generate" | "refine" | "complete") => {
+//     if (!formData.title) {
+//       alert("Please enter an event title first.");
+//       return;
+//     }
+//     if ((mode === "refine" || mode === "complete") && !formData.description) {
+//       alert(
+//         "Please type something in the description before using this feature."
+//       );
+//       return;
+//     }
 //     setIsGenerating(true);
 //     try {
-//         const response = await authenticatedRequest<{ description: string }>(
-//             "https://keupass-48c2ae65f897.herokuapp.com/api/generate-description/", // Your Django URL
-//             "POST",
-//             {
-//                 title: formData.title,
-//                 description: formData.description, // Send the current description
-//                 mode: mode, // Send the action to be performed
-//             }
-//         );
-
-//         if (response && response.description) {
-//             setFormData(prev => ({ ...prev, description: response.description }));
+//       const response = await authenticatedRequest<{ description: string }>(
+//         "https://keupass-48c2ae65f897.herokuapp.com/api/generate-description/",
+//         "POST",
+//         {
+//           title: formData.title,
+//           description: formData.description,
+//           mode: mode,
 //         }
+//       );
+//       if (response && response.description) {
+//         setFormData((prev) => ({ ...prev, description: response.description }));
+//       }
 //     } catch (error: any) {
-//         console.error("Failed to perform AI action:", error);
-//         alert(error.message || "Sorry, the AI action failed.");
+//       console.error("Failed to perform AI action:", error);
+//       alert(error.message || "Sorry, the AI action failed.");
 //     } finally {
-//         setIsGenerating(false);
+//       setIsGenerating(false);
 //     }
+//   };
+
+//   const handleStep3Completion = (isComplete: boolean) => {
+//     setIsStep3Complete(isComplete);
 //   };
 
 //   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
 //     e.preventDefault();
+//     if (currentStep === 3 && !isStep3Complete) {
+//       alert(
+//         "Please finish creating your questions and click 'Mark as Complete' within that section before proceeding."
+//       );
+//       return;
+//     }
 //     if (currentStep < 4) {
 //       setCurrentStep((p) => p + 1);
 //       return;
@@ -335,11 +344,9 @@
 //         } else if (formData.appearance.startsWith("blob:")) {
 //           finalBannerUrl = initialFormData.appearance || DEFAULT_BANNER_URL;
 //         }
-
 //         if (!isValidUrl(finalBannerUrl) || finalBannerUrl.startsWith("blob:")) {
 //           finalBannerUrl = DEFAULT_BANNER_URL;
 //         }
-
 //         if (!isValidHex(formData.cardColor)) {
 //           throw new Error(
 //             "Invalid card color format. Please use a 6-digit hex code (e.g. #RRGGBB)."
@@ -380,7 +387,7 @@
 //             })) || [];
 
 //           const questionPayloadForApi = {
-//             event_id: eventId,
+//             event: eventId, // Changed from 'event' to 'event_id'
 //             type: q.type || "text",
 //             title: q.title,
 //             required: q.required || false,
@@ -389,11 +396,7 @@
 //             options: optionPayload,
 //           };
 
-//           console.log(
-//             "Frontend: Sending this question to POST /api/questions/:",
-//             JSON.stringify(questionPayloadForApi, null, 2)
-//           );
-
+//           console.log("Question payload:", questionPayloadForApi); // Add logging for debugging
 //           await createQuestion(questionPayloadForApi);
 //         }
 
@@ -434,7 +437,6 @@
 //             formData={formData}
 //             handleChange={handleChange}
 //             handleLocationChange={handleLocationChange}
-//             // --- UPDATED: Pass the new handler and state ---
 //             onAiAction={handleAiAction}
 //             isGenerating={isGenerating}
 //           />
@@ -467,6 +469,7 @@
 //           <CustomQuestionsStep
 //             questions={formData.questions}
 //             setQuestions={handleUpdateQuestions}
+//             onCompletionChange={handleStep3Completion}
 //           />
 //         );
 //       case 4:
@@ -517,7 +520,7 @@
 // }
 
 
-// components/CreateEventForm/CreateEventForm.tsx
+
 "use client";
 
 import React, { useState, FormEvent, useEffect } from "react";
@@ -577,75 +580,73 @@ export default function CreateEventForm() {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [formData, setFormData] = useState<EventFormData>(initialFormData);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isInitializing, setIsInitializing] = useState<boolean>(true);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { withLoading } = useLoadingState();
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [isStep3Complete, setIsStep3Complete] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Start with loading true
 
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      window.location.href =
-        "/auth/signin?redirect=" + encodeURIComponent(window.location.pathname);
-      return;
-    }
-    const savedDraft = localStorage.getItem(FORM_STORAGE_KEY);
-    if (savedDraft) {
-      try {
-        const parsedDraft = JSON.parse(savedDraft);
-        if (
-          parsedDraft.formData &&
-          typeof parsedDraft.currentStep === "number"
-        ) {
-          const loadedFormData = {
-            ...initialFormData,
-            ...parsedDraft.formData,
-            appearance:
-              parsedDraft.formData.appearance &&
-              parsedDraft.formData.appearance.startsWith("blob:")
-                ? initialFormData.appearance
-                : parsedDraft.formData.appearance || initialFormData.appearance,
-          };
-          setFormData(loadedFormData);
-          setCurrentStep(parsedDraft.currentStep);
-        } else {
-          setFormData(initialFormData);
-          setCurrentStep(1);
-        }
-      } catch (error) {
-        setFormData(initialFormData);
-        setCurrentStep(1);
-      }
-    } else {
-      setFormData(initialFormData);
-      setCurrentStep(1);
-    }
-    setSelectedFile(null);
-    setIsInitializing(false);
-  }, []);
-
-  useEffect(() => {
-    if (isInitializing || !isAuthenticated()) {
-      return;
-    }
+  const saveDraft = () => {
+    if (!isAuthenticated()) return;
     const draftToSave = {
       formData: {
         ...formData,
-        appearance: selectedFile
-          ? initialFormData.appearance
-          : formData.appearance,
+        appearance: selectedFile ? initialFormData.appearance : formData.appearance,
       },
       currentStep,
     };
     localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(draftToSave));
-  }, [
-    formData,
-    currentStep,
-    isInitializing,
-    selectedFile,
-    initialFormData.appearance,
-  ]);
+  };
+
+  useEffect(() => {
+    const initializeForm = async () => {
+      try {
+        await withLoading(async () => {
+          if (!isAuthenticated()) {
+            window.location.href =
+              "/auth/signin?redirect=" + encodeURIComponent(window.location.pathname);
+            return;
+          }
+          const savedDraft = localStorage.getItem(FORM_STORAGE_KEY);
+          if (savedDraft) {
+            try {
+              const parsedDraft = JSON.parse(savedDraft);
+              if (
+                parsedDraft.formData &&
+                typeof parsedDraft.currentStep === "number"
+              ) {
+                const loadedFormData = {
+                  ...initialFormData,
+                  ...parsedDraft.formData,
+                  appearance:
+                    parsedDraft.formData.appearance &&
+                    parsedDraft.formData.appearance.startsWith("blob:")
+                      ? initialFormData.appearance
+                      : parsedDraft.formData.appearance || initialFormData.appearance,
+                };
+                setFormData(loadedFormData);
+                setCurrentStep(parsedDraft.currentStep);
+              } else {
+                setFormData(initialFormData);
+                setCurrentStep(1);
+              }
+            } catch (error) {
+              setFormData(initialFormData);
+              setCurrentStep(1);
+            }
+          } else {
+            setFormData(initialFormData);
+            setCurrentStep(1);
+          }
+          setSelectedFile(null);
+        });
+      } finally {
+        setIsLoading(false); // Reset loading state
+      }
+    };
+
+    initializeForm();
+  }, []); 
 
   const createEvent = async (
     data: Partial<
@@ -727,7 +728,6 @@ export default function CreateEventForm() {
     return imageUrl;
   };
 
-  // --- FINAL FIX #1: The type definition MUST expect 'event_id' to match your backend view ---
   const createQuestion = async (data: {
     event: string;
     type: string;
@@ -745,6 +745,7 @@ export default function CreateEventForm() {
   ) => {
     const { name, value } = e.target;
     setFormData((p) => ({ ...p, [name]: value }));
+    saveDraft(); // Save draft on form change
   };
 
   const handleLocationChange = (value: "Virtual" | "Physical") => {
@@ -753,6 +754,7 @@ export default function CreateEventForm() {
       location: value,
       address: value === "Virtual" ? "" : p.address,
     }));
+    saveDraft(); // Save draft on location change
   };
 
   const addTicket = (ticketDataFromModal: Omit<Ticket, "id">) => {
@@ -777,6 +779,7 @@ export default function CreateEventForm() {
     };
     setFormData((p) => ({ ...p, tickets: [...p.tickets, newTicket] }));
     setIsModalOpen(false);
+    saveDraft(); // Save draft on ticket add
   };
 
   const handleFileSelect = (file: File | null) => {
@@ -792,19 +795,23 @@ export default function CreateEventForm() {
         appearance: initialFormData.appearance,
       }));
     }
+    saveDraft(); // Save draft on file select
   };
 
   const handleUpdateQuestions = (questions: Question[]) => {
     setFormData((p) => ({ ...p, questions }));
+    saveDraft(); // Save draft on questions update
   };
 
-  const handleAiAction = async (mode: 'generate' | 'refine' | 'complete') => {
+  const handleAiAction = async (mode: "generate" | "refine" | "complete") => {
     if (!formData.title) {
       alert("Please enter an event title first.");
       return;
     }
-    if ((mode === 'refine' || mode === 'complete') && !formData.description) {
-      alert("Please type something in the description before using this feature.");
+    if ((mode === "refine" || mode === "complete") && !formData.description) {
+      alert(
+        "Please type something in the description before using this feature."
+      );
       return;
     }
     setIsGenerating(true);
@@ -819,7 +826,8 @@ export default function CreateEventForm() {
         }
       );
       if (response && response.description) {
-        setFormData(prev => ({ ...prev, description: response.description }));
+        setFormData((prev) => ({ ...prev, description: response.description }));
+        saveDraft(); // Save draft on AI action
       }
     } catch (error: any) {
       console.error("Failed to perform AI action:", error);
@@ -831,26 +839,30 @@ export default function CreateEventForm() {
 
   const handleStep3Completion = (isComplete: boolean) => {
     setIsStep3Complete(isComplete);
+    saveDraft(); // Save draft on step 3 completion
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (currentStep === 3 && !isStep3Complete) {
-      alert("Please finish creating your questions and click 'Mark as Complete' within that section before proceeding.");
+      alert(
+        "Please finish creating your questions and click 'Mark as Complete' within that section before proceeding."
+      );
       return;
     }
-    if (currentStep < 4) {
-      setCurrentStep((p) => p + 1);
-      return;
-    }
-  
-    setIsLoading(true);
     try {
+      setIsLoading(true); // Set local loading state
       await withLoading(async () => {
+        if (currentStep < 4) {
+          setCurrentStep((p) => p + 1);
+          saveDraft(); // Save draft on step change
+          return;
+        }
+
         if (!formData.title) throw new Error("Event title is required.");
         if (formData.tickets.length === 0)
           throw new Error("At least one ticket type is required.");
-  
+
         let finalBannerUrl = formData.appearance;
         if (selectedFile) {
           finalBannerUrl = await uploadImage(selectedFile);
@@ -865,7 +877,7 @@ export default function CreateEventForm() {
             "Invalid card color format. Please use a 6-digit hex code (e.g. #RRGGBB)."
           );
         }
-  
+
         const eventApiPayload = {
           title: formData.title,
           description: formData.description,
@@ -878,12 +890,12 @@ export default function CreateEventForm() {
         };
         const createdEvent = await createEvent(eventApiPayload);
         const eventId = createdEvent.id;
-  
+
         setFormData((p) => ({
           ...p,
           eventURL: `${API_BASE_URL}/events/${eventId}`,
         }));
-  
+
         await createEventCustomization({
           event: eventId,
           banner_url: finalBannerUrl,
@@ -891,16 +903,16 @@ export default function CreateEventForm() {
           card_color: formData.cardColor,
           is_active: true,
         });
-  
+
         for (const [questionIndex, q] of formData.questions.entries()) {
           const optionPayload =
             q.options?.map((opt, optIndex) => ({
               text: opt.text,
               order: typeof opt.order === "number" ? opt.order : optIndex,
             })) || [];
-          
+
           const questionPayloadForApi = {
-            event: eventId, // Changed from 'event' to 'event_id'
+            event: eventId,
             type: q.type || "text",
             title: q.title,
             required: q.required || false,
@@ -908,11 +920,11 @@ export default function CreateEventForm() {
             order: typeof q.order === "number" ? q.order : questionIndex,
             options: optionPayload,
           };
-          
-          console.log('Question payload:', questionPayloadForApi); // Add logging for debugging
+
+          console.log("Question payload:", questionPayloadForApi);
           await createQuestion(questionPayloadForApi);
         }
-  
+
         for (const t of formData.tickets) {
           await createTicketType({
             event: eventId,
@@ -922,7 +934,7 @@ export default function CreateEventForm() {
             quantity: t.quantity,
           });
         }
-  
+
         alert("Event created successfully!");
         localStorage.removeItem(FORM_STORAGE_KEY);
         setFormData(initialFormData);
@@ -936,11 +948,16 @@ export default function CreateEventForm() {
           "Failed to create event. Please check the form and try again."
       );
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Reset local loading state
     }
   };
 
-  const handleBack = () => currentStep > 1 && setCurrentStep((p) => p - 1);
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep((p) => p - 1);
+      saveDraft(); // Save draft on back navigation
+    }
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -971,6 +988,7 @@ export default function CreateEventForm() {
                 return t;
               });
               setFormData((prev) => ({ ...prev, tickets: updatedTickets }));
+              saveDraft(); // Save draft on ticket type change
             }}
             handleSendInvite={(ticketId: string) => {
               /* ... */
@@ -989,7 +1007,10 @@ export default function CreateEventForm() {
         return (
           <AppearanceStep
             formData={formData}
-            updateFormData={(u) => setFormData((p) => ({ ...p, ...u }))}
+            updateFormData={(u) => {
+              setFormData((p) => ({ ...p, ...u }));
+              saveDraft(); // Save draft on appearance update
+            }}
             onFileSelect={handleFileSelect}
           />
         );
@@ -998,36 +1019,36 @@ export default function CreateEventForm() {
     }
   };
 
-  if (isInitializing) {
-    return (
-      <Center style={{ height: "100vh" }}>
-        <Loader /> <Text ml="sm">Loading draft…</Text>
-      </Center>
-    );
-  }
-
   return (
     <div className={styles.formContainer}>
       <Stack>
         <Navbar />
       </Stack>
-      <h1 className={styles.title}>Create A New Event</h1>
-      <p className={styles.subtitle}>You are Just Four Steps Away!</p>
-      <StepIndicator currentStep={currentStep} totalSteps={4} />
-      <form onSubmit={handleSubmit} className={styles.eventForm}>
-        {renderStepContent()}
-        <NavigationButtons
-          currentStep={currentStep}
-          handleBack={handleBack}
-          isLastStep={currentStep === 4}
-          isLoading={isLoading}
-        />
-      </form>
-      <TicketModal
-        isModalOpen={isModalOpen}
-        closeModal={() => setIsModalOpen(false)}
-        addTicket={addTicket}
-      />
+      {isLoading ? (
+        <Center style={{ padding: "2rem" }}>
+          <Loader />
+        </Center>
+      ) : (
+        <>
+          <h1 className={styles.title}>Create A New Event</h1>
+          <p className={styles.subtitle}>You are Just Four Steps Away!</p>
+          <StepIndicator currentStep={currentStep} totalSteps={4} />
+          <form onSubmit={handleSubmit} className={styles.eventForm}>
+            {renderStepContent()}
+            <NavigationButtons
+              currentStep={currentStep}
+              handleBack={handleBack}
+              isLastStep={currentStep === 4}
+              isLoading={isLoading}
+            />
+          </form>
+          <TicketModal
+            isModalOpen={isModalOpen}
+            closeModal={() => setIsModalOpen(false)}
+            addTicket={addTicket}
+          />
+        </>
+      )}
     </div>
   );
 }

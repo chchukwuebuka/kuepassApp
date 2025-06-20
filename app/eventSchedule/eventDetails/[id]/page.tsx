@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState, useRef } from "react";
@@ -91,6 +92,17 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   "https://keupass-48c2ae65f897.herokuapp.com/api";
 
+// This function needs getAuthToken to be defined somewhere in your project
+// For example: const getAuthToken = () => localStorage.getItem("kuepass_auth_token");
+// As it's not defined in the file, I'm assuming it exists globally or is imported elsewhere.
+const getAuthToken = () => {
+    if (typeof window !== "undefined") {
+        return localStorage.getItem("kuepass_auth_token");
+    }
+    return null;
+}
+
+
 const getCurrentUser = async (): Promise<CurrentUser | null> => {
   const token = getAuthToken();
   if (!token) {
@@ -144,10 +156,18 @@ export default function EventDetails() {
   const [copied, setCopied] = useState(false);
   const [showEmailPromptModal, setShowEmailPromptModal] = useState(false);
   const [guestEmail, setGuestEmail] = useState("");
+  
+  // --- ADDED THIS LINE ---
+  // This state tracks if the initial authentication check has completed.
+  const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
+
 
   useEffect(() => {
+    // --- UPDATED THIS HOOK ---
+    setIsAuthCheckComplete(false); // Start the check
     getCurrentUser().then((user) => {
       setCurrentUser(user);
+      setIsAuthCheckComplete(true); // Mark the check as complete
     });
   }, []);
 
@@ -421,15 +441,15 @@ export default function EventDetails() {
           <Stack align="center">
             {/* <AlertTriangle size={48} color="red" /> */}
             {/* <Title order={3} ta="center">
-              {pageError || "Event Not Found"}
-            </Title> */}
+              {pageError || "Event Not Found"}
+            </Title> */}
             {/* <Button
-              component={Link}
-              href="/events"
-              leftSection={<ArrowLeft size={16} />}
-            >
-              Back to Events
-            </Button> */}
+              component={Link}
+              href="/events"
+              leftSection={<ArrowLeft size={16} />}
+            >
+              Back to Events
+            </Button> */}
           </Stack>
         </Paper>
       </Center>
@@ -606,8 +626,10 @@ export default function EventDetails() {
                     leftSection={<UserPlus size={18} />}
                     size="lg"
                     onClick={handleRegisterNowClick}
+                    // --- UPDATED THIS BUTTON ---
+                    disabled={!isAuthCheckComplete}
                   >
-                    Register Now
+                    {!isAuthCheckComplete ? "Verifying..." : "Register Now"}
                   </Button>
                 ) : (
                   <Button
@@ -756,8 +778,12 @@ export default function EventDetails() {
                       onClick={handleRegisterNowClick}
                       fullWidth
                       leftSection={<UserPlus size={16} />}
+                      // --- UPDATED THIS BUTTON ---
+                      disabled={!isAuthCheckComplete}
                     >
-                      Register for Event
+                      {!isAuthCheckComplete
+                        ? "Verifying..."
+                        : "Register for Event"}
                     </Button>
                   )}
                   <Button

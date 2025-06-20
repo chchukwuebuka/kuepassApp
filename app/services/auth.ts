@@ -1,5 +1,3 @@
-
-
 /**
  * Authentication utilities for token management
  */
@@ -20,7 +18,6 @@ export interface UserData {
   language?: string;
   // profilePicture?: string; <-- This duplicate is removed to avoid confusion
 }
-
 
 // Define sign-in data
 export interface SignInData {
@@ -197,7 +194,26 @@ export async function authenticatedRequest<T>(
     }
   }
 
-  return safeFetch<T>(url, options);
+  try {
+    return await safeFetch<T>(url, options);
+  } catch (error: any) {
+    // If the error is 401 Unauthorized, clear auth and redirect
+    if (
+      typeof window !== "undefined" &&
+      (error.status === 401 ||
+        (error.data &&
+          (error.data.code === "token_not_valid" ||
+            error.data.detail === "Given token not valid for any token type")))
+    ) {
+      await clearAuth();
+      // Redirect to signin/signup page (change the path as needed)
+      // window.location.href = "/auth/signin";
+      return Promise.reject(
+        new Error("Session expired. Redirecting to sign in.")
+      );
+    }
+    throw error;
+  }
 }
 
 /**
@@ -210,23 +226,23 @@ export async function getUserProfile(): Promise<UserData> {
   return authenticatedRequest<UserData>(`${BASE_URL}/user/`, "GET");
 }
 
-
 // --- This is the helper function from before (no changes) ---
 const formatDjangoError = (errorData: any): string => {
   if (!errorData) return "An unknown error occurred on the server.";
-  if (typeof errorData.detail === 'string') return errorData.detail;
-  if (typeof errorData === 'object' && Object.keys(errorData).length > 0) {
+  if (typeof errorData.detail === "string") return errorData.detail;
+  if (typeof errorData === "object" && Object.keys(errorData).length > 0) {
     const errorMessages = Object.entries(errorData).map(([field, errors]) => {
-      const errorList = Array.isArray(errors) ? errors.join(' ') : String(errors);
+      const errorList = Array.isArray(errors)
+        ? errors.join(" ")
+        : String(errors);
       const formattedField = field.charAt(0).toUpperCase() + field.slice(1);
       return `${formattedField}: ${errorList}`;
     });
-    return errorMessages.join('\n');
+    return errorMessages.join("\n");
   }
-  if (typeof errorData.message === 'string') return errorData.message;
+  if (typeof errorData.message === "string") return errorData.message;
   return "The server sent back an unformatted error. Check the Network tab.";
 };
-
 
 /**
  * Helper to handle fetch errors including network issues
@@ -263,7 +279,6 @@ export async function safeFetch<T>(
 
     // If we're here, it's a successful response with a JSON body.
     return data as T;
-
   } catch (error) {
     // This outer catch handles true network failures or JSON parsing errors.
     if (error instanceof SyntaxError) {
@@ -279,3 +294,191 @@ export async function safeFetch<T>(
     throw error;
   }
 }
+
+// // src/api/auth.ts (Full Updated Code)
+
+// // --- CONSTANTS ---
+// const ACCESS_TOKEN_KEY = "kuepass_access_token";
+// const REFRESH_TOKEN_KEY = "kuepass_refresh_token"; // NEW: Key for the refresh token
+// const USER_DATA_KEY = "kuepass_user_data";
+
+// // --- TYPE DEFINITIONS ---
+// // Define user data interface
+// export interface UserData {
+//   id?: string;
+//   name?: string;
+//   username?: string;
+//   email?: string;
+//   profile_url?: string;
+//   phone_number?: string;
+//   active?: boolean;
+//   country?: string;
+//   currency?: string;
+//   language?: string;
+// }
+
+// // Define sign-in data
+// export interface SignInData {
+//   email: string;
+//   password: string;
+// }
+
+// // Define auth response
+// export interface AuthResponse {
+//   success?: boolean;
+//   message?: string;
+//   detail?: string;
+//   refresh?: string;
+//   access?: string;
+//   data?: {
+//     tokens?: {
+//       access: string;
+//       refresh?: string;
+//     };
+//     user?: UserData;
+//   };
+//   token?: string;
+//   user?: UserData;
+//   error_code?: string;
+// }
+
+// // --- TOKEN MANAGEMENT ---
+
+// /**
+//  * UPDATED: Store BOTH authentication tokens in localStorage
+//  */
+// export function setTokens(access: string, refresh: string): void {
+//   if (typeof window !== "undefined") {
+//     localStorage.setItem(ACCESS_TOKEN_KEY, access);
+//     localStorage.setItem(REFRESH_TOKEN_KEY, refresh);
+//   }
+// }
+
+// /**
+//  * RENAMED: Get the stored access token
+//  */
+// export function getAccessToken(): string | null {
+//   if (typeof window !== "undefined") {
+//     return localStorage.getItem(ACCESS_TOKEN_KEY);
+//   }
+//   return null;
+// }
+
+// /**
+//  * NEW: Get the stored refresh token
+//  */
+// export function getRefreshToken(): string | null {
+//     if (typeof window !== "undefined") {
+//         return localStorage.getItem(REFRESH_TOKEN_KEY);
+//     }
+//     return null;
+// }
+
+// /**
+//  * UPDATED: Remove BOTH authentication tokens from localStorage
+//  */
+// export function removeTokens(): void {
+//   if (typeof window !== "undefined") {
+//     localStorage.removeItem(ACCESS_TOKEN_KEY);
+//     localStorage.removeItem(REFRESH_TOKEN_KEY);
+//   }
+// }
+
+// // --- USER DATA MANAGEMENT (No Changes) ---
+
+// /**
+//  * Store user data in localStorage
+//  */
+// export function setUserData(userData: UserData): void {
+//   if (typeof window !== "undefined") {
+//     localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
+//   }
+// }
+
+// /**
+//  * Get stored user data
+//  */
+// export function getUserData(): UserData | null {
+//   if (typeof window !== "undefined") {
+//     const userData = localStorage.getItem(USER_DATA_KEY);
+//     if (userData) {
+//       try {
+//         return JSON.parse(userData) as UserData;
+//       } catch {
+//         return null;
+//       }
+//     }
+//   }
+//   return null;
+// }
+
+// /**
+//  * Remove user data from localStorage
+//  */
+// export function removeUserData(): void {
+//   if (typeof window !== "undefined") {
+//     localStorage.removeItem(USER_DATA_KEY);
+//   }
+// }
+
+// // --- AUTHENTICATION STATE & LOGOUT ---
+
+// /**
+//  * Check if user is authenticated by checking for an access token
+//  */
+// export function isAuthenticated(): boolean {
+//   return !!getAccessToken(); // UPDATED to use getAccessToken
+// }
+
+// /**
+//  * Clear all authentication data (tokens and user data) and perform server logout
+//  */
+// export async function clearAuth(): Promise<void> {
+//   const BASE_URL =
+//     process.env.NEXT_PUBLIC_API_URL ||
+//     "https://keupass-48c2ae65f897.herokuapp.com/api";
+
+//   const refreshToken = getRefreshToken();
+
+//   // UPDATED to remove both tokens from localStorage
+//   removeTokens();
+//   removeUserData();
+
+//   try {
+//     // Attempt to blacklist the refresh token on the server
+//     await fetch(`${BASE_URL}/logout/`, {
+//       method: "POST",
+//       credentials: "include", // Important for session-based parts if any
+//       headers: {
+//         "Content-Type": "application/json",
+//         "X-CSRFToken": getCsrfToken() || "",
+//       },
+//       // Some logout endpoints might need the refresh token to blacklist it
+//       body: JSON.stringify({ refresh: refreshToken }),
+//     });
+//   } catch (error) {
+//     console.error("Server logout request failed. This is okay if the user was offline.", error);
+//   }
+// }
+
+// // --- CSRF TOKEN HELPER (No Changes) ---
+
+// /**
+//  * Fetch CSRF token from cookies
+//  */
+// export function getCsrfToken(): string | null {
+//   if (typeof document === "undefined") return null;
+//   const name = "csrftoken";
+//   let cookieValue = null;
+//   if (document.cookie && document.cookie !== "") {
+//     const cookies = document.cookie.split(";");
+//     for (let i = 0; i < cookies.length; i++) {
+//       const cookie = cookies[i].trim();
+//       if (cookie.substring(0, name.length + 1) === name + "=") {
+//         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+//         break;
+//       }
+//     }
+//   }
+//   return cookieValue;
+// }

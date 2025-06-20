@@ -75,7 +75,6 @@
 
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
-// import { createTheme } from "@mantine/core";
 import { createTheme } from "@mantine/core";
 import ReduxProvider from "@/store/provider";
 import ErrorBoundary from "@/components/ErrorBoundary";
