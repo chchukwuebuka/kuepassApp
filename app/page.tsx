@@ -5,6 +5,7 @@ import Navbar from "@/components/navbar";
 import EventSection from "@/components/TrendingEvents";
 import styles from "./page.module.css";
 import { QuickPage } from "@/components/QuickPass";
+import PlatformShowcase from "@/components/platform";
 
 export default function KuepassHome() {
   return (
@@ -14,6 +15,7 @@ export default function KuepassHome() {
       </Stack>
       <Stack style={{ padding: "1rem" }}>
         <HeroSection />
+        <PlatformShowcase />
         <EventSection/>
         <QuickPage/>
       </Stack>
