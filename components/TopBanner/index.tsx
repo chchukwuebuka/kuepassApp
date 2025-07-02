@@ -36,7 +36,9 @@ const API_BASE_URL =
 
 const TopBanner: React.FC<TopBannerProps> = ({ event }) => {
   const [copied, setCopied] = useState(false);
-  const [customization, setCustomization] = useState<Customization | null>(null);
+  const [customization, setCustomization] = useState<Customization | null>(
+    null
+  );
 
   useEffect(() => {
     console.log("Event ID:", event.id); // Log event ID for debugging
@@ -66,7 +68,9 @@ const TopBanner: React.FC<TopBannerProps> = ({ event }) => {
   useEffect(() => {
     console.log("Current customization state:", customization); // Log state changes
     const bannerImage =
-      customization?.banner_url || event.banner_url || "/images/placeholder.png";
+      customization?.banner_url ||
+      event.banner_url ||
+      "/images/placeholder.png";
     console.log("Banner image URL:", bannerImage); // Log final image URL
   }, [customization, event.banner_url]);
 
@@ -157,9 +161,7 @@ const TopBanner: React.FC<TopBannerProps> = ({ event }) => {
           {event.location && (
             <div className={styles.eventDetail}>
               <MapPin size={18} />
-              <Text className={styles.eventLocation}>
-                {event.location}
-              </Text>
+              <Text className={styles.eventLocation}>{event.location}</Text>
             </div>
           )}
         </div>
