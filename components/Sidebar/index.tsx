@@ -16,6 +16,7 @@ export type PageKey =
   | "customization"
   | "userManagement"
   | "finance"
+  | "Generate Promotion Kit"
   | "store"
   | "support"
   | "logout";
@@ -35,6 +36,7 @@ const menuItems: {
   { key: "customization", icon: <FaUsers />, label: "Customization" },
   { key: "userManagement", icon: <FaUsers />, label: "User Management" }, // ✅ Fixed key
   { key: "finance", icon: <FaMoneyBill />, label: "Finance" },
+  { key: "Generate Promotion Kit", icon: <FaStore />, label: "Generate Promotion Kit" },
   { key: "store", icon: <FaStore />, label: "Store" },
   { key: "support", icon: <FaCog />, label: "Support", isBottom: true },
   { key: "logout", icon: <FaSignOutAlt />, label: "Log Out", isBottom: true },

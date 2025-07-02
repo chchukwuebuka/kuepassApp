@@ -1,5 +1,3 @@
-
-
 "use client";
 import React, { useState, useEffect } from "react";
 import {
@@ -79,9 +77,10 @@ const EdithProfilePage: React.FC = () => {
     }
 
     const defaultImage = "/default-avatar.png"; // Ensure this exists in public/
-    const profileUrl = userInfo.profile_url && userInfo.profile_url !== "undefined"
-      ? userInfo.profile_url
-      : defaultImage;
+    const profileUrl =
+      userInfo.profile_url && userInfo.profile_url !== "undefined"
+        ? userInfo.profile_url
+        : defaultImage;
     setImgSrc(profileUrl);
 
     // Since `name` is not in the schema, we'll skip splitting it
@@ -118,7 +117,9 @@ const EdithProfilePage: React.FC = () => {
         return false;
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://keupass-48c2ae65f897.herokuapp.com/api";
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL ||
+        "https://keupass-48c2ae65f897.herokuapp.com/api";
       const response = await fetch(`${apiUrl}/token/refresh/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -165,14 +166,20 @@ const EdithProfilePage: React.FC = () => {
       if (imgFile) {
         setUploading(true);
         try {
-          const isLocalDev = process.env.NODE_ENV === "development" || window.location.hostname === "localhost";
+          const isLocalDev =
+            process.env.NODE_ENV === "development" ||
+            window.location.hostname === "localhost";
           if (isLocalDev) {
-            console.warn("In development mode, profile_url will not be updated. Upload to server in production.");
+            console.warn(
+              "In development mode, profile_url will not be updated. Upload to server in production."
+            );
           } else {
             const formData = new FormData();
             formData.append("file", imgFile);
             const token = getAuthToken();
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://keupass-48c2ae65f897.herokuapp.com/api";
+            const apiUrl =
+              process.env.NEXT_PUBLIC_API_URL ||
+              "https://keupass-48c2ae65f897.herokuapp.com/api";
 
             const imageResponse = await fetch(`${apiUrl}/upload/image`, {
               method: "POST",
@@ -214,7 +221,9 @@ const EdithProfilePage: React.FC = () => {
         token = getAuthToken();
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://keupass-48c2ae65f897.herokuapp.com/api";
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL ||
+        "https://keupass-48c2ae65f897.herokuapp.com/api";
       const updateProfileUrl = `${apiUrl}/users/update_profile/`;
 
       const response = await fetch(updateProfileUrl, {
@@ -273,7 +282,11 @@ const EdithProfilePage: React.FC = () => {
       const updatedUserInfo = {
         ...userInfo,
         ...updatedUserData,
-        profile_url: responseData.profile_url || updatedUserData.profile_url || userInfo.profile_url || "/default-avatar.png",
+        profile_url:
+          responseData.profile_url ||
+          updatedUserData.profile_url ||
+          userInfo.profile_url ||
+          "/default-avatar.png",
       };
 
       dispatch(updateUser(updatedUserInfo));
@@ -297,7 +310,14 @@ const EdithProfilePage: React.FC = () => {
   };
 
   return (
-    <Stack gap={0} style={{ minHeight: "100vh", backgroundColor: "#f5f5f5", marginTop: "50px" }}>
+    <Stack
+      gap={0}
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#f5f5f5",
+        marginTop: "50px",
+      }}
+    >
       <Navbar />
       <Box className={styles.header}>
         <Text size="2xl" fw={700} color="white" style={{ fontSize: "2rem" }}>
@@ -307,16 +327,30 @@ const EdithProfilePage: React.FC = () => {
       <Container size="lg" py="xl">
         <Card shadow="md" radius="md" p="xl" withBorder={false}>
           {updateSuccess && (
-            <Alert icon={<IconCheck size={16} />} title="Success" color="teal" mb="md">
+            <Alert
+              icon={<IconCheck size={16} />}
+              title="Success"
+              color="teal"
+              mb="md"
+            >
               Profile updated successfully! Redirecting...
             </Alert>
           )}
           {updateError && (
-            <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red" mb="md">
+            <Alert
+              icon={<IconAlertCircle size={16} />}
+              title="Error"
+              color="red"
+              mb="md"
+            >
               {updateError}
             </Alert>
           )}
-          <Flex direction={{ base: "column", md: "row" }} gap="xl" align={{ base: "center", md: "flex-start" }}>
+          <Flex
+            direction={{ base: "column", md: "row" }}
+            gap="xl"
+            align={{ base: "center", md: "flex-start" }}
+          >
             <Stack align="center" gap="md" w={{ base: "100%", md: "auto" }}>
               <Avatar
                 src={imgSrc}
@@ -360,7 +394,10 @@ const EdithProfilePage: React.FC = () => {
                   readOnly
                   size="md"
                   {...register("email", {
-                    pattern: { value: /^\S+@\S+$/i, message: "Invalid email address" },
+                    pattern: {
+                      value: /^\S+@\S+$/i,
+                      message: "Invalid email address",
+                    },
                   })}
                   error={errors.email?.message}
                 />

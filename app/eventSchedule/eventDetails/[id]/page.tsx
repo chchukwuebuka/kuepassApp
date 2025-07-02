@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState, useRef } from "react";
@@ -96,12 +95,11 @@ const API_BASE_URL =
 // For example: const getAuthToken = () => localStorage.getItem("kuepass_auth_token");
 // As it's not defined in the file, I'm assuming it exists globally or is imported elsewhere.
 const getAuthToken = () => {
-    if (typeof window !== "undefined") {
-        return localStorage.getItem("kuepass_auth_token");
-    }
-    return null;
-}
-
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("kuepass_auth_token");
+  }
+  return null;
+};
 
 const getCurrentUser = async (): Promise<CurrentUser | null> => {
   const token = getAuthToken();
@@ -156,11 +154,10 @@ export default function EventDetails() {
   const [copied, setCopied] = useState(false);
   const [showEmailPromptModal, setShowEmailPromptModal] = useState(false);
   const [guestEmail, setGuestEmail] = useState("");
-  
+
   // --- ADDED THIS LINE ---
   // This state tracks if the initial authentication check has completed.
   const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
-
 
   useEffect(() => {
     // --- UPDATED THIS HOOK ---

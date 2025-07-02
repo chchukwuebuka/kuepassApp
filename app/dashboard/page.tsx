@@ -14,6 +14,7 @@ import TicketDashboard from "@/components/UserManagement";
 import Finance from "@/components/Finance";
 import { Stack, Loader, Center, Text } from "@mantine/core";
 import { authenticatedRequest } from "@/app/services/auth";
+import YourPromotionKitComponent from "@/components/Generate";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -54,6 +55,7 @@ type PageKey =
   | "customization"
   | "userManagement"
   | "finance"
+  | "Generate Promotion Kit"
   | "store"
   | "support"
   | "logout";
@@ -83,11 +85,11 @@ export default function Dashboard() {
       setLoading(false);
       return;
     }
-  
+
     const fetchEventData = async () => {
       setLoading(true);
       setError(null);
-  
+
       try {
         // 1) Fetch the single event
         const eventResponse = await authenticatedRequest<{ data: EventData }>(
@@ -95,13 +97,13 @@ export default function Dashboard() {
           "GET"
         );
         setEvent(eventResponse.data);
-  
+
         // 2) Fetch all attendees (the endpoint is returning everyone, not just this event)
         const attendeesResponse = await authenticatedRequest<any>(
           `${API_BASE_URL}/attendees/?event=${eventId}`,
           "GET"
         );
-  
+
         // 3) Extract the array (could be wrapped in data or results)
         let allAttendees: AttendeeData[] = [];
         if (Array.isArray(attendeesResponse)) {
@@ -117,21 +119,21 @@ export default function Dashboard() {
           );
           allAttendees = [];
         }
-  
+
         // 4) Filter down to only those whose `event` property exactly matches our eventId
         const filteredForThisEvent = allAttendees.filter(
           (att) => att.event === eventId
         );
-  
+
         // 5) Now count how many remain after filtering
         setRegisteredUsers(filteredForThisEvent.length);
-  
-        // 6) If you also need “validated” count, filter again on is_validated
+
+        // 6) If you also need "validated" count, filter again on is_validated
         const validatedCount = filteredForThisEvent.filter(
           (att) => att.is_validated
         ).length;
         setValidatedUsers(validatedCount);
-  
+
         // 7) (Optional) Total balance logic goes here; for now we leave it as ₦0
         setTotalBalance("₦0");
       } catch (err: any) {
@@ -141,11 +143,9 @@ export default function Dashboard() {
         setLoading(false);
       }
     };
-  
+
     fetchEventData();
   }, [eventId]);
-  
-  
 
   const handleNavClick = (pageKey: PageKey) => {
     setActivePage(pageKey);
@@ -199,6 +199,9 @@ export default function Dashboard() {
         <p>Store information goes here.</p>
       </>
     ),
+    "Generate Promotion Kit": (
+      <YourPromotionKitComponent eventId={eventId || ""} />
+    ),
     support: (
       <>
         <h1>Support</h1>
@@ -224,4 +227,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

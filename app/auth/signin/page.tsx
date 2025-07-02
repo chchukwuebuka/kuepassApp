@@ -130,8 +130,7 @@ const SignIn: React.FC = () => {
     setError(null);
     try {
       const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL ||
-        "https://keupass-48c2ae65f897.herokuapp.com/api";
+        process.env.NEXT_PUBLIC_API_URL || "https://keupass.herokuapp.com/api";
       const response = await fetch(`${apiUrl}/google-login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -370,7 +369,6 @@ const SignIn: React.FC = () => {
 
 export default SignIn;
 
-
 // "use client";
 
 // import type React from "react";
@@ -444,7 +442,7 @@ export default SignIn;
 //       if (!accessToken || !apiUser) {
 //         throw new Error("Authentication response from server is missing user data or access token.");
 //       }
-      
+
 //       // 1. Set tokens and user data in localStorage
 //       setAuthToken(accessToken);
 //       setUserData(apiUser);
@@ -483,13 +481,13 @@ export default SignIn;
 //     setError(null);
 //     try {
 //       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://keupass-48c2ae65f897.herokuapp.com/api";
-      
+
 //       const backendAuthResponse: AuthResponse = await authenticatedRequest(
 //         `${apiUrl}/google-login/`,
 //         "POST",
 //         { access_token: googleAccessToken }
 //       );
-      
+
 //       console.log("Google login backend response:", backendAuthResponse);
 //       processAuthResponse(backendAuthResponse);
 
