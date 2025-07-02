@@ -130,7 +130,7 @@ const SignIn: React.FC = () => {
     setError(null);
     try {
       const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "https://keupass.herokuapp.com/api";
+        process.env.NEXT_PUBLIC_API_URL || "https://keupass-48c2ae65f897.herokuapp.com/api";
       const response = await fetch(`${apiUrl}/google-login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
