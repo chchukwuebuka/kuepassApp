@@ -1,6 +1,5 @@
 
 
-// components/CreateEventForm/CreateEventForm.tsx
 // "use client";
 
 // import React, { useState, FormEvent, useEffect } from "react";
@@ -60,58 +59,14 @@
 //   const [currentStep, setCurrentStep] = useState<number>(1);
 //   const [formData, setFormData] = useState<EventFormData>(initialFormData);
 //   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-//   const [isLoading, setIsLoading] = useState<boolean>(false);
-//   const [isInitializing, setIsInitializing] = useState<boolean>(true);
 //   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 //   const { withLoading } = useLoadingState();
 //   const [isGenerating, setIsGenerating] = useState<boolean>(false);
 //   const [isStep3Complete, setIsStep3Complete] = useState<boolean>(false);
+//   const [isLoading, setIsLoading] = useState<boolean>(true); // Start with loading true
 
-//   useEffect(() => {
-//     if (!isAuthenticated()) {
-//       window.location.href =
-//         "/auth/signin?redirect=" + encodeURIComponent(window.location.pathname);
-//       return;
-//     }
-//     const savedDraft = localStorage.getItem(FORM_STORAGE_KEY);
-//     if (savedDraft) {
-//       try {
-//         const parsedDraft = JSON.parse(savedDraft);
-//         if (
-//           parsedDraft.formData &&
-//           typeof parsedDraft.currentStep === "number"
-//         ) {
-//           const loadedFormData = {
-//             ...initialFormData,
-//             ...parsedDraft.formData,
-//             appearance:
-//               parsedDraft.formData.appearance &&
-//               parsedDraft.formData.appearance.startsWith("blob:")
-//                 ? initialFormData.appearance
-//                 : parsedDraft.formData.appearance || initialFormData.appearance,
-//           };
-//           setFormData(loadedFormData);
-//           setCurrentStep(parsedDraft.currentStep);
-//         } else {
-//           setFormData(initialFormData);
-//           setCurrentStep(1);
-//         }
-//       } catch (error) {
-//         setFormData(initialFormData);
-//         setCurrentStep(1);
-//       }
-//     } else {
-//       setFormData(initialFormData);
-//       setCurrentStep(1);
-//     }
-//     setSelectedFile(null);
-//     setIsInitializing(false);
-//   }, []);
-
-//   useEffect(() => {
-//     if (isInitializing || !isAuthenticated()) {
-//       return;
-//     }
+//   const saveDraft = () => {
+//     if (!isAuthenticated()) return;
 //     const draftToSave = {
 //       formData: {
 //         ...formData,
@@ -122,13 +77,59 @@
 //       currentStep,
 //     };
 //     localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(draftToSave));
-//   }, [
-//     formData,
-//     currentStep,
-//     isInitializing,
-//     selectedFile,
-//     initialFormData.appearance,
-//   ]);
+//   };
+
+//   useEffect(() => {
+//     const initializeForm = async () => {
+//       try {
+//         await withLoading(async () => {
+//           if (!isAuthenticated()) {
+//             window.location.href =
+//               "/auth/signin?redirect=" +
+//               encodeURIComponent(window.location.pathname);
+//             return;
+//           }
+//           const savedDraft = localStorage.getItem(FORM_STORAGE_KEY);
+//           if (savedDraft) {
+//             try {
+//               const parsedDraft = JSON.parse(savedDraft);
+//               if (
+//                 parsedDraft.formData &&
+//                 typeof parsedDraft.currentStep === "number"
+//               ) {
+//                 const loadedFormData = {
+//                   ...initialFormData,
+//                   ...parsedDraft.formData,
+//                   appearance:
+//                     parsedDraft.formData.appearance &&
+//                     parsedDraft.formData.appearance.startsWith("blob:")
+//                       ? initialFormData.appearance
+//                       : parsedDraft.formData.appearance ||
+//                         initialFormData.appearance,
+//                 };
+//                 setFormData(loadedFormData);
+//                 setCurrentStep(parsedDraft.currentStep);
+//               } else {
+//                 setFormData(initialFormData);
+//                 setCurrentStep(1);
+//               }
+//             } catch (error) {
+//               setFormData(initialFormData);
+//               setCurrentStep(1);
+//             }
+//           } else {
+//             setFormData(initialFormData);
+//             setCurrentStep(1);
+//           }
+//           setSelectedFile(null);
+//         });
+//       } finally {
+//         setIsLoading(false); // Reset loading state
+//       }
+//     };
+
+//     initializeForm();
+//   }, []);
 
 //   const createEvent = async (
 //     data: Partial<
@@ -210,7 +211,6 @@
 //     return imageUrl;
 //   };
 
-//   // --- FINAL FIX #1: The type definition MUST expect 'event_id' to match your backend view ---
 //   const createQuestion = async (data: {
 //     event: string;
 //     type: string;
@@ -228,6 +228,7 @@
 //   ) => {
 //     const { name, value } = e.target;
 //     setFormData((p) => ({ ...p, [name]: value }));
+//     saveDraft(); // Save draft on form change
 //   };
 
 //   const handleLocationChange = (value: "Virtual" | "Physical") => {
@@ -236,6 +237,7 @@
 //       location: value,
 //       address: value === "Virtual" ? "" : p.address,
 //     }));
+//     saveDraft(); // Save draft on location change
 //   };
 
 //   const addTicket = (ticketDataFromModal: Omit<Ticket, "id">) => {
@@ -260,6 +262,7 @@
 //     };
 //     setFormData((p) => ({ ...p, tickets: [...p.tickets, newTicket] }));
 //     setIsModalOpen(false);
+//     saveDraft(); // Save draft on ticket add
 //   };
 
 //   const handleFileSelect = (file: File | null) => {
@@ -275,10 +278,12 @@
 //         appearance: initialFormData.appearance,
 //       }));
 //     }
+//     saveDraft(); // Save draft on file select
 //   };
 
 //   const handleUpdateQuestions = (questions: Question[]) => {
 //     setFormData((p) => ({ ...p, questions }));
+//     saveDraft(); // Save draft on questions update
 //   };
 
 //   const handleAiAction = async (mode: "generate" | "refine" | "complete") => {
@@ -305,6 +310,7 @@
 //       );
 //       if (response && response.description) {
 //         setFormData((prev) => ({ ...prev, description: response.description }));
+//         saveDraft(); // Save draft on AI action
 //       }
 //     } catch (error: any) {
 //       console.error("Failed to perform AI action:", error);
@@ -316,6 +322,7 @@
 
 //   const handleStep3Completion = (isComplete: boolean) => {
 //     setIsStep3Complete(isComplete);
+//     saveDraft(); // Save draft on step 3 completion
 //   };
 
 //   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -326,14 +333,15 @@
 //       );
 //       return;
 //     }
-//     if (currentStep < 4) {
-//       setCurrentStep((p) => p + 1);
-//       return;
-//     }
-
-//     setIsLoading(true);
 //     try {
+//       setIsLoading(true); // Set local loading state
 //       await withLoading(async () => {
+//         if (currentStep < 4) {
+//           setCurrentStep((p) => p + 1);
+//           saveDraft(); // Save draft on step change
+//           return;
+//         }
+
 //         if (!formData.title) throw new Error("Event title is required.");
 //         if (formData.tickets.length === 0)
 //           throw new Error("At least one ticket type is required.");
@@ -387,7 +395,7 @@
 //             })) || [];
 
 //           const questionPayloadForApi = {
-//             event: eventId, // Changed from 'event' to 'event_id'
+//             event: eventId,
 //             type: q.type || "text",
 //             title: q.title,
 //             required: q.required || false,
@@ -396,7 +404,7 @@
 //             options: optionPayload,
 //           };
 
-//           console.log("Question payload:", questionPayloadForApi); // Add logging for debugging
+//           console.log("Question payload:", questionPayloadForApi);
 //           await createQuestion(questionPayloadForApi);
 //         }
 
@@ -423,11 +431,16 @@
 //           "Failed to create event. Please check the form and try again."
 //       );
 //     } finally {
-//       setIsLoading(false);
+//       setIsLoading(false); // Reset local loading state
 //     }
 //   };
 
-//   const handleBack = () => currentStep > 1 && setCurrentStep((p) => p - 1);
+//   const handleBack = () => {
+//     if (currentStep > 1) {
+//       setCurrentStep((p) => p - 1);
+//       saveDraft(); // Save draft on back navigation
+//     }
+//   };
 
 //   const renderStepContent = () => {
 //     switch (currentStep) {
@@ -458,6 +471,7 @@
 //                 return t;
 //               });
 //               setFormData((prev) => ({ ...prev, tickets: updatedTickets }));
+//               saveDraft(); // Save draft on ticket type change
 //             }}
 //             handleSendInvite={(ticketId: string) => {
 //               /* ... */
@@ -476,7 +490,10 @@
 //         return (
 //           <AppearanceStep
 //             formData={formData}
-//             updateFormData={(u) => setFormData((p) => ({ ...p, ...u }))}
+//             updateFormData={(u) => {
+//               setFormData((p) => ({ ...p, ...u }));
+//               saveDraft(); // Save draft on appearance update
+//             }}
 //             onFileSelect={handleFileSelect}
 //           />
 //         );
@@ -485,39 +502,48 @@
 //     }
 //   };
 
-//   if (isInitializing) {
-//     return (
-//       <Center style={{ height: "100vh" }}>
-//         <Loader /> <Text ml="sm">Loading draft…</Text>
-//       </Center>
-//     );
-//   }
-
 //   return (
 //     <div className={styles.formContainer}>
 //       <Stack>
 //         <Navbar />
 //       </Stack>
-//       <h1 className={styles.title}>Create A New Event</h1>
-//       <p className={styles.subtitle}>You are Just Four Steps Away!</p>
-//       <StepIndicator currentStep={currentStep} totalSteps={4} />
-//       <form onSubmit={handleSubmit} className={styles.eventForm}>
-//         {renderStepContent()}
-//         <NavigationButtons
-//           currentStep={currentStep}
-//           handleBack={handleBack}
-//           isLastStep={currentStep === 4}
-//           isLoading={isLoading}
-//         />
-//       </form>
-//       <TicketModal
-//         isModalOpen={isModalOpen}
-//         closeModal={() => setIsModalOpen(false)}
-//         addTicket={addTicket}
-//       />
+//       {isLoading ? (
+//         <Center style={{ padding: "2rem" }}>
+//           <Loader />
+//         </Center>
+//       ) : (
+//         <>
+//           <h1 className={styles.title}>Create A New Event</h1>
+//           <p className={styles.subtitle}>You are Just Four Steps Away!</p>
+//           <StepIndicator currentStep={currentStep} totalSteps={4} />
+//           <form onSubmit={handleSubmit} className={styles.eventForm}>
+//             {renderStepContent()}
+//             <NavigationButtons
+//               currentStep={currentStep}
+//               handleBack={handleBack}
+//               isLastStep={currentStep === 4}
+//               isLoading={isLoading}
+//             />
+//           </form>
+//           <TicketModal
+//             isModalOpen={isModalOpen}
+//             closeModal={() => setIsModalOpen(false)}
+//             addTicket={addTicket}
+//             eventDetails={{
+//               title: formData.title,
+//               description: formData.description,
+//               location: formData.location,
+//             }}
+//           />
+//         </>
+//       )}
 //     </div>
 //   );
 // }
+
+
+
+
 
 
 
@@ -584,14 +610,16 @@ export default function CreateEventForm() {
   const { withLoading } = useLoadingState();
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [isStep3Complete, setIsStep3Complete] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true); // Start with loading true
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const saveDraft = () => {
     if (!isAuthenticated()) return;
     const draftToSave = {
       formData: {
         ...formData,
-        appearance: selectedFile ? initialFormData.appearance : formData.appearance,
+        appearance: selectedFile
+          ? initialFormData.appearance
+          : formData.appearance,
       },
       currentStep,
     };
@@ -604,7 +632,8 @@ export default function CreateEventForm() {
         await withLoading(async () => {
           if (!isAuthenticated()) {
             window.location.href =
-              "/auth/signin?redirect=" + encodeURIComponent(window.location.pathname);
+              "/auth/signin?redirect=" +
+              encodeURIComponent(window.location.pathname);
             return;
           }
           const savedDraft = localStorage.getItem(FORM_STORAGE_KEY);
@@ -622,7 +651,8 @@ export default function CreateEventForm() {
                     parsedDraft.formData.appearance &&
                     parsedDraft.formData.appearance.startsWith("blob:")
                       ? initialFormData.appearance
-                      : parsedDraft.formData.appearance || initialFormData.appearance,
+                      : parsedDraft.formData.appearance ||
+                        initialFormData.appearance,
                 };
                 setFormData(loadedFormData);
                 setCurrentStep(parsedDraft.currentStep);
@@ -641,12 +671,11 @@ export default function CreateEventForm() {
           setSelectedFile(null);
         });
       } finally {
-        setIsLoading(false); // Reset loading state
+        setIsLoading(false);
       }
     };
-
     initializeForm();
-  }, []); 
+  }, []);
 
   const createEvent = async (
     data: Partial<
@@ -697,15 +726,24 @@ export default function CreateEventForm() {
     category_price: number;
     name: string;
     quantity?: number | string | null;
+    enable_dynamic_pricing?: boolean;
+    min_price?: number | null;
+    max_price?: number | null;
   }) => {
-    const payload = {
+    const payload: any = {
       event: data.event,
       category_name: data.category_name,
       category_price: data.category_price.toFixed(2),
       name: data.name,
       quantity:
-        data.quantity === "Unlimited" ? "Unlimited" : data.quantity?.toString(),
+        data.quantity === "Unlimited" ? null : data.quantity?.toString(),
     };
+
+    if (data.enable_dynamic_pricing) {
+      payload.enable_dynamic_pricing = true;
+      payload.min_price = data.min_price;
+      payload.max_price = data.max_price;
+    }
     await authenticatedRequest(`${API_BASE_URL}/tickets/`, "POST", payload);
   };
 
@@ -745,7 +783,7 @@ export default function CreateEventForm() {
   ) => {
     const { name, value } = e.target;
     setFormData((p) => ({ ...p, [name]: value }));
-    saveDraft(); // Save draft on form change
+    saveDraft();
   };
 
   const handleLocationChange = (value: "Virtual" | "Physical") => {
@@ -754,7 +792,7 @@ export default function CreateEventForm() {
       location: value,
       address: value === "Virtual" ? "" : p.address,
     }));
-    saveDraft(); // Save draft on location change
+    saveDraft();
   };
 
   const addTicket = (ticketDataFromModal: Omit<Ticket, "id">) => {
@@ -779,7 +817,7 @@ export default function CreateEventForm() {
     };
     setFormData((p) => ({ ...p, tickets: [...p.tickets, newTicket] }));
     setIsModalOpen(false);
-    saveDraft(); // Save draft on ticket add
+    saveDraft();
   };
 
   const handleFileSelect = (file: File | null) => {
@@ -795,12 +833,12 @@ export default function CreateEventForm() {
         appearance: initialFormData.appearance,
       }));
     }
-    saveDraft(); // Save draft on file select
+    saveDraft();
   };
 
   const handleUpdateQuestions = (questions: Question[]) => {
     setFormData((p) => ({ ...p, questions }));
-    saveDraft(); // Save draft on questions update
+    saveDraft();
   };
 
   const handleAiAction = async (mode: "generate" | "refine" | "complete") => {
@@ -827,7 +865,7 @@ export default function CreateEventForm() {
       );
       if (response && response.description) {
         setFormData((prev) => ({ ...prev, description: response.description }));
-        saveDraft(); // Save draft on AI action
+        saveDraft();
       }
     } catch (error: any) {
       console.error("Failed to perform AI action:", error);
@@ -839,7 +877,7 @@ export default function CreateEventForm() {
 
   const handleStep3Completion = (isComplete: boolean) => {
     setIsStep3Complete(isComplete);
-    saveDraft(); // Save draft on step 3 completion
+    saveDraft();
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -851,11 +889,11 @@ export default function CreateEventForm() {
       return;
     }
     try {
-      setIsLoading(true); // Set local loading state
+      setIsLoading(true);
       await withLoading(async () => {
         if (currentStep < 4) {
           setCurrentStep((p) => p + 1);
-          saveDraft(); // Save draft on step change
+          saveDraft();
           return;
         }
 
@@ -932,6 +970,9 @@ export default function CreateEventForm() {
             category_price: t.type === "Free" ? 0 : Number(t.price),
             name: t.name || "General Ticket",
             quantity: t.quantity,
+            enable_dynamic_pricing: t.enable_dynamic_pricing,
+            min_price: t.min_price,
+            max_price: t.max_price,
           });
         }
 
@@ -948,14 +989,14 @@ export default function CreateEventForm() {
           "Failed to create event. Please check the form and try again."
       );
     } finally {
-      setIsLoading(false); // Reset local loading state
+      setIsLoading(false);
     }
   };
 
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep((p) => p - 1);
-      saveDraft(); // Save draft on back navigation
+      saveDraft();
     }
   };
 
@@ -988,7 +1029,7 @@ export default function CreateEventForm() {
                 return t;
               });
               setFormData((prev) => ({ ...prev, tickets: updatedTickets }));
-              saveDraft(); // Save draft on ticket type change
+              saveDraft();
             }}
             handleSendInvite={(ticketId: string) => {
               /* ... */
@@ -1009,7 +1050,7 @@ export default function CreateEventForm() {
             formData={formData}
             updateFormData={(u) => {
               setFormData((p) => ({ ...p, ...u }));
-              saveDraft(); // Save draft on appearance update
+              saveDraft();
             }}
             onFileSelect={handleFileSelect}
           />
@@ -1046,6 +1087,11 @@ export default function CreateEventForm() {
             isModalOpen={isModalOpen}
             closeModal={() => setIsModalOpen(false)}
             addTicket={addTicket}
+            eventDetails={{
+              title: formData.title,
+              description: formData.description,
+              location: formData.location,
+            }}
           />
         </>
       )}

@@ -15,6 +15,7 @@ import Finance from "@/components/Finance";
 import { Stack, Loader, Center, Text } from "@mantine/core";
 import { authenticatedRequest } from "@/app/services/auth";
 import YourPromotionKitComponent from "@/components/Generate";
+import SalesAnalyticsPage from "@/components/SalesAnalytics";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -54,6 +55,7 @@ type PageKey =
   | "overview"
   | "customization"
   | "userManagement"
+  | "salesAnalytics"
   | "finance"
   | "Generate Promotion Kit"
   | "store"
@@ -193,6 +195,7 @@ export default function Dashboard() {
     customization: <Customization />,
     userManagement: <TicketDashboard eventId={eventId || ""} />,
     finance: <Finance />,
+    salesAnalytics: <SalesAnalyticsPage eventId={eventId || ""} />,
     store: (
       <>
         <h1>Store</h1>

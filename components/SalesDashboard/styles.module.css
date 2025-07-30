@@ -1,0 +1,18 @@
+.dashboardContainer {
+      background-color: #f8f9fa;
+      border-radius: var(--mantine-radius-md);
+      margin-top: 20px;
+  }
+  
+  .dashboardTitle {
+      font-weight: 700;
+      color: #343a40;
+  }
+  
+  .ticketNameHighlight {
+      color: #025a3a; /* Your primary theme color */
+  }
+  
+  .statIcon {
+      color: #025a3a;
+  }
