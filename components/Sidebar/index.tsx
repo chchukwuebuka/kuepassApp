@@ -8,6 +8,7 @@ import {
   FaStore,
   FaCog,
   FaSignOutAlt,
+  FaChartLine,
 } from "react-icons/fa";
 import { ReactElement } from "react";
 
@@ -16,6 +17,7 @@ export type PageKey =
   | "customization"
   | "userManagement"
   | "finance"
+  | "salesAnalytics"
   | "Generate Promotion Kit"
   | "store"
   | "support"
@@ -36,6 +38,7 @@ const menuItems: {
   { key: "customization", icon: <FaUsers />, label: "Customization" },
   { key: "userManagement", icon: <FaUsers />, label: "User Management" }, // ✅ Fixed key
   { key: "finance", icon: <FaMoneyBill />, label: "Finance" },
+  { key: "salesAnalytics", icon: <FaChartLine />, label: "Sales Analytics" },
   { key: "Generate Promotion Kit", icon: <FaStore />, label: "Generate Promotion Kit" },
   { key: "store", icon: <FaStore />, label: "Store" },
   { key: "support", icon: <FaCog />, label: "Support", isBottom: true },

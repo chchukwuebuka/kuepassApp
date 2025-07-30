@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   TextInput,
   PasswordInput,
@@ -119,7 +119,6 @@ const SignUp = () => {
             email: data.data.user.email || "",
             name: data.data.user.name || data.data.user.username || "",
             // Set profile picture
-            profilePicture: profileImage,
             profile_url: googleProfilePicture || undefined,
             phone_number: data.data.user.phone_number,
           };
@@ -134,7 +133,6 @@ const SignUp = () => {
               username: userData.username,
               email: userData.email || "",
               // Ensure profile picture is set
-              profilePicture: profileImage,
               profile_url: googleProfilePicture || undefined,
               phone_number: userData.phone_number,
               active: data.data.user.active,
@@ -161,17 +159,17 @@ const SignUp = () => {
     }
   }
 
-  // Google login hook at component level
+  // Google login hook with redirect flow to avoid disallowed_useragent error
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      try {
-        // Get the access token from Google
-        const { access_token } = tokenResponse;
-
-        // Call the function to handle Google login
-        await handleGoogleLogin(access_token);
-      } catch {
-        // Error is already handled in handleGoogleLogin
+      console.log("Google redirect onSuccess:", tokenResponse);
+      // For auth-code flow, we need to handle the code exchange on the backend
+      if (tokenResponse.code) {
+        await handleGoogleAuthCode(tokenResponse.code);
+      } else {
+        console.error("Google auth code not found in redirect response");
+        setError("Failed to get authorization code from Google.");
+        setGoogleLoading(false);
       }
     },
     onError: (errorResponse) => {
@@ -179,7 +177,53 @@ const SignUp = () => {
       setError("Google authentication failed. Please try again.");
       setGoogleLoading(false);
     },
+    flow: "auth-code",
+    scope: "openid email profile",
   });
+
+  // Handle auth code flow for Google OAuth
+  const handleGoogleAuthCode = async (code: string) => {
+    try {
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL ||
+        "https://keupass-48c2ae65f897.herokuapp.com/api";
+
+      // Exchange auth code for tokens
+      const response = await fetch(`${apiUrl}/google-auth-code/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.access_token) {
+        await handleGoogleLogin(data.access_token);
+      } else {
+        throw new Error(data.message || "Failed to exchange auth code");
+      }
+    } catch (error) {
+      console.error("Error exchanging auth code:", error);
+      setError("Google authentication failed. Please try again.");
+      setGoogleLoading(false);
+    }
+  };
+
+  // Check for auth code in URL on component mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+    const state = urlParams.get("state");
+
+    if (code && state) {
+      setGoogleLoading(true);
+      handleGoogleAuthCode(code);
+
+      // Clean up URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -267,8 +311,6 @@ const SignUp = () => {
               // Use username from form input
               username: values.username,
               // Handle profile picture with both possible field names
-              profilePicture:
-                profileImageUrl || user.profile_url || "/images/avatar.png",
               profile_url: profileImageUrl || user.profile_url,
             };
           }
@@ -282,7 +324,6 @@ const SignUp = () => {
               ...response.user,
               // Use username from form input
               username: values.username,
-              profilePicture: profileImageUrl || "/images/avatar.png",
               profile_url: profileImageUrl,
             };
           }
@@ -296,7 +337,6 @@ const SignUp = () => {
             name: userData.name || values.username,
             username: userData.username || "",
             email: userData.email || "",
-            profilePicture: userData.profilePicture || "/images/avatar.png",
             profile_url: userData.profile_url,
             phone_number: values.number,
           };
@@ -327,16 +367,22 @@ const SignUp = () => {
     setError(null);
 
     try {
-      // Trigger the Google login popup
+      // Try the library approach first
       googleLogin();
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "Google sign-in failed. Please try again.";
-      setError(errorMessage);
-      console.error("Error during Google signup:", err);
-      setGoogleLoading(false);
+    } catch (error) {
+      console.error("Library approach failed, trying direct URL:", error);
+
+      // Fallback: Direct Google OAuth URL
+      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+      const redirectUri = encodeURIComponent(
+        window.location.origin + window.location.pathname
+      );
+      const scope = encodeURIComponent("openid email profile");
+
+      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
+
+      // Redirect to Google OAuth
+      window.location.href = googleAuthUrl;
     }
   };
 

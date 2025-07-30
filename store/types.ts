@@ -6,6 +6,9 @@ export interface Ticket {
   quantity: number | "Unlimited" | null;
   type: "Paid" | "Free" | "Invite";
   inviteEmail?: string;
+  enable_dynamic_pricing?: boolean;
+  min_price?: number | null;
+  max_price?: number | null;
 }
 
 export interface EventFormData {
