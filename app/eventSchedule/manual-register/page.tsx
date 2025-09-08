@@ -198,27 +198,12 @@ export default function ManualRegisterEvent() {
   }
 
   const handlePhoneChange = (value: string) => {
-    let processedValue = value.replace(/\s/g, "");
-    if (
-      processedValue &&
-      /^\d+$/.test(processedValue) &&
-      processedValue.length >= 10 &&
-      !processedValue.startsWith("+")
-    ) {
-      processedValue = `+${processedValue}`;
-    }
-    setFormData((prev) => ({ ...prev, phoneNumber: processedValue }));
+    setFormData((prev) => ({ ...prev, phoneNumber: value }));
 
-    if (!processedValue) {
+    if (!value) {
       setFormErrors((prev) => ({
         ...prev,
         phoneNumber: "Phone number is required.",
-      }));
-    } else if (!/^\+\d{10,15}$/.test(processedValue)) {
-      setFormErrors((prev) => ({
-        ...prev,
-        phoneNumber:
-          "Phone number must be in international format with '+' and 10-15 digits (e.g., +2349012345678).",
       }));
     } else {
       setFormErrors((prev) => ({ ...prev, phoneNumber: "" }));
@@ -251,9 +236,6 @@ export default function ManualRegisterEvent() {
     }
     if (!formData.phoneNumber.trim()) {
       errors.phoneNumber = "Phone number is required.";
-    } else if (!/^\+\d{10,15}$/.test(formData.phoneNumber)) {
-      errors.phoneNumber =
-        "Phone number must be in international format with '+' and 10-15 digits.";
     }
 
     setFormErrors(errors);
@@ -525,48 +507,7 @@ export default function ManualRegisterEvent() {
             <p className={styles.subtitle}>
               You are just one step away from securing your spot!
             </p>
-            <div className={styles.eventInfoGrid}>
-              {/* <Card className={styles.eventInfoCard}>
-                <Group gap="xs">
-                  <ThemeIcon size="sm" variant="light" color="green">
-                    <IconCalendarEvent size={16} />
-                  </ThemeIcon>
-                  <Text size="sm" c="dimmed">
-                    Event Date
-                  </Text>
-                </Group>
-                <Text fw={500} size="sm">
-                  {new Date(event.start_date).toLocaleDateString()}
-                </Text>
-              </Card> */}
-              {/* <Card className={styles.eventInfoCard}>
-                <Group gap="xs">
-                  <ThemeIcon size="sm" variant="light" color="green">
-                    <IconMapPin size={16} />
-                  </ThemeIcon>
-                  <Text size="sm" c="dimmed">
-                    Location
-                  </Text>
-                </Group>
-                <Text fw={500} size="sm">
-                  {event.location}
-                </Text>
-              </Card>
-              <Card className={styles.eventInfoCard}>
-                <Group gap="xs">
-                  <ThemeIcon size="sm" variant="light" color="green">
-                    <IconClock size={16} />
-                  </ThemeIcon>
-                  <Text size="sm" c="dimmed">
-                    Duration
-                  </Text>
-                </Group>
-                <Text fw={500} size="sm">
-                  {new Date(event.start_date).toLocaleDateString()} -{" "}
-                  {new Date(event.end_date).toLocaleDateString()}
-                </Text>
-              </Card> */}
-            </div>
+            <div className={styles.eventInfoGrid}></div>
           </div>
         </div>
 
@@ -686,7 +627,7 @@ export default function ManualRegisterEvent() {
                     </ThemeIcon>
                     <div>
                       <Text fw={600} size="lg">
-                        Manual Registration
+                        ARCON Registration
                       </Text>
                       <Text size="sm" c="dimmed">
                         You will be registered for this event
@@ -863,17 +804,16 @@ export default function ManualRegisterEvent() {
 
               {/* Order Summary */}
               <div className={styles.summaryHeader}>
-                <Group gap="sm">
+                {/* <Group gap="sm">
                   <ThemeIcon variant="light" color="green">
                     <IconCreditCard size={20} />
                   </ThemeIcon>
                   <Text fw={600} size="lg">
                     Order Summary
                   </Text>
-                </Group>
+                </Group> */}
               </div>
               <div className={styles.summaryContent}>
-               
                 <Divider my="md" />
                 <div className={styles.summaryTotal}>
                   <Text fw={700} size="lg">
