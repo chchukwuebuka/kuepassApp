@@ -279,7 +279,7 @@ const HeroContent = styled(Flex)`
   gap: 40px;
 
   @media (max-width: 992px) {
-    flex-direction: column;
+    flex-direction: column-reverse;
     text-align: center;
   }
 `;

@@ -335,6 +335,9 @@ export default function RegisterEvent() {
     setError(null);
     try {
       await withLoading(async () => {
+        // Determine if the ticket is free BEFORE creating the payload
+        const isFree = calculateTotal() <= 0;
+
         const attendeePayload: AttendeeRequestPayload = {
           event: eventId!,
           ticket: selectedTicket,
@@ -342,7 +345,8 @@ export default function RegisterEvent() {
           email: user.email,
           name: user.username,
           phone_number: phoneNumber,
-          payment_status: "pending",
+          // Conditionally set the payment status
+          payment_status: isFree ? "completed" : "pending",
           responses: answers
             .map((a) => {
               const questionDetails = questions.find(
@@ -389,6 +393,7 @@ export default function RegisterEvent() {
         const creationResult = await authenticatedRequest<
           AttendeeData | { message: string; errors?: any }
         >(`${API_BASE_URL}/attendees/`, "POST", attendeePayload);
+
         if (!(creationResult && (creationResult as AttendeeData).id)) {
           let errMsg =
             (creationResult as { message?: string })?.message ||
@@ -402,13 +407,17 @@ export default function RegisterEvent() {
           setPaymentLoading(false);
           return;
         }
+
         const attendee = creationResult as AttendeeData;
-        const ticketObj = tickets.find((t) => t.id === selectedTicket);
-        if (ticketObj?.category_name === "Free" || calculateTotal() <= 0) {
+
+        // Simplified free ticket logic
+        if (isFree) {
           setShowModal(true);
           setPaymentLoading(false);
           return;
         }
+
+        // This part will now only run for paid tickets
         const paymentInitPayload = {
           attendee_id: attendee.id,
           amount: calculateTotal().toString(),
@@ -419,6 +428,7 @@ export default function RegisterEvent() {
             "POST",
             paymentInitPayload
           );
+
         if (initResponse?.success && initResponse.data?.authorization_url) {
           window.location.href = initResponse.data.authorization_url;
         } else {
@@ -437,7 +447,10 @@ export default function RegisterEvent() {
   const closeModal = () => {
     setShowModal(false);
     if (eventId)
-      setTimeout(() => router.push(`/eventSchedule/events/${eventId}`), 2000);
+      setTimeout(
+        () => router.push(`/eventSchedule/eventDetails/${eventId}`),
+        2000
+      );
   };
   const getTicketTypeIcon = (type: string) => {
     switch (type) {

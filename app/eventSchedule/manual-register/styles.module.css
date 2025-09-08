@@ -1,0 +1,555 @@
+/* Manual Event Registration Styles */
+.pageWrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 2rem 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Header Section */
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.headerContent {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.headerBadge {
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 1.125rem;
+  color: #64748b;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.eventInfoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.eventInfoCard {
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.eventInfoCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Form Container */
+.formContainer {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .formContainer {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+/* Form Section */
+.formSection {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.formBox {
+  padding: 2rem;
+}
+
+.sectionHeader {
+  margin-bottom: 1.5rem;
+}
+
+.sectionHeader h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+/* Form Grid */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Question Items */
+.questionItem {
+  margin-bottom: 1.5rem;
+}
+
+.questionLabel {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.required {
+  color: #dc2626;
+  margin-left: 0.25rem;
+}
+
+/* Input Styles */
+.input {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+.input:disabled {
+  background-color: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.questionInput {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.questionInput:focus {
+  outline: none;
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+/* Phone Input Styles */
+.phoneContainer {
+  width: 100%;
+}
+
+.phoneInput {
+  width: 100% !important;
+  height: 42px !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 8px !important;
+  padding: 0.75rem 1rem !important;
+  font-size: 0.875rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.phoneInput:focus {
+  outline: none !important;
+  border-color: #059669 !important;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1) !important;
+}
+
+.phoneButton {
+  border: 1px solid #d1d5db !important;
+  border-radius: 8px 0 0 8px !important;
+  background: #f9fafb !important;
+  transition: all 0.2s ease !important;
+}
+
+.phoneButton:hover {
+  background: #f3f4f6 !important;
+}
+
+/* Tickets Grid */
+.ticketsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* Ticket Info */
+.ticketInfo {
+  margin-top: 1rem;
+}
+
+.selectedTicketCard {
+  padding: 1.5rem;
+  border: 2px solid #059669;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-radius: 12px;
+}
+
+.ticketCard {
+  position: relative;
+  border-radius: 16px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  overflow: hidden;
+  color: white;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.ticketCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.ticketCard.selected {
+  border-color: #059669;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(5, 150, 105, 0.3);
+}
+
+.ticketHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.ticketIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ticketBadge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ticketContent {
+  flex: 1;
+  margin-bottom: 1rem;
+}
+
+.ticketName {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.eventName {
+  opacity: 0.9;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.ticketPrice {
+  text-align: right;
+}
+
+.ticketPrice .ticketPrice {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.priceAmount {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.ticketPerforations {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 100%;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 8px,
+    rgba(255, 255, 255, 0.3) 8px,
+    rgba(255, 255, 255, 0.3) 12px
+  );
+}
+
+.selectedIndicator {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Summary Section */
+.summarySection {
+  position: sticky;
+  top: 2rem;
+}
+
+.summaryBox {
+  padding: 2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.summaryHeader {
+  margin-bottom: 1.5rem;
+}
+
+.summaryContent {
+  margin-bottom: 2rem;
+}
+
+.summaryItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.summaryTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-top: 2px solid #e2e8f0;
+  margin-top: 1rem;
+}
+
+.totalPrice {
+  color: #059669;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+/* Questions Section */
+.questionsSection {
+  margin-top: 1rem;
+}
+
+/* Purchase Button */
+.purchaseBtn {
+  width: 100%;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 56px;
+}
+
+.purchaseBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(5, 150, 105, 0.3);
+}
+
+.purchaseBtn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.purchaseBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* No Selection State */
+.noSelection {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+  padding: 2rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 2px dashed #d1d5db;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .pageWrapper {
+    padding: 1rem 0;
+  }
+  
+  .container {
+    padding: 0 0.5rem;
+  }
+  
+  .title {
+    font-size: 2rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+  
+  .eventInfoGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .formBox,
+  .summaryBox {
+    padding: 1.5rem;
+  }
+  
+  .ticketsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .ticketCard {
+    min-height: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.75rem;
+  }
+  
+  .formBox,
+  .summaryBox {
+    padding: 1rem;
+  }
+  
+  .ticketCard {
+    padding: 1rem;
+    min-height: 160px;
+  }
+  
+  .priceAmount {
+    font-size: 1.25rem;
+  }
+}
+
+/* Loading States */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Error States */
+.error {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+/* Success States */
+.success {
+  border-color: #059669 !important;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1) !important;
+}
+
+/* Animation for form elements */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.formBox,
+.summaryBox {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.ticketCard {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.ticketCard:nth-child(1) { animation-delay: 0.1s; }
+.ticketCard:nth-child(2) { animation-delay: 0.2s; }
+.ticketCard:nth-child(3) { animation-delay: 0.3s; }
+.ticketCard:nth-child(4) { animation-delay: 0.4s; }
