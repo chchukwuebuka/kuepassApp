@@ -1,0 +1,184 @@
+.qrCard {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  color: white;
+}
+
+.icon {
+  color: white;
+}
+
+.description {
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+}
+
+.input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+}
+
+.input :global(.mantine-TextInput-input) {
+  background: rgba(255, 255, 255, 0.9);
+  color: #2c3e50;
+  border: none;
+}
+
+.input :global(.mantine-TextInput-input:focus) {
+  background: white;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+.input :global(.mantine-TextInput-label) {
+  color: white;
+  font-weight: 600;
+}
+
+.generateButton {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.generateButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.generateButton:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: not-allowed;
+}
+
+.downloadButton,
+.shareButton {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.downloadButton:hover,
+.shareButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.qrDisplayCard {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 1rem;
+}
+
+.qrContainer {
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.qrContainer:hover {
+  transform: scale(1.02);
+}
+
+.qrCode {
+  border-radius: 8px;
+}
+
+.qrUrl {
+  color: #2c3e50;
+  word-break: break-all;
+  font-family: 'Courier New', monospace;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.5rem;
+  border-radius: 4px;
+  max-width: 100%;
+}
+
+.copyButton {
+  background: #667eea;
+  border: none;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.copyButton:hover {
+  background: #5a6fd8;
+  transform: translateY(-1px);
+}
+
+.infoAlert {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.infoAlert :global(.mantine-Alert-message) {
+  color: white;
+}
+
+/* Animation for QR code appearance */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.qrDisplayCard {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .qrCard {
+    margin: 0;
+    border-radius: 0;
+  }
+  
+  .qrContainer {
+    padding: 0.5rem;
+  }
+  
+  .qrCode {
+    width: 150px !important;
+    height: 150px !important;
+  }
+  
+  .qrUrl {
+    font-size: 0.8rem;
+  }
+}
+
+/* Custom scrollbar */
+.qrCard::-webkit-scrollbar {
+  width: 6px;
+}
+
+.qrCard::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.qrCard::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.qrCard::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
