@@ -187,7 +187,7 @@ const ShareButtons = ({
 
 export default function YourPromotionKitComponent({
   eventId,
-}: PromotionKitProps) {++
+}: PromotionKitProps) {
   // State management
   const [event, setEvent] = useState<any>(null);
   const [plan, setPlan] = useState<MarketingPlan | null>(null);
