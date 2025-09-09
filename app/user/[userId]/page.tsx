@@ -108,8 +108,12 @@ export default function UserProfilePage() {
           throw new Error(`Failed to fetch attendee: ${response.status}`);
         }
 
-        const userData = await response.json();
-        console.log("UserProfilePage: API response data:", userData);
+        const responseData = await response.json();
+        console.log("UserProfilePage: API response data:", responseData);
+
+        // Handle the new response format with data wrapper
+        const userData = responseData.data || responseData;
+        console.log("UserProfilePage: Extracted user data:", userData);
 
         // Process the API response to match our display format
         const processedData: UserProfile = {
