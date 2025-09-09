@@ -54,7 +54,14 @@ export async function GET(
 
     const userData = await response.json();
 
-    return NextResponse.json(userData, { status: 200 });
+    // Handle the new response format from backend
+    if (userData.success && userData.data) {
+      // New format with success/data wrapper
+      return NextResponse.json(userData.data, { status: 200 });
+    } else {
+      // Legacy format - return as is
+      return NextResponse.json(userData, { status: 200 });
+    }
   } catch (error) {
     console.error("API route error:", error);
     return NextResponse.json(
