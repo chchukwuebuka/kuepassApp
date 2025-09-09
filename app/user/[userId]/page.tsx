@@ -63,23 +63,26 @@ export default function UserProfilePage() {
         setLoading(true);
         setError(null);
 
-        // Try to fetch user profile by ID using our local API endpoint
-        const response = await fetch(`/api/users/${params.userId}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        });
+        // Try to fetch attendee profile by ID using the attendees API endpoint
+        const response = await fetch(
+          `${API_BASE_URL}/attendees/${params.userId}/`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+          }
+        );
 
         if (!response.ok) {
           if (response.status === 404) {
-            throw new Error("User not found");
+            throw new Error("Attendee not found");
           }
           if (response.status === 401) {
             throw new Error("Access denied - authentication required");
           }
-          throw new Error(`Failed to fetch user: ${response.status}`);
+          throw new Error(`Failed to fetch attendee: ${response.status}`);
         }
 
         const userData = await response.json();
@@ -88,18 +91,15 @@ export default function UserProfilePage() {
         const processedData: UserProfile = {
           ...userData,
           // Use actual fields from the API
-          title: "Attendee", // Default title
-          institution:
-            userData.responses?.find(
-              (r: any) => r.text_response && r.text_response.includes("@")
-            )?.text_response || "Not specified",
+          title: userData.title || "Attendee", // Use API title or default
+          institution: userData.institution || "Not specified",
           status: userData.is_validated ? "VERIFIED" : "PENDING",
         };
 
         setUserProfile(processedData);
       } catch (err: any) {
         console.error("Error fetching user profile:", err);
-        setError(err.message || "Failed to load user profile");
+        setError(err.message || "Failed to load attendee profile");
       } finally {
         setLoading(false);
       }
@@ -124,7 +124,7 @@ export default function UserProfilePage() {
           <Stack align="center" gap="md">
             <Loader size="xl" />
             <Text size="lg" c="dimmed">
-              Loading user profile...
+              Loading attendee profile...
             </Text>
           </Stack>
         </Center>
@@ -155,7 +155,7 @@ export default function UserProfilePage() {
       <Container size="md" className={styles.container}>
         <Center style={{ height: "50vh" }}>
           <Text size="lg" c="dimmed">
-            No user data available
+            No attendee data available
           </Text>
         </Center>
       </Container>
@@ -207,16 +207,16 @@ export default function UserProfilePage() {
           </div>
 
           <div className={styles.infoRow}>
-            <Text className={styles.label}>TICKET CODE</Text>
+            <Text className={styles.label}>TITLE</Text>
             <Text className={styles.value}>
-              {userProfile.ticket_code || "Not assigned"}
+              {userProfile.title || "Not specified"}
             </Text>
           </div>
 
           <div className={styles.infoRow}>
-            <Text className={styles.label}>STATUS</Text>
-            <Text className={styles.statusValue}>
-              {userProfile.status || "PENDING"}
+            <Text className={styles.label}>INSTITUTION</Text>
+            <Text className={styles.value}>
+              {userProfile.institution || "Not specified"}
             </Text>
           </div>
         </div>
