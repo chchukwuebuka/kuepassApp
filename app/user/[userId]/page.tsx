@@ -80,8 +80,8 @@ export default function UserProfilePage() {
         setLoading(true);
         setError(null);
 
-        // Try to fetch attendee profile by ID using the attendees API endpoint
-        const apiUrl = `${API_BASE_URL}/attendees/${userId}/`;
+        // Use local API route which handles public access
+        const apiUrl = `/api/users/${userId}`;
         console.log("UserProfilePage: Fetching from API URL:", apiUrl);
 
         const response = await fetch(apiUrl, {
