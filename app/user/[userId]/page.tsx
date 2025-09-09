@@ -11,8 +11,9 @@ import {
   Loader,
   Center,
   Alert,
+  Button,
 } from "@mantine/core";
-import { IconX } from "@tabler/icons-react";
+import { IconX, IconHome } from "@tabler/icons-react";
 import styles from "./styles.module.css";
 
 interface UserProfile {
@@ -51,9 +52,12 @@ export default function UserProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Get userId from either URL params or query string (for QR code compatibility)
+  const userId = params.userId || searchParams.get("userId");
+
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (!params.userId) {
+      if (!userId) {
         setError("User ID is missing");
         setLoading(false);
         return;
@@ -64,16 +68,13 @@ export default function UserProfilePage() {
         setError(null);
 
         // Try to fetch attendee profile by ID using the attendees API endpoint
-        const response = await fetch(
-          `${API_BASE_URL}/attendees/${params.userId}/`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-          }
-        );
+        const response = await fetch(`${API_BASE_URL}/attendees/${userId}/`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        });
 
         if (!response.ok) {
           if (response.status === 404) {
@@ -106,7 +107,7 @@ export default function UserProfilePage() {
     };
 
     fetchUserProfile();
-  }, [params.userId]);
+  }, [userId]);
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Not available";
@@ -220,6 +221,20 @@ export default function UserProfilePage() {
             </Text>
           </div>
         </div>
+      </div>
+
+      {/* Home Button */}
+      <div className={styles.homeButtonContainer}>
+        <Button
+          leftSection={<IconHome size={20} />}
+          size="lg"
+          variant="filled"
+          color="green"
+          onClick={() => (window.location.href = "/")}
+          className={styles.homeButton}
+        >
+          Go to Home
+        </Button>
       </div>
 
       {/* Footer */}

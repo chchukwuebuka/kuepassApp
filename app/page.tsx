@@ -1,25 +1,29 @@
-import { Stack } from "@mantine/core";
-import HeroSection from "@/components/hero";
-import CustomFooter from "@/components/Footer";
-import Navbar from "@/components/navbar";
-import EventSection from "@/components/TrendingEvents";
-import styles from "./page.module.css";
-import { QuickPage } from "@/components/QuickPass";
-import PlatformShowcase from "@/components/platform";
+"use client";
 
-export default function KuepassHome() {
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { Center, Loader, Text } from "@mantine/core";
+
+export default function HomePage() {
+  const searchParams = useSearchParams();
+  const userId = searchParams.get("userId");
+
+  useEffect(() => {
+    // If userId is provided in query params, redirect to user profile page
+    if (userId) {
+      window.location.href = `/user/${userId}`;
+    } else {
+      // If no userId, redirect to the main home page or event listing
+      window.location.href = "/eventSchedule/exploreEvent";
+    }
+  }, [userId]);
+
   return (
-    <Stack>
-      <Stack className={styles.navStark}>
-        <Navbar />
-      </Stack>
-      <Stack style={{ padding: "1rem" }}>
-        <HeroSection />
-        <PlatformShowcase />
-        <EventSection/>
-        <QuickPage/>
-      </Stack>
-        <CustomFooter />
-    </Stack>
+    <Center style={{ height: "100vh", flexDirection: "column" }}>
+      <Loader size="lg" color="#025a3a" />
+      <Text mt="md" c="dimmed">
+        {userId ? "Redirecting to user profile..." : "Redirecting to events..."}
+      </Text>
+    </Center>
   );
 }
