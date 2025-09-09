@@ -11,8 +11,9 @@ import {
   Loader,
   Center,
   Alert,
+  Button,
 } from "@mantine/core";
-import { IconX } from "@tabler/icons-react";
+import { IconX, IconHome } from "@tabler/icons-react";
 import styles from "./styles.module.css";
 
 interface UserProfile {
@@ -51,41 +52,64 @@ export default function UserProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Get userId from either URL params or query string (for QR code compatibility)
+  const userId = params.userId || searchParams.get("userId");
+
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (!params.userId) {
+      console.log("UserProfilePage: Full URL =", window.location.href);
+      console.log("UserProfilePage: userId =", userId);
+      console.log("UserProfilePage: params.userId =", params.userId);
+      console.log(
+        "UserProfilePage: searchParams.get('userId') =",
+        searchParams.get("userId")
+      );
+
+      if (!userId) {
+        console.log("UserProfilePage: No userId found, setting error");
         setError("User ID is missing");
         setLoading(false);
         return;
       }
 
       try {
+        console.log(
+          "UserProfilePage: Starting to fetch profile for userId:",
+          userId
+        );
         setLoading(true);
         setError(null);
 
-        // Try to fetch attendee profile by ID using the attendees API endpoint
-        const response = await fetch(
-          `${API_BASE_URL}/attendees/${params.userId}/`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-          }
-        );
+        // Use local API route which handles public access
+        const apiUrl = `/api/users/${userId}`;
+        console.log("UserProfilePage: Fetching from API URL:", apiUrl);
+
+        const response = await fetch(apiUrl, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        });
+
+        console.log("UserProfilePage: API response status:", response.status);
+        console.log("UserProfilePage: API response ok:", response.ok);
 
         if (!response.ok) {
           if (response.status === 404) {
+            console.log("UserProfilePage: Attendee not found (404)");
             throw new Error("Attendee not found");
           }
           if (response.status === 401) {
+            console.log("UserProfilePage: Access denied (401)");
             throw new Error("Access denied - authentication required");
           }
+          console.log("UserProfilePage: API error status:", response.status);
           throw new Error(`Failed to fetch attendee: ${response.status}`);
         }
 
         const userData = await response.json();
+        console.log("UserProfilePage: API response data:", userData);
 
         // Process the API response to match our display format
         const processedData: UserProfile = {
@@ -96,17 +120,20 @@ export default function UserProfilePage() {
           status: userData.is_validated ? "VERIFIED" : "PENDING",
         };
 
+        console.log("UserProfilePage: Processed data:", processedData);
         setUserProfile(processedData);
       } catch (err: any) {
-        console.error("Error fetching user profile:", err);
+        console.error("UserProfilePage: Error fetching user profile:", err);
+        console.error("UserProfilePage: Error message:", err.message);
         setError(err.message || "Failed to load attendee profile");
       } finally {
+        console.log("UserProfilePage: Setting loading to false");
         setLoading(false);
       }
     };
 
     fetchUserProfile();
-  }, [params.userId]);
+  }, [userId, params.userId, searchParams]);
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Not available";
@@ -220,6 +247,20 @@ export default function UserProfilePage() {
             </Text>
           </div>
         </div>
+      </div>
+
+      {/* Home Button */}
+      <div className={styles.homeButtonContainer}>
+        <Button
+          leftSection={<IconHome size={20} />}
+          size="lg"
+          variant="filled"
+          color="green"
+          onClick={() => (window.location.href = "/")}
+          className={styles.homeButton}
+        >
+          Go to Home
+        </Button>
       </div>
 
       {/* Footer */}
