@@ -18,13 +18,31 @@ export default function KuepassHome() {
   useEffect(() => {
     // If userId is provided in query params, redirect to user profile page
     if (userId) {
-      window.location.href = `/user/${userId}`;
+      console.log("Found userId in URL:", userId);
+      console.log("Current URL:", window.location.href);
+      console.log("Redirecting to:", `/user/${userId}`);
+
+      // Immediate redirect
+      const redirectUrl = `/user/${userId}`;
+      console.log("Attempting redirect to:", redirectUrl);
+
+      // Try multiple redirect methods
+      try {
+        window.location.replace(redirectUrl);
+      } catch (error) {
+        console.error("Redirect failed, trying alternative method:", error);
+        window.location.href = redirectUrl;
+      }
       return;
     }
   }, [userId]);
 
   // If userId is provided, show loading while redirecting
   if (userId) {
+    const handleManualRedirect = () => {
+      window.location.href = `/user/${userId}`;
+    };
+
     return (
       <Stack
         style={{
@@ -33,7 +51,22 @@ export default function KuepassHome() {
           alignItems: "center",
         }}
       >
-        <div>Redirecting to user profile...</div>
+        <div>Redirecting to user profile for: {userId}</div>
+        <div>Please wait...</div>
+        <button
+          onClick={handleManualRedirect}
+          style={{
+            marginTop: "20px",
+            padding: "10px 20px",
+            backgroundColor: "#025a3a",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+          }}
+        >
+          Click here if redirect doesn&apos;t work
+        </button>
       </Stack>
     );
   }

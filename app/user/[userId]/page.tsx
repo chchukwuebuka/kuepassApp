@@ -57,18 +57,33 @@ export default function UserProfilePage() {
 
   useEffect(() => {
     const fetchUserProfile = async () => {
+      console.log("UserProfilePage: userId =", userId);
+      console.log("UserProfilePage: params.userId =", params.userId);
+      console.log(
+        "UserProfilePage: searchParams.get('userId') =",
+        searchParams.get("userId")
+      );
+
       if (!userId) {
+        console.log("UserProfilePage: No userId found, setting error");
         setError("User ID is missing");
         setLoading(false);
         return;
       }
 
       try {
+        console.log(
+          "UserProfilePage: Starting to fetch profile for userId:",
+          userId
+        );
         setLoading(true);
         setError(null);
 
         // Try to fetch attendee profile by ID using the attendees API endpoint
-        const response = await fetch(`${API_BASE_URL}/attendees/${userId}/`, {
+        const apiUrl = `${API_BASE_URL}/attendees/${userId}/`;
+        console.log("UserProfilePage: Fetching from API URL:", apiUrl);
+
+        const response = await fetch(apiUrl, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -76,17 +91,24 @@ export default function UserProfilePage() {
           },
         });
 
+        console.log("UserProfilePage: API response status:", response.status);
+        console.log("UserProfilePage: API response ok:", response.ok);
+
         if (!response.ok) {
           if (response.status === 404) {
+            console.log("UserProfilePage: Attendee not found (404)");
             throw new Error("Attendee not found");
           }
           if (response.status === 401) {
+            console.log("UserProfilePage: Access denied (401)");
             throw new Error("Access denied - authentication required");
           }
+          console.log("UserProfilePage: API error status:", response.status);
           throw new Error(`Failed to fetch attendee: ${response.status}`);
         }
 
         const userData = await response.json();
+        console.log("UserProfilePage: API response data:", userData);
 
         // Process the API response to match our display format
         const processedData: UserProfile = {
@@ -97,17 +119,20 @@ export default function UserProfilePage() {
           status: userData.is_validated ? "VERIFIED" : "PENDING",
         };
 
+        console.log("UserProfilePage: Processed data:", processedData);
         setUserProfile(processedData);
       } catch (err: any) {
-        console.error("Error fetching user profile:", err);
+        console.error("UserProfilePage: Error fetching user profile:", err);
+        console.error("UserProfilePage: Error message:", err.message);
         setError(err.message || "Failed to load attendee profile");
       } finally {
+        console.log("UserProfilePage: Setting loading to false");
         setLoading(false);
       }
     };
 
     fetchUserProfile();
-  }, [userId]);
+  }, [userId, params.userId, searchParams]);
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Not available";
