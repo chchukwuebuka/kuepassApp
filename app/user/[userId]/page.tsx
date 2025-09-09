@@ -57,6 +57,7 @@ export default function UserProfilePage() {
 
   useEffect(() => {
     const fetchUserProfile = async () => {
+      console.log("UserProfilePage: Full URL =", window.location.href);
       console.log("UserProfilePage: userId =", userId);
       console.log("UserProfilePage: params.userId =", params.userId);
       console.log(

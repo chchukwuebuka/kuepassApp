@@ -10,11 +10,13 @@ export default function QRRedirectPage() {
 
   useEffect(() => {
     if (userId) {
-      // Redirect to user profile page
-      window.location.href = `/user/${userId}`;
+      // Redirect to user profile page using dynamic route
+      console.log("QR Redirect: Redirecting to /user/" + userId);
+      window.location.replace(`/user/${userId}`);
     } else {
       // If no userId, redirect to home
-      window.location.href = "/";
+      console.log("QR Redirect: No userId found, redirecting to home");
+      window.location.replace("/");
     }
   }, [userId]);
 

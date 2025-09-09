@@ -22,17 +22,12 @@ export default function KuepassHome() {
       console.log("Current URL:", window.location.href);
       console.log("Redirecting to:", `/user/${userId}`);
 
-      // Immediate redirect
+      // Immediate redirect to dynamic route
       const redirectUrl = `/user/${userId}`;
       console.log("Attempting redirect to:", redirectUrl);
 
-      // Try multiple redirect methods
-      try {
-        window.location.replace(redirectUrl);
-      } catch (error) {
-        console.error("Redirect failed, trying alternative method:", error);
-        window.location.href = redirectUrl;
-      }
+      // Use replace to avoid back button issues
+      window.location.replace(redirectUrl);
       return;
     }
   }, [userId]);
