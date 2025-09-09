@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import styles from "./styles.module.css";
-import Modal from "@/components/Modal";
+import QRCodePopup from "@/components/QRCodePopup";
 import {
   Loader,
   Center,
@@ -113,7 +113,10 @@ export default function ManualRegisterEvent() {
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [registeredAttendeeId, setRegisteredAttendeeId] = useState<
+    string | null
+  >(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -269,8 +272,8 @@ export default function ManualRegisterEvent() {
 
     try {
       // Hardcoded values
-      const hardcodedEventId = "500";
-      const hardcodedTicketId = "f77652fc-30c2-453c-b6fb-567d2514fa36";
+      const hardcodedEventId = "499";
+      const hardcodedTicketId = "bee1a000-d505-470a-9275-79db914a2e1f";
 
       // Format phone number to international format
       const formatPhoneNumber = (phone: string): string => {
@@ -364,7 +367,9 @@ export default function ManualRegisterEvent() {
       const result = await response.json();
       console.log("✅ Success Response:", result);
 
-      setShowModal(true);
+      // Store the attendee ID for QR code generation
+      setRegisteredAttendeeId(result.id || result.attendee_id);
+      setShowQRModal(true);
       setPaymentLoading(false);
     } catch (err: any) {
       console.error("Failed to add attendee:", err);
@@ -380,8 +385,9 @@ export default function ManualRegisterEvent() {
     }
   };
 
-  const closeModal = () => {
-    setShowModal(false);
+  const closeQRModal = () => {
+    setShowQRModal(false);
+    setRegisteredAttendeeId(null);
     // Reset form after successful registration
     setFormData({
       firstName: "",
@@ -854,15 +860,12 @@ export default function ManualRegisterEvent() {
           </div>
         </div>
       </Container>
-      <Modal
-        show={showModal}
-        onClose={closeModal}
-        title="Registration Successful!"
-        message={
-          event
-            ? `Successfully registered for "${event.title}". You can register another person or close this page.`
-            : "Registration successful! You can register another person or close this page."
-        }
+      <QRCodePopup
+        show={showQRModal}
+        onClose={closeQRModal}
+        attendeeId={registeredAttendeeId || undefined}
+        email={formData.email || undefined}
+        eventId={event?.id || undefined}
       />
     </div>
   );
