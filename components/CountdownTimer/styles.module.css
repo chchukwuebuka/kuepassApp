@@ -1,67 +1,172 @@
 .countdownSection {
-      padding: 20px;
-      background-color: #f9f9f9;
-      border-radius: 8px;
-    }
-    
-    .countdownHeader {
-      font-size: 1.5rem;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    
-    .countdownTimer {
-      display: flex;
-      align-items: center;
-      gap: 40px; 
-    }
-    
-    .timeBlock {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    
-    .timeValue {
-      font-size: 2rem; 
-      font-weight: bold;
-    }
-    
-    .timeLabel {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-    }
-    
-    .colon {
-      font-size: 2rem; 
-      margin: 0 10px;
-    }
-    
-    /* Small Size Styles */
-    .small {
-      padding: 10px;
-    }
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  width: 100%;
+}
 
-    .small .countdownSection{
-      background-color: transparent;
-    }
-    
-    .small .countdownTimer {
-      gap: 20px; 
-      flex-direction: column;
-      margin-top: 10px;
-    }
-    
-    .small .timeValue {
-      font-size: 1rem;
-    }
-    
-    .small .timeLabel {
-      font-size: 0.6rem; 
-    }
-    
-    .small .colon {
-      font-size: 1rem; 
-      margin: 0 5px; 
-    }
+.countdownHeader {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.countdownTimer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.timeBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+
+.timeValue {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  line-height: 1;
+}
+
+.timeLabel {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #666;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.colon {
+  font-size: 2rem;
+  margin: 0 10px;
+  color: #333;
+  font-weight: bold;
+}
+
+/* Small Size Styles */
+.small {
+  padding: 10px;
+}
+
+.small .countdownSection {
+  background-color: transparent;
+}
+
+.small .countdownTimer {
+  gap: 20px;
+  flex-direction: column;
+  margin-top: 10px;
+}
+
+.small .timeValue {
+  font-size: 1rem;
+}
+
+.small .timeLabel {
+  font-size: 0.6rem;
+}
+
+.small .colon {
+  font-size: 1rem;
+  margin: 0 5px;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .countdownSection {
+    padding: 16px;
+  }
+
+  .countdownTimer {
+    gap: 20px;
+    justify-content: center;
+  }
+
+  .timeValue {
+    font-size: 1.5rem;
+  }
+
+  .timeLabel {
+    font-size: 0.7rem;
+  }
+
+  .colon {
+    font-size: 1.5rem;
+    margin: 0 8px;
+  }
+
+  .timeBlock {
+    min-width: 50px;
+  }
+}
+
+@media (max-width: 576px) {
+  .countdownSection {
+    padding: 12px;
+  }
+
+  .countdownTimer {
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .timeValue {
+    font-size: 1.2rem;
+  }
+
+  .timeLabel {
+    font-size: 0.6rem;
+  }
+
+  .colon {
+    font-size: 1.2rem;
+    margin: 0 6px;
+  }
+
+  .timeBlock {
+    min-width: 45px;
+  }
+}
+
+@media (max-width: 480px) {
+  .countdownSection {
+    padding: 10px;
+  }
+
+  .countdownTimer {
+    gap: 12px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .timeValue {
+    font-size: 1rem;
+  }
+
+  .timeLabel {
+    font-size: 0.55rem;
+  }
+
+  .colon {
+    font-size: 1rem;
+    margin: 0 4px;
+  }
+
+  .timeBlock {
+    min-width: 40px;
+    flex: 1;
+    max-width: 60px;
+  }
+
+  /* Hide colons on very small screens for better layout */
+  .colon {
+    display: none;
+  }
+}
     
