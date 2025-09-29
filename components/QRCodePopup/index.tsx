@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Modal,
   Container,
@@ -23,6 +23,7 @@ import {
   IconCheck,
   IconAlertCircle,
 } from "@tabler/icons-react";
+import html2canvas from "html2canvas";
 import styles from "./styles.module.css";
 
 interface QRCodeData {
@@ -63,14 +64,9 @@ export default function QRCodePopup({
   const [qrData, setQrData] = useState<QRCodeData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const modalContentRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (show && (attendeeId || (email && eventId))) {
-      fetchQRCode();
-    }
-  }, [show, attendeeId, email, eventId]);
-
-  const fetchQRCode = async () => {
+  const fetchQRCode = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -124,17 +120,71 @@ export default function QRCodePopup({
     } finally {
       setLoading(false);
     }
-  };
+  }, [attendeeId, email, eventId]);
 
-  const downloadQRCode = () => {
-    if (!qrData?.qr_code_base64) return;
+  useEffect(() => {
+    if (show && (attendeeId || (email && eventId))) {
+      fetchQRCode();
+    }
+  }, [show, attendeeId, email, eventId, fetchQRCode]);
 
-    const link = document.createElement("a");
-    link.href = `data:image/png;base64,${qrData.qr_code_base64}`;
-    link.download = `qr-code-${qrData.attendee_id}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const downloadModalAsImage = async () => {
+    if (!modalContentRef.current || !qrData) return;
+
+    try {
+      // Detect if mobile device
+      const isMobile = window.innerWidth <= 768;
+      const containerWidth = isMobile ? "350px" : "600px";
+
+      // Create a temporary container with better styling for the image
+      const tempContainer = document.createElement("div");
+      tempContainer.style.position = "absolute";
+      tempContainer.style.left = "-9999px";
+      tempContainer.style.top = "0";
+      tempContainer.style.width = containerWidth;
+      tempContainer.style.backgroundColor = "white";
+      tempContainer.style.padding = isMobile ? "20px" : "40px";
+      tempContainer.style.borderRadius = "16px";
+      tempContainer.style.fontFamily = "system-ui, -apple-system, sans-serif";
+
+      // Clone the modal content
+      const clonedContent = modalContentRef.current.cloneNode(
+        true
+      ) as HTMLElement;
+
+      // Clean up the cloned content for better image rendering
+      const buttons = clonedContent.querySelectorAll("button");
+      buttons.forEach((button) => {
+        button.style.display = "none";
+      });
+
+      tempContainer.appendChild(clonedContent);
+      document.body.appendChild(tempContainer);
+
+      // Capture the image
+      const canvas = await html2canvas(tempContainer, {
+        backgroundColor: "#ffffff",
+        scale: isMobile ? 1.5 : 2,
+        useCORS: true,
+        allowTaint: true,
+        width: parseInt(containerWidth),
+        height: tempContainer.scrollHeight,
+      });
+
+      // Clean up
+      document.body.removeChild(tempContainer);
+
+      // Download the image
+      const link = document.createElement("a");
+      link.download = `ticket-confirmed-${qrData.attendee_id}.png`;
+      link.href = canvas.toDataURL("image/png");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Error capturing modal:", error);
+      alert("Failed to download ticket. Please try again.");
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -155,7 +205,7 @@ export default function QRCodePopup({
         <Group gap="sm">
           <IconQrcode size={24} />
           <Text fw={600} size="lg">
-            Registration Successful!
+            Ticket confirmed!
           </Text>
         </Group>
       }
@@ -164,8 +214,17 @@ export default function QRCodePopup({
       closeOnClickOutside={false}
       closeOnEscape={false}
       withCloseButton={false}
+      styles={{
+        content: {
+          maxHeight: "90vh",
+          overflow: "auto",
+        },
+        body: {
+          padding: "1rem",
+        },
+      }}
     >
-      <div className={styles.container}>
+      <div className={styles.container} ref={modalContentRef}>
         {loading && (
           <Center style={{ height: "300px" }}>
             <Stack align="center" gap="md">
@@ -193,16 +252,31 @@ export default function QRCodePopup({
 
         {qrData && !loading && (
           <Stack gap="lg">
+            {/* Modal Title for Image Capture */}
+            <div style={{ textAlign: "center", marginBottom: "20px" }}>
+              <Text fw={700} size="xl" style={{ marginBottom: "10px" }}>
+                Ticket confirmed!
+              </Text>
+            </div>
+
             {/* Success Message */}
-            <Alert
-              icon={<IconCheck size="1rem" />}
-              title="Registration Complete!"
-              color="green"
-              variant="light"
-            >
-              You have been successfully registered for the event. Your QR code
-              is ready!
-            </Alert>
+            <div style={{ textAlign: "center", marginBottom: "20px" }}>
+              <Text size="md" style={{ marginBottom: "10px" }}>
+                A confirmation receipt and your e-ticket have been sent to{" "}
+                <Text component="span" c="green" fw={500}>
+                  {qrData?.email || "your email"}
+                </Text>
+              </Text>
+              <Text size="sm" c="dimmed" style={{ marginBottom: "15px" }}>
+                Be sure to check your spam folder if you don&apos;t see it.
+              </Text>
+              <Text size="sm" c="dimmed">
+                If you did not receive your ticket, please email us at{" "}
+                <Text component="span" c="green" fw={500}>
+                  support@kuepass.com
+                </Text>
+              </Text>
+            </div>
 
             {/* QR Code Display */}
             <Card className={styles.qrCard}>
@@ -285,16 +359,35 @@ export default function QRCodePopup({
             </Card>
 
             {/* Action Buttons */}
-            <Group justify="center" gap="md">
+            <Group justify="center" gap="md" style={{ flexWrap: "wrap" }}>
               <Button
                 leftSection={<IconDownload size={16} />}
-                onClick={downloadQRCode}
-                variant="outline"
+                onClick={downloadModalAsImage}
+                style={{
+                  backgroundColor: "#F9C76F",
+                  color: "#000",
+                  borderRadius: "12px",
+                  fontWeight: 500,
+                  minWidth: "120px",
+                }}
+                fullWidth
               >
-                Download QR Code
+                Download
               </Button>
-              <Button onClick={onClose} leftSection={<IconCheck size={16} />}>
-                Done
+              <Button
+                onClick={onClose}
+                variant="outline"
+                style={{
+                  backgroundColor: "#FDF2E0",
+                  color: "#000",
+                  borderColor: "#F9C76F",
+                  borderRadius: "12px",
+                  fontWeight: 500,
+                  minWidth: "120px",
+                }}
+                fullWidth
+              >
+                Return to home
               </Button>
             </Group>
           </Stack>

@@ -8,8 +8,13 @@ import CustomFooter from "@/components/Footer";
 import Navbar from "@/components/navbar";
 import EventSection from "@/components/TrendingEvents";
 import styles from "./page.module.css";
-import { QuickPage } from "@/components/QuickPass";
-import PlatformShowcase from "@/components/platform";
+import PlatformShowcase from "@/components/PlatformShowcase";
+import ServicesSection from "@/components/Services";
+import StatsSection from "@/components/StatsSection";
+import HelpSection from "@/components/HelpSection"; 
+import FAQSection from "@/components/FAQSection";
+
+
 
 export default function KuepassHome() {
   const searchParams = useSearchParams();
@@ -69,14 +74,44 @@ export default function KuepassHome() {
   // Otherwise, show your original home page
   return (
     <Stack>
-      <Stack className={styles.navStark}>
-        <Navbar />
-      </Stack>
-      <Stack style={{ padding: "1rem" }}>
+      <div style={{ position: "relative" }}>
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: 'url("/images/heroImage.png")',
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            zIndex: -2,
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.7)",
+            zIndex: -1,
+          }}
+        />
+        <Stack className={styles.navStark} style={{ marginBottom: "2rem" }}>
+          <Navbar />
+        </Stack>
         <HeroSection />
+      </div>
+      <Stack>
         <PlatformShowcase />
         <EventSection />
-        <QuickPage />
+        <ServicesSection />
+        <StatsSection />
+        <HelpSection />
+        <FAQSection />
       </Stack>
       <CustomFooter />
     </Stack>

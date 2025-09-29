@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button, Flex, Group, Image, Text, Container } from "@mantine/core";
 import Link from "next/link";
+import NextImage from "next/image";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import { authenticatedRequest } from "@/app/services/auth";
@@ -92,13 +93,14 @@ function HeroSection() {
     }, 2500); // toggles every 2.5 seconds
 
     return () => clearInterval(interval);
-  }, []);
+  }, [words.length]);
 
   // Scroll indicator animation
   useEffect(() => {
     const handleScroll = () => {
-      if (scrollRef.current) {
-        scrollRef.current.style.opacity = window.scrollY > 100 ? "0" : "1";
+      const scrollElement = scrollRef.current as unknown as HTMLElement;
+      if (scrollElement) {
+        scrollElement.style.opacity = window.scrollY > 100 ? "0" : "1";
       }
     };
 
@@ -108,118 +110,57 @@ function HeroSection() {
 
   return (
     <HeroContainer>
-      <BackgroundGradient />
       <ShapeDivider />
 
       <ContentContainer>
         <HeroContent>
           <LeftContent>
-            <HeadingContainer>
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeIndex}
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -20, opacity: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <GradientWord>{words[activeIndex]}</GradientWord>
-                </motion.div>
-              </AnimatePresence>{" "}
-              Your <br />
-              <HighlightSpan>Events</HighlightSpan> With Ease
-            </HeadingContainer>
+            <MainHeading>Find Events. Host Events. Effortlessly.</MainHeading>
 
             <SubtitleText>
-              Welcome to your one stop to everything and anything event. Search
-              for event and create your event on one application.
+              Whether you&apos;re planning or attending an event, our platform
+              gives you everything from ticketing to entry control. all in one
+              place
             </SubtitleText>
 
             <ButtonGroup>
-              <Link href="/eventSchedule/exploreEvent">
-                <PrimaryButton>Explore Events</PrimaryButton>
-              </Link>
               <Link href="/eventSchedule/createEventForm">
-                <SecondaryButton>Create Event</SecondaryButton>
+                <PrimaryButton>Host an Event</PrimaryButton>
               </Link>
             </ButtonGroup>
-
-            <StatsContainer>
-              <StatBox>
-                <StatValue>200+</StatValue>
-                <StatLabel>Events Hosted</StatLabel>
-                <StatIndicator />
-              </StatBox>
-
-              <StatDivider />
-
-              <StatBox>
-                <StatValue>50+</StatValue>
-                <StatLabel>Trusted Brands</StatLabel>
-                <StatIndicator />
-              </StatBox>
-            </StatsContainer>
           </LeftContent>
 
-          <RightContent>
-            <ImageContainer>
-              <MainImageWrapper>
-                <Image
-                  src="/images/chrisbrown.png"
-                  alt="Event"
-                  radius="md"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-                <ImageOverlay />
-              </MainImageWrapper>
-
-              <SecondaryImageWrapper>
-                <SecondaryImage
-                  src="/images/happyImage.png"
-                  alt="Happy people"
-                  radius="md"
-                />
-                <ImageOverlay $secondary />
-              </SecondaryImageWrapper>
-
-              <FloatingCard>
-                <Link
-                  href={
-                    latestEvent
-                      ? `/eventSchedule/eventDetails/${latestEvent.id}`
-                      : "#"
-                  }
-                  style={{ textDecoration: "none" }}
-                >
-                  <FloatingCardContent>
-                    <FloatingCardIcon>🎉</FloatingCardIcon>
-                    <FloatingCardText>
-                      {latestEvent ? (
-                        <>
-                          Next Event: {latestEvent.title}
-                          <br />
-                          <small>
-                            {new Date(
-                              latestEvent.start_date
-                            ).toLocaleDateString()}
-                          </small>
-                        </>
-                      ) : (
-                        "Next Event: coming soon!!"
-                      )}
-                    </FloatingCardText>
-                  </FloatingCardContent>
-                </Link>
-              </FloatingCard>
-            </ImageContainer>
-          </RightContent>
+          <EventCard>
+            <EventCardImage>
+              <Image
+                src="/images/banner.png"
+                alt="Event thumbnail"
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            </EventCardImage>
+            <EventDetails>
+              <EventDetail>event name</EventDetail>
+              <EventDetaill>Comedy night laugh off</EventDetaill>
+              <EventDetail>
+                Ticket Type: <br />{" "}
+                <span style={{ color: "#ffffff" }}> Free</span>
+              </EventDetail>
+            </EventDetails>
+            <ViewsTag>
+              View{" "}
+              <span
+                style={{
+                  fontSize: "22px",
+                  marginLeft: "4px",
+                  fontWeight: "600",
+                }}
+              >
+                →
+              </span>
+            </ViewsTag>
+          </EventCard>
         </HeroContent>
       </ContentContainer>
-
-      <ScrollIndicator ref={scrollRef}>
-        <ScrollText>Scroll Down</ScrollText>
-        <ScrollArrow>↓</ScrollArrow>
-      </ScrollIndicator>
     </HeroContainer>
   );
 }
@@ -229,28 +170,38 @@ export default HeroSection;
 // Styled Components
 const HeroContainer = styled.div`
   position: relative;
-  min-height: 100vh;
+  min-height: 115vh;
   width: 100%;
   overflow: hidden;
-  padding: 80px 0;
+  padding: 0;
 
   @media (max-width: 992px) {
-    padding: 60px 0;
+    padding: 0;
   }
 `;
 
-const BackgroundGradient = styled.div`
+const BackgroundImage = styled.div`
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.9) 0%,
-    rgba(240, 255, 244, 0.9) 100%
-  );
-  z-index: -2;
+  /* background-image: url("/images/heroImage.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -3; */
+`;
+
+const ViewsTag = styled.div`
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 20px;
+  font-weight: 500;
 `;
 
 const ShapeDivider = styled.div`
@@ -264,29 +215,35 @@ const ShapeDivider = styled.div`
   z-index: -1;
 `;
 
-const ContentContainer = styled(Container)`
+const ContentContainer = styled.div`
   max-width: 1400px;
   height: 100%;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 80px 20px 0 20px;
+
+  @media (max-width: 992px) {
+    padding: 60px 20px 0 20px;
+  }
 `;
 
 const HeroContent = styled(Flex)`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   height: 100%;
   gap: 40px;
 
   @media (max-width: 992px) {
-    flex-direction: column-reverse;
+    flex-direction: column;
     text-align: center;
   }
 `;
 
 const LeftContent = styled.div`
   flex: 1;
-  max-width: 600px;
+  max-width: 700px;
+  text-align: center;
+  margin: 0 auto;
 
   @media (max-width: 992px) {
     max-width: 100%;
@@ -308,12 +265,13 @@ const RightContent = styled.div`
   }
 `;
 
-const HeadingContainer = styled.h1`
+const MainHeading = styled.h1`
   font-size: 60px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.1;
   margin-bottom: 24px;
-  color: #14142b;
+  color: #ffffff;
+  text-align: center;
 
   @media (max-width: 1200px) {
     font-size: 48px;
@@ -329,7 +287,6 @@ const GradientWord = styled.span`
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-fill-color: transparent;
   display: inline-block;
 `;
 
@@ -354,9 +311,12 @@ const HighlightSpan = styled.span`
 const SubtitleText = styled(Text)`
   font-size: 18px;
   line-height: 1.6;
-  color: #4e4b66;
+  color: #ffffff;
   margin-bottom: 32px;
-  max-width: 550px;
+  max-width: 600px;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
 
   @media (max-width: 992px) {
     margin-left: auto;
@@ -366,6 +326,7 @@ const SubtitleText = styled(Text)`
 
 const ButtonGroup = styled(Group)`
   margin-bottom: 48px;
+  justify-content: center;
 
   @media (max-width: 992px) {
     justify-content: center;
@@ -380,27 +341,27 @@ const ButtonGroup = styled(Group)`
 
 const PrimaryButton = styled(Button)`
   height: 3rem;
-  background: linear-gradient(90deg, #025a3a 0%, #056348 100%);
-  color: white;
+  background: #f5b645;
+  color: #1f2937;
   width: auto;
-  min-width: 180px;
+  min-width: 200px;
   padding: 0 36px;
   border-radius: 46px;
   border: none;
   font-size: 16px;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 10px 20px rgba(2, 90, 58, 0.15);
+  box-shadow: 0 10px 20px rgba(245, 182, 69, 0.15);
 
   &:hover {
     transform: translateY(-3px);
-    box-shadow: 0 15px 25px rgba(2, 90, 58, 0.2);
-    background: linear-gradient(90deg, #025a3a 0%, #037556 100%);
+    box-shadow: 0 15px 25px rgba(245, 182, 69, 0.2);
+    background: #d97706;
   }
 
   &:active {
     transform: translateY(0);
-    box-shadow: 0 5px 15px rgba(2, 90, 58, 0.15);
+    box-shadow: 0 5px 15px rgba(245, 182, 69, 0.15);
   }
 `;
 
@@ -430,53 +391,132 @@ const SecondaryButton = styled(Button)`
   }
 `;
 
-const StatsContainer = styled(Flex)`
+const EventCard = styled.div`
   display: flex;
   align-items: center;
+  justify-content: center;
+  position: absolute;
+  padding: 20px;
+  bottom: 20px;
+  right: 20px;
+  background: #191817;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 3;
+  width: 368px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  }
 
   @media (max-width: 992px) {
-    justify-content: center;
+    position: relative;
+    bottom: auto;
+    right: auto;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
   }
 `;
 
-const StatBox = styled.div`
-  position: relative;
-  padding: 0 20px;
+const EventCardImage = styled.div`
+  width: 120px;
+  height: 114px;
+  border-radius: 12px;
 `;
 
-const StatValue = styled.div`
-  font-size: 48px;
-  font-weight: 800;
-  color: #7465ce;
-  line-height: 1;
-  margin-bottom: 8px;
-
-  @media (max-width: 768px) {
-    font-size: 36px;
-  }
-`;
-
-const StatLabel = styled.div`
-  font-size: 16px;
-  color: #4e4b66;
-  font-weight: 500;
-`;
-
-const StatIndicator = styled.div`
+const EventBanner = styled.div`
   position: absolute;
-  bottom: -8px;
-  left: 20px;
-  width: 40px;
-  height: 3px;
-  background: linear-gradient(90deg, #7465ce 0%, #025a3a 100%);
-  border-radius: 2px;
+  top: 8px;
+  left: 8px;
+  background: #f5b645;
+  color: #000000;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  z-index: 2;
 `;
 
-const StatDivider = styled.div`
-  width: 1px;
-  height: 60px;
-  background-color: rgba(78, 75, 102, 0.2);
-  margin: 0 30px;
+const EventTitle = styled.div`
+  position: absolute;
+  top: 30px;
+  left: 8px;
+  right: 8px;
+  color: #025a3a;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  z-index: 2;
+`;
+
+const FreeTag = styled.div`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #025a3a;
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  z-index: 2;
+`;
+
+const EventDetails = styled.div`
+  padding: 12px 16px;
+  align-items: center;
+  justify-content: center;
+`;
+
+const EventDetail = styled.div`
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ddb159;
+`;
+const EventDetaill = styled.div`
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 16.13px;
+  font-weight: 600;
+  color: #ffffff;
+`;
+
+const EventIcon = styled.span`
+  font-size: 12px;
+`;
+
+const SpeakerSection = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  background: #ffffff;
+  gap: 8px;
+`;
+
+const SpeakerProfile = styled.div`
+  position: relative;
+  width: 40px;
+  height: 40px;
+`;
+
+const SpeakerImage = styled.img`
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #f5b645;
 `;
 
 const ImageContainer = styled.div`
@@ -532,12 +572,6 @@ const SecondaryImageWrapper = styled.div`
   &:hover {
     transform: translateY(-5px);
   }
-`;
-
-const SecondaryImage = styled(Image)`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 `;
 
 interface ImageOverlayProps {
@@ -630,13 +664,13 @@ const ScrollIndicator = styled.div`
 
 const ScrollText = styled.div`
   font-size: 14px;
-  color: #4e4b66;
+  color: #ffffff;
   margin-bottom: 8px;
 `;
 
 const ScrollArrow = styled.div`
   font-size: 20px;
-  color: #025a3a;
+  color: #f5b645;
   animation: bounce 2s infinite;
 
   @keyframes bounce {

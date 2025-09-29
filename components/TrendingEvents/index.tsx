@@ -38,7 +38,7 @@ interface EventSectionProps {
 
 export const EventSection: React.FC<EventSectionProps> = ({
   id = "trending-events-section",
-  title = "Trending & Recent Events",
+  title = "Discover Events That Inspire You",
   initialDisplayLimit = 3,
 }) => {
   const [events, setEvents] = useState<EventCardProps[]>([]);
@@ -120,7 +120,16 @@ export const EventSection: React.FC<EventSectionProps> = ({
       <Container size="xl" px="md">
         <SectionContent>
           <SectionHeader>
-            <SectionTitle>{title}</SectionTitle>
+            <SectionSubtitle>Discover Events</SectionSubtitle>
+            <SectionTitle>
+              Discover Events That <HighlightedText>Inspire</HighlightedText>{" "}
+              You
+            </SectionTitle>
+            <SectionDescription>
+              From local meetups to big festivals, explore events created by
+              passionate hosts and communities. Find what excites you and be
+              part of the experience.
+            </SectionDescription>
           </SectionHeader>
 
           {error && (
@@ -144,11 +153,11 @@ export const EventSection: React.FC<EventSectionProps> = ({
                 ))}
               </EventsGrid>
               {events.length > initialDisplayLimit && !showAll && (
-                <Center mt="xl">
+                <ViewMoreContainer>
                   <ViewMoreButton onClick={() => setShowAll(true)}>
-                    See More Events <ArrowIcon style={{ marginLeft: "8px" }} />
+                    See More Events <ArrowIcon style={{ color: "#F5B645" }} />
                   </ViewMoreButton>
-                </Center>
+                </ViewMoreContainer>
               )}
             </>
           )}
@@ -161,53 +170,117 @@ export const EventSection: React.FC<EventSectionProps> = ({
 // Styled Components
 const SectionWrapper = styled.section`
   padding: 4rem 0;
-  background: linear-gradient(135deg, #f8fffe 0%, #e6f7f1 100%);
+  background: #f5f5f5;
 `;
 
 const SectionContent = styled(Stack)`
-  gap: 2rem;
+  gap: 3rem;
 `;
 
-const SectionHeader = styled(Flex)`
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
+const SectionHeader = styled.div`
+  text-align: center;
+  margin-bottom: 2rem;
+`;
+
+const SectionSubtitle = styled(Text)`
+  font-size: 1rem;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 `;
 
 const SectionTitle = styled(Text)`
-  font-size: 2rem;
-  font-weight: 700;
-  color: #025a3a;
-  margin: 0;
+  font-size: 40px;
+  font-weight: 600;
+  color: #000;
+  margin: 0 0 1rem 0;
+  line-height: 1.2;
+
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
+`;
+
+const HighlightedText = styled.span`
+  background-color: #ffd700;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+`;
+
+const SectionDescription = styled(Text)`
+  font-size: 1.1rem;
+  color: #666;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.5;
 `;
 
 const EventsGrid = styled(Flex)`
-  gap: 1.5rem;
+  gap: 2rem;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
 
   @media (max-width: 768px) {
-    gap: 1rem;
+    gap: 1.5rem;
     justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  @media (max-width: 480px) {
+    gap: 1rem;
+    padding: 0 1rem;
   }
 `;
 
 const EventCardWrapper = styled.div`
-  /* flex: 1 1 300px; */
-  max-width: 400px;
+  flex: 1 1 300px;
+  max-width: 350px;
   min-width: 280px;
+
+  @media (max-width: 768px) {
+    flex: none;
+    width: 100%;
+    max-width: 400px;
+    min-width: auto;
+    display: flex;
+    justify-content: center;
+  }
+
+  @media (max-width: 480px) {
+    max-width: 100%;
+    padding: 0 0.5rem;
+  }
 `;
 
-const ViewMoreButton = styled(MantineButton)`
-  background-color: #056348;
-  color: white;
-  font-weight: 600;
-  &:hover {
-    background-color: #034f3a;
-  }
-` as typeof MantineButton;
+const ViewMoreContainer = styled.div`
+  display: flex;
+  justify-content: flex-end;
+`;
 
-const ArrowIcon = styled(FaArrowRight)``;
+const ViewMoreButton = styled.button`
+  background: none;
+  border: none;
+  color: #000;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #ff6b35;
+  }
+`;
+
+const ArrowIcon = styled(FaArrowRight)`
+  color: #ff6b35;
+  font-size: 0.875rem;
+`;
 
 export default EventSection;
