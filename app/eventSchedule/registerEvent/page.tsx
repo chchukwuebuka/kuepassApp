@@ -4,7 +4,10 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import styles from "./styles.module.css";
 import Modal from "@/components/Modal";
+import QRCodePopup from "@/components/QRCodePopup";
 import { authenticatedRequest } from "@/app/services/auth";
+import "react-phone-number-input/style.css";
+import PhoneInput from "react-phone-number-input";
 import {
   Loader,
   Center,
@@ -22,6 +25,8 @@ import {
   Select,
   Checkbox,
   Radio,
+  Image,
+  Button,
 } from "@mantine/core";
 import {
   IconTicket,
@@ -31,10 +36,8 @@ import {
   IconCalendarEvent,
   IconMapPin,
   IconClock,
+  IconX,
 } from "@tabler/icons-react";
-import ProtectedRoute from "@/app/components/ProtectedRoute";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/style.css";
 import { useLoadingState } from "@/store/loadingHook";
 
 // --- INTERFACES ---
@@ -46,8 +49,10 @@ interface EventData {
   location: string;
   start_date: string;
   end_date: string;
+  banner_url?: string;
   customization?: {
     card_color: string;
+    banner_url?: string;
   };
 }
 
@@ -109,6 +114,8 @@ interface AttendeeRequestPayload {
   user: number;
   email: string;
   name: string;
+  first_name: string;
+  last_name: string;
   phone_number: string;
   payment_status: string;
   responses: Array<{
@@ -143,29 +150,232 @@ export default function RegisterEvent() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Answer[]>([]);
-  const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
+  const [selectedTickets, setSelectedTickets] = useState<{
+    [ticketId: string]: number;
+  }>({});
   const [user, setUser] = useState<UserData | null>(null);
-  const [phoneNumber, setPhoneNumber] = useState<string>("");
-  const [phoneError, setPhoneError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [uiLoading, setUiLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [registeredAttendeeId, setRegisteredAttendeeId] = useState<
+    string | null
+  >(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1); // 1: Tickets, 2: Email Preference, 3: Contact, 4: Payment
+  const [contactForms, setContactForms] = useState<
+    Array<{
+      ticketId: string;
+      ticketName: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      confirmEmail: string;
+      phoneNumber: string;
+      questionAnswers: Answer[];
+    }>
+  >([]);
+  const [sendToDifferentEmails, setSendToDifferentEmails] = useState<
+    boolean | null
+  >(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] =
+    useState<string>("");
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const fees = 50.0;
+  // const fees = 500.0; // Commented out - not needed for now
 
   const calculateTotal = (): number => {
-    if (!selectedTicket) return 0;
-    const ticket = tickets.find((t) => t.id === selectedTicket);
-    if (!ticket) return 0;
-    const ticketPrice = Number.parseFloat(ticket.category_price) || 0;
-    return ticketPrice > 0 ? ticketPrice + fees : 0;
+    let total = 0;
+    let totalTickets = 0;
+
+    Object.entries(selectedTickets).forEach(([ticketId, quantity]) => {
+      if (quantity > 0) {
+        const ticket = tickets.find((t) => t.id === ticketId);
+        if (ticket) {
+          const ticketPrice = Number.parseFloat(ticket.category_price) || 0;
+          total += ticketPrice * quantity;
+          totalTickets += quantity;
+        }
+      }
+    });
+
+    // Add fees multiplied by total number of tickets - commented out
+    // const totalFees = fees * totalTickets;
+    // return total > 0 ? total + totalFees : 0;
+    return total > 0 ? total : 0;
+  };
+
+  const handleQuantityChange = (ticketId: string, newQuantity: number) => {
+    setSelectedTickets((prev) => {
+      if (newQuantity === 0) {
+        const { [ticketId]: removed, ...rest } = prev;
+        return rest;
+      }
+      return {
+        ...prev,
+        [ticketId]: newQuantity,
+      };
+    });
+  };
+
+  const hasSelectedTickets = (): boolean => {
+    return Object.values(selectedTickets).some((quantity) => quantity > 0);
+  };
+
+  const initializeContactForms = () => {
+    const forms: Array<{
+      ticketId: string;
+      ticketName: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      confirmEmail: string;
+      phoneNumber: string;
+      questionAnswers: Answer[];
+    }> = [];
+
+    const totalTickets = Object.values(selectedTickets).reduce(
+      (sum, qty) => sum + qty,
+      0
+    );
+
+    // Always start with one form by default
+    const firstTicket = Object.entries(selectedTickets).find(
+      ([_, quantity]) => quantity > 0
+    );
+    if (firstTicket) {
+      const [ticketId] = firstTicket;
+      const ticket = tickets.find((t) => t.id === ticketId);
+      if (ticket) {
+        forms.push({
+          ticketId,
+          ticketName:
+            totalTickets === 1 ? ticket.name : `${totalTickets} tickets`,
+          firstName: "",
+          lastName: "",
+          email: "",
+          confirmEmail: "",
+          phoneNumber: "",
+          questionAnswers: [],
+        });
+      }
+    }
+
+    setContactForms(forms);
+  };
+
+  const addAdditionalContactForms = () => {
+    const forms: Array<{
+      ticketId: string;
+      ticketName: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      confirmEmail: string;
+      phoneNumber: string;
+      questionAnswers: Answer[];
+    }> = [];
+
+    // Create separate forms for each ticket
+    Object.entries(selectedTickets).forEach(([ticketId, quantity]) => {
+      if (quantity > 0) {
+        const ticket = tickets.find((t) => t.id === ticketId);
+        if (ticket) {
+          for (let i = 0; i < quantity; i++) {
+            forms.push({
+              ticketId,
+              ticketName: ticket.name,
+              firstName: "",
+              lastName: "",
+              email: "",
+              confirmEmail: "",
+              phoneNumber: "",
+              questionAnswers: [],
+            });
+          }
+        }
+      }
+    });
+
+    setContactForms(forms);
+  };
+
+  const updateContactForm = (index: number, field: string, value: string) => {
+    setContactForms((prev) =>
+      prev.map((form, i) => (i === index ? { ...form, [field]: value } : form))
+    );
+  };
+
+  const updateContactFormQuestion = (
+    formIndex: number,
+    questionId: string,
+    value: string | string[]
+  ) => {
+    setContactForms((prev) =>
+      prev.map((form, i) => {
+        if (i === formIndex) {
+          const existingAnswerIndex = form.questionAnswers.findIndex(
+            (a) => a.questionId === questionId
+          );
+          const newAnswer = { questionId, value };
+
+          let updatedAnswers;
+          if (existingAnswerIndex > -1) {
+            updatedAnswers = [...form.questionAnswers];
+            updatedAnswers[existingAnswerIndex] = newAnswer;
+          } else {
+            updatedAnswers = [...form.questionAnswers, newAnswer];
+          }
+
+          return { ...form, questionAnswers: updatedAnswers };
+        }
+        return form;
+      })
+    );
+  };
+
+  const handleContinueToContact = () => {
+    if (!hasSelectedTickets()) {
+      alert("Please select at least one ticket.");
+      return;
+    }
+
+    const totalTickets = Object.values(selectedTickets).reduce(
+      (sum, qty) => sum + qty,
+      0
+    );
+
+    // If more than one ticket, show email preference question first
+    if (totalTickets > 1 && sendToDifferentEmails === null) {
+      setCurrentStep(2); // Show email preference question
+    } else {
+      // Initialize forms and proceed to contact forms
+      initializeContactForms();
+      setCurrentStep(3); // Show contact forms
+    }
+  };
+
+  const handleEmailPreferenceSelection = (preference: boolean) => {
+    setSendToDifferentEmails(preference);
+    if (preference) {
+      // User wants different emails - show separate forms for each ticket
+      addAdditionalContactForms();
+    } else {
+      // User wants same email - ensure we have exactly one form
+      initializeContactForms();
+    }
+    setCurrentStep(3); // Show contact forms
+  };
+
+  const handleGoBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
   };
 
   useEffect(() => {
@@ -190,104 +400,99 @@ export default function RegisterEvent() {
 
     try {
       await withLoading(async () => {
-        const userResponse = await authenticatedRequest<{
-          success: boolean;
-          data: UserData;
-          message?: string;
-        }>(`${API_BASE_URL}/users/me/`, "GET");
-        if (userResponse?.success && userResponse.data) {
-          setUser(userResponse.data);
-          let initialPhoneNumber = (
-            userResponse.data.phone_number || ""
-          ).replace(/\s/g, "");
-          if (
-            initialPhoneNumber &&
-            /^\d+$/.test(initialPhoneNumber) &&
-            initialPhoneNumber.length >= 10 &&
-            !initialPhoneNumber.startsWith("+")
-          ) {
-            initialPhoneNumber = `+${initialPhoneNumber}`;
+        // Fetch event data using regular fetch (no authentication required)
+        const eventResponse = await fetch(
+          `${API_BASE_URL}/events/${eventId}/`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
           }
-          setPhoneNumber(initialPhoneNumber);
-          if (!initialPhoneNumber) {
-            setPhoneError("Phone number is required.");
-          } else if (!/^\+\d{10,15}$/.test(initialPhoneNumber)) {
-            setPhoneError(
-              "Fetched phone number is not in the correct international format (e.g., +2349012345678). Please update it."
-            );
-          } else {
-            setPhoneError(null);
-          }
-        } else {
-          setError(userResponse?.message || "Could not fetch user details.");
+        );
+
+        if (!eventResponse.ok) {
+          throw new Error(`Failed to fetch event: ${eventResponse.status}`);
         }
 
-        const eventResponse = await authenticatedRequest<{
-          success: boolean;
-          data: EventData;
-          message?: string;
-        }>(`${API_BASE_URL}/events/${eventId}/`, "GET");
-        if (eventResponse?.success && eventResponse.data) {
-          setEvent(eventResponse.data);
+        const eventData = await eventResponse.json();
+        const eventResult = eventData?.data || eventData;
+        if (eventResult && eventResult.id) {
+          setEvent(eventResult as EventData);
         } else {
-          setError(eventResponse?.message || "Could not fetch event details.");
+          throw new Error("Event data not found in response.");
         }
 
-        const ticketsResponse = await authenticatedRequest<{
-          success: boolean;
-          data: Ticket[];
-          message?: string;
-        }>(`${API_BASE_URL}/tickets/?event=${eventId}`, "GET");
-        if (ticketsResponse?.success && ticketsResponse.data) {
-          setTickets(ticketsResponse.data || []);
+        // Fetch tickets using regular fetch
+        console.log("Fetching tickets for eventId:", eventId);
+        const ticketsResponse = await fetch(`${API_BASE_URL}/tickets/`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        });
+
+        console.log("Tickets response status:", ticketsResponse.status);
+        if (ticketsResponse.ok) {
+          const ticketsData = await ticketsResponse.json();
+          console.log("Raw tickets data:", ticketsData);
+          const ticketsResult = ticketsData?.data || ticketsData;
+          console.log("Processed tickets result:", ticketsResult);
+
+          // Filter tickets for the current event
+          const eventTickets = Array.isArray(ticketsResult)
+            ? ticketsResult.filter((ticket) => ticket.event === eventId)
+            : [];
+
+          console.log("Filtered tickets for event:", eventTickets);
+          setTickets(eventTickets);
         } else {
+          console.log("Tickets fetch failed:", ticketsResponse.status);
+          const errorText = await ticketsResponse.text();
+          console.log("Error response:", errorText);
           setTickets([]);
         }
 
-        const rawQuestionsResponse = await authenticatedRequest<
-          Question[] | { success: boolean; data: Question[]; message?: string }
-        >(`${API_BASE_URL}/event-forms/${eventId}/questions/`, "GET");
-        let questionsData: Question[] | null = null;
-        if (Array.isArray(rawQuestionsResponse)) {
-          questionsData = rawQuestionsResponse;
-        } else if (rawQuestionsResponse?.success && rawQuestionsResponse.data) {
-          questionsData = rawQuestionsResponse.data;
-        }
+        // Fetch questions using regular fetch
+        const questionsResponse = await fetch(
+          `${API_BASE_URL}/event-forms/${eventId}/questions/`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+          }
+        );
 
-        if (questionsData) {
-          setQuestions(questionsData.sort((a, b) => a.order - b.order));
+        console.log("Questions response status:", questionsResponse.status);
+        if (questionsResponse.ok) {
+          const questionsData = await questionsResponse.json();
+          console.log("Raw questions data:", questionsData);
+
+          // The API returns an array directly
+          if (Array.isArray(questionsData)) {
+            console.log("Setting questions:", questionsData);
+            setQuestions(questionsData.sort((a, b) => a.order - b.order));
+          } else {
+            console.log("Questions data is not an array:", questionsData);
+            setQuestions([]);
+          }
         } else {
+          console.log("Questions fetch failed:", questionsResponse.status);
+          const errorText = await questionsResponse.text();
+          console.log("Error response:", errorText);
           setQuestions([]);
         }
       });
     } catch (err: any) {
-      setError(err.message || "Failed to load event data comprehensively.");
+      setError(err.message || "Failed to load event data.");
     } finally {
       setLoading(false);
     }
   }
-
-  const handlePhoneChange = (valueFromOnChange: string) => {
-    let processedValue = valueFromOnChange.replace(/\s/g, "");
-    if (
-      processedValue &&
-      /^\d+$/.test(processedValue) &&
-      processedValue.length >= 10 &&
-      !processedValue.startsWith("+")
-    ) {
-      processedValue = `+${processedValue}`;
-    }
-    setPhoneNumber(processedValue);
-    if (!processedValue) {
-      setPhoneError("Phone number is required.");
-    } else if (!/^\+\d{10,15}$/.test(processedValue)) {
-      setPhoneError(
-        "Phone number must be in international format with '+' and 10-15 digits (e.g., +2349012345678)."
-      );
-    } else {
-      setPhoneError(null);
-    }
-  };
 
   const updateAnswer = (questionId: string, value: string | string[]) => {
     setAnswers((prevAnswers) => {
@@ -305,131 +510,215 @@ export default function RegisterEvent() {
   };
 
   const handlePurchase = async () => {
-    if (!isMounted || !event || !user) return;
-    if (!selectedTicket) {
-      alert("Please select a ticket.");
-      return;
-    }
-    if (!phoneNumber || phoneError) {
-      alert(phoneError || "Valid phone number required.");
+    if (!isMounted || !event) return;
+
+    if (currentStep === 1) {
+      handleContinueToContact();
       return;
     }
 
-    for (const q of questions.filter((q) => q.required)) {
-      const ans = answers.find((a) => a.questionId === q.id);
-      let isMissing = true;
-      if (ans?.value !== undefined && ans.value !== null) {
-        if (Array.isArray(ans.value)) {
-          isMissing = ans.value.length === 0;
-        } else if (typeof ans.value === "string") {
-          isMissing = ans.value.trim() === "";
+    if (currentStep === 3) {
+      // Validate contact forms and proceed to payment
+      for (let i = 0; i < contactForms.length; i++) {
+        const form = contactForms[i];
+        if (
+          !form.firstName.trim() ||
+          !form.lastName.trim() ||
+          !form.email.trim() ||
+          !form.phoneNumber.trim() ||
+          form.email !== form.confirmEmail
+        ) {
+          alert("Please fill in all required fields correctly.");
+          return;
+        }
+
+        // Validate phone number format (E.164 format)
+        const phoneRegex = /^\+[1-9]\d{1,14}$/;
+        if (!phoneRegex.test(form.phoneNumber.trim())) {
+          alert(
+            `Please enter a valid phone number in international format (e.g., +2348012345678) for Ticket ${
+              i + 1
+            }.`
+          );
+          return;
+        }
+
+        // Validate required questions
+        for (const question of questions) {
+          if (question.required) {
+            const answer = form.questionAnswers.find(
+              (a) => a.questionId === question.id
+            );
+            if (!answer?.value) {
+              alert(`Please answer the required question: ${question.title}`);
+              return;
+            }
+            if (Array.isArray(answer.value) && answer.value.length === 0) {
+              alert(`Please answer the required question: ${question.title}`);
+              return;
+            }
+            if (
+              typeof answer.value === "string" &&
+              answer.value.trim() === ""
+            ) {
+              alert(`Please answer the required question: ${question.title}`);
+              return;
+            }
+          }
         }
       }
-      if (isMissing) {
-        alert(`Please answer the required question: "${q.title}"`);
-        return;
-      }
+
+      // All validations passed, proceed to payment
+      setCurrentStep(4);
+      return;
     }
 
     setPaymentLoading(true);
     setError(null);
     try {
       await withLoading(async () => {
-        // Determine if the ticket is free BEFORE creating the payload
-        const isFree = calculateTotal() <= 0;
+        // Collect data from the FIRST contact form for the payment
+        const primaryForm = contactForms[0];
+        const totalAmount = calculateTotal();
 
-        const attendeePayload: AttendeeRequestPayload = {
-          event: eventId!,
-          ticket: selectedTicket,
-          user: user.id,
-          email: user.email,
-          name: user.username,
-          phone_number: phoneNumber,
-          // Conditionally set the payment status
-          payment_status: isFree ? "completed" : "pending",
-          responses: answers
-            .map((a) => {
-              const questionDetails = questions.find(
-                (q) => q.id === a.questionId
+        if (totalAmount <= 0) {
+          // Handle free ticket registration directly
+          console.log("Processing free ticket registration...");
+
+          // Create attendee records for all contact forms
+          for (let i = 0; i < contactForms.length; i++) {
+            const form = contactForms[i];
+
+            // Prepare attendee payload
+            const attendeePayload: AttendeeRequestPayload = {
+              event: eventId!,
+              ticket: form.ticketId,
+              user: 0, // Guest user
+              email: form.email,
+              name: `${form.firstName} ${form.lastName}`,
+              first_name: form.firstName,
+              last_name: form.lastName,
+              phone_number: form.phoneNumber.trim(),
+              payment_status: "completed", // Free tickets are automatically completed
+              responses: form.questionAnswers.map((answer) => ({
+                question: answer.questionId,
+                text_response:
+                  typeof answer.value === "string" ? answer.value : undefined,
+                selected_options: Array.isArray(answer.value)
+                  ? answer.value.map((val) => ({ option: val }))
+                  : undefined,
+              })),
+            };
+
+            console.log(`Creating attendee ${i + 1}:`, attendeePayload);
+
+            // Create attendee record
+            const attendeeResponse = await fetch(`${API_BASE_URL}/attendees/`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify(attendeePayload),
+            });
+
+            if (!attendeeResponse.ok) {
+              const errorData = await attendeeResponse.json();
+              throw new Error(
+                `Failed to register attendee ${i + 1}: ${
+                  errorData?.message || "Unknown error"
+                }`
               );
-              if (!questionDetails) return null;
+            }
 
-              if (questionDetails.type === "checkbox") {
-                return {
-                  question: a.questionId,
-                  selected_options: Array.isArray(a.value)
-                    ? a.value.map((val) => ({ option: val }))
-                    : [],
-                };
-              } else if (
-                questionDetails.type === "select" ||
-                questionDetails.type === "radio"
-              ) {
-                return {
-                  question: a.questionId,
-                  selected_options:
-                    typeof a.value === "string" && a.value.trim() !== ""
-                      ? [{ option: a.value }]
-                      : [],
-                };
-              } else {
-                return {
-                  question: a.questionId,
-                  text_response: typeof a.value === "string" ? a.value : "",
-                };
-              }
-            })
-            .filter((r) => {
-              if (r === null) return false;
-              const qDetails = questions.find((q) => q.id === r.question);
-              if (qDetails?.required) return true;
-              if (r.text_response && r.text_response.trim() !== "") return true;
-              if (r.selected_options && r.selected_options.length > 0)
-                return true;
-              return false;
-            }) as AttendeeRequestPayload["responses"],
-        };
+            const attendeeData = await attendeeResponse.json();
+            console.log(
+              `Attendee ${i + 1} created successfully:`,
+              attendeeData
+            );
 
-        const creationResult = await authenticatedRequest<
-          AttendeeData | { message: string; errors?: any }
-        >(`${API_BASE_URL}/attendees/`, "POST", attendeePayload);
+            // Store the first attendee ID for QR code generation
+            if (i === 0) {
+              setRegisteredAttendeeId(
+                attendeeData.id || attendeeData.attendee_id
+              );
+            }
+          }
 
-        if (!(creationResult && (creationResult as AttendeeData).id)) {
-          let errMsg =
-            (creationResult as { message?: string })?.message ||
-            "Could not create attendee record.";
-          if ((creationResult as { errors?: any })?.errors)
-            errMsg += ` Details: ${JSON.stringify(
-              (creationResult as { errors: any }).errors
-            )}`;
-          alert(errMsg);
-          console.error("Attendee creation failed:", creationResult);
+          // Show QR code modal instead of success modal
+          setShowQRModal(true);
           setPaymentLoading(false);
           return;
         }
 
-        const attendee = creationResult as AttendeeData;
-
-        // Simplified free ticket logic
-        if (isFree) {
-          setShowModal(true);
+        // For paid tickets, validate payment method selection
+        if (currentStep === 4 && !selectedPaymentMethod) {
+          alert("Please select a payment method.");
           setPaymentLoading(false);
           return;
         }
 
-        // This part will now only run for paid tickets
-        const paymentInitPayload = {
-          attendee_id: attendee.id,
-          amount: calculateTotal().toString(),
-        };
-        const initResponse =
-          await authenticatedRequest<PaymentInitializationApiResponse>(
-            `${API_BASE_URL}/payment/initialize/`,
-            "POST",
-            paymentInitPayload
+        // Handle Opay selection
+        if (selectedPaymentMethod === "opay") {
+          alert(
+            "Opay payment service is not available at the moment. Please select 'Pay with Card or Bank' to continue."
           );
+          setPaymentLoading(false);
+          return;
+        }
+
+        // Prepare metadata with all attendee information
+        const metadata = {
+          event_id: eventId,
+          contact_forms: contactForms.map((form, index) => ({
+            ticket_id: form.ticketId,
+            first_name: form.firstName,
+            last_name: form.lastName,
+            email: form.email,
+            phone_number: form.phoneNumber.trim(),
+            question_answers: form.questionAnswers,
+          })),
+          selected_tickets: selectedTickets,
+          send_to_different_emails: sendToDifferentEmails,
+        };
+
+        const paymentInitPayload = {
+          email: primaryForm.email,
+          amount: totalAmount.toString(),
+          metadata: metadata,
+        };
+
+        console.log(
+          "Sending payment initialization with metadata:",
+          paymentInitPayload
+        );
+
+        // Call the payment initialization endpoint
+        const paymentResponse = await fetch(
+          `${API_BASE_URL}/payment/initialize/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify(paymentInitPayload),
+          }
+        );
+
+        if (!paymentResponse.ok) {
+          const errorData = await paymentResponse.json();
+          alert(errorData?.message || "Failed to initialize payment.");
+          console.error("Payment initialization failed:", errorData);
+          setPaymentLoading(false);
+          return;
+        }
+
+        const initResponse = await paymentResponse.json();
+        console.log("Payment initialization response:", initResponse);
 
         if (initResponse?.success && initResponse.data?.authorization_url) {
+          // Redirect user to Paystack
           window.location.href = initResponse.data.authorization_url;
         } else {
           alert(initResponse?.message || "Failed to initialize payment.");
@@ -450,6 +739,16 @@ export default function RegisterEvent() {
       setTimeout(
         () => router.push(`/eventSchedule/eventDetails/${eventId}`),
         2000
+      );
+  };
+
+  const closeQRModal = () => {
+    setShowQRModal(false);
+    setRegisteredAttendeeId(null);
+    if (eventId)
+      setTimeout(
+        () => router.push(`/eventSchedule/eventDetails/${eventId}`),
+        1000
       );
   };
   const getTicketTypeIcon = (type: string) => {
@@ -498,7 +797,7 @@ export default function RegisterEvent() {
       </Center>
     );
   }
-  if (error || !event || !user) {
+  if (error || !event) {
     return (
       <Center
         style={{
@@ -509,7 +808,7 @@ export default function RegisterEvent() {
         }}
       >
         <Text color="red" size="lg" mb="md">
-          {error || "Event/User data could not be loaded."}
+          {error || "Event data could not be loaded."}
         </Text>
         <Text>Please refresh.</Text>
       </Center>
@@ -530,465 +829,881 @@ export default function RegisterEvent() {
   ];
   const intervalIndex = Math.floor(Date.now() / (30 * 60 * 1000));
 
+  // Get banner URL from event data
+  let bannerUrl = "/images/placeholder.jpg";
+  if (event) {
+    if (
+      event.customization?.banner_url &&
+      event.customization.banner_url.trim() !== ""
+    ) {
+      bannerUrl = event.customization.banner_url;
+    } else if (event.banner_url && event.banner_url.trim() !== "") {
+      bannerUrl = event.banner_url;
+    }
+  }
+
   return (
-    <ProtectedRoute>
-      <div className={styles.pageWrapper}>
-        <Container size="xl" className={styles.container}>
-          {/* Header Section ... */}
-          <div className={styles.header}>
-            <div className={styles.headerContent}>
-              <Badge
-                size="lg"
-                variant="gradient"
-                gradient={{ from: "#025a3a", to: "#059669" }}
-                className={styles.headerBadge}
-              >
-                Event Registration
-              </Badge>
-              <h1 className={styles.title}>Register For {event.title}</h1>
-              <p className={styles.subtitle}>
-                You are just one step away from securing your spot!
-              </p>
-              <div className={styles.eventInfoGrid}>
-                <Card className={styles.eventInfoCard}>
-                  <Group gap="xs">
-                    <ThemeIcon size="sm" variant="light" color="green">
-                      <IconCalendarEvent size={16} />
-                    </ThemeIcon>
-                    <Text size="sm" c="dimmed">
-                      Event Date
-                    </Text>
-                  </Group>
-                  <Text fw={500} size="sm">
-                    {new Date(event.start_date).toLocaleDateString()}
-                  </Text>
-                </Card>
-                <Card className={styles.eventInfoCard}>
-                  <Group gap="xs">
-                    <ThemeIcon size="sm" variant="light" color="green">
-                      <IconMapPin size={16} />
-                    </ThemeIcon>
-                    <Text size="sm" c="dimmed">
-                      Location
-                    </Text>
-                  </Group>
-                  <Text fw={500} size="sm">
-                    {event.location}
-                  </Text>
-                </Card>
-                <Card className={styles.eventInfoCard}>
-                  <Group gap="xs">
-                    <ThemeIcon size="sm" variant="light" color="green">
-                      <IconClock size={16} />
-                    </ThemeIcon>
-                    <Text size="sm" c="dimmed">
-                      Duration
-                    </Text>
-                  </Group>
-                  <Text fw={500} size="sm">
-                    {new Date(event.start_date).toLocaleDateString()} -{" "}
-                    {new Date(event.end_date).toLocaleDateString()}
-                  </Text>
-                </Card>
+    <div className={styles.pageWrapper}>
+      <Container size="xl" className={styles.container}>
+        {/* Main Content */}
+        <div className={styles.mainContent}>
+          {/* Left Column - Ticket Selection */}
+          <div className={styles.leftColumn}>
+            <div className={styles.header}>
+              <div className={styles.headerContent}>
+                <h1 className={styles.title}>{event.title}</h1>
+                <Text className={styles.eventDate}>
+                  {new Date(event.start_date).toLocaleDateString()},{" "}
+                  {new Date(event.start_date).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}{" "}
+                  WAT
+                </Text>
+              </div>
+              <Button
+                variant="subtle"
+                leftSection={<IconX size={26} />}
+                onClick={() => router.back()}
+                className={styles.backButton}
+              ></Button>
+            </div>
+
+            <div className={styles.progressSection}>
+              <div className={styles.progressHeader}>
+                <div className={styles.progressSteps}>
+                  <div
+                    className={`${styles.progressStep} ${
+                      currentStep >= 1 ? styles.active : ""
+                    }`}
+                  >
+                    <div className={styles.stepCircle}>
+                      {currentStep > 1 ? "✓" : "1"}
+                    </div>
+                    <Text size="sm">Tickets</Text>
+                  </div>
+                  <div className={styles.progressLine}></div>
+                  <div
+                    className={`${styles.progressStep} ${
+                      currentStep >= 2 ? styles.active : ""
+                    }`}
+                  >
+                    <div className={styles.stepCircle}>
+                      {currentStep > 2 ? "✓" : "2"}
+                    </div>
+                    <Text size="sm">Contact</Text>
+                  </div>
+                  <div className={styles.progressLine}></div>
+                  <div
+                    className={`${styles.progressStep} ${
+                      currentStep >= 3 ? styles.active : ""
+                    }`}
+                  >
+                    <div className={styles.stepCircle}>
+                      {currentStep > 3 ? "✓" : "3"}
+                    </div>
+                    <Text size="sm">Payment</Text>
+                  </div>
+                </div>
+                {currentStep > 1 && (
+                  <Button
+                    variant="subtle"
+                    leftSection={<IconX size={16} />}
+                    onClick={handleGoBack}
+                    className={styles.backButton}
+                    size="sm"
+                  >
+                    Back
+                  </Button>
+                )}
               </div>
             </div>
-          </div>
-
-          <div className={styles.formContainer}>
-            {/* Main Form Section ... */}
-            <div className={styles.formSection}>
-              <Paper className={styles.formBox}>
-                <div className={styles.sectionHeader}>
-                  <Group gap="sm">
-                    <ThemeIcon variant="light" color="green">
-                      <IconUser size={20} />
-                    </ThemeIcon>
-                    <Text fw={600} size="lg">
-                      Personal Information
-                    </Text>
-                  </Group>
-                </div>
-                <div className={styles.questionItem}>
-                  <label
-                    htmlFor="phone-number-input"
-                    className={styles.questionLabel}
-                  >
-                    Phone Number <span className={styles.required}>*</span>
-                  </label>
-                  <PhoneInput
-                    country={"ng"}
-                    value={phoneNumber}
-                    onChange={handlePhoneChange}
-                    inputClass={styles.phoneInput}
-                    buttonClass={styles.phoneButton}
-                    containerClass={styles.phoneContainer}
-                    inputProps={{
-                      id: "phone-number-input",
-                      required: true,
-                      disabled: paymentLoading,
-                    }}
-                    specialLabel=""
-                    enableSearch={true}
-                    searchPlaceholder="Search country..."
-                    searchNotFound="No country found"
-                    preferredCountries={["ng", "us", "gb", "ca"]}
-                  />
-                  {phoneError && (
-                    <Text size="xs" color="red" mt={5}>
-                      {phoneError}
-                    </Text>
-                  )}
-                </div>
-                <Divider my="xl" />
-                <div className={styles.sectionHeader}>
-                  <Group gap="sm">
-                    <ThemeIcon variant="light" color="green">
-                      <IconTicket size={20} />
-                    </ThemeIcon>
-                    <Text fw={600} size="lg">
-                      Select Your Ticket
-                    </Text>
-                  </Group>
+            {/* Ticket Selection Section */}
+            {currentStep === 1 && (
+              <div className={styles.ticketSection}>
+                <Text fw={600} size="lg" className={styles.sectionTitle}>
+                  Select Your Ticket
+                </Text>
+                <Text size="sm" color="dimmed" mb="md">
+                  Select the number of tickets you want to purchase
+                </Text>
+                {/* Debug info */}
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: "#666",
+                    marginBottom: "10px",
+                  }}
+                >
+                  Debug: tickets.length = {tickets.length}, loading ={" "}
+                  {loading.toString()}
                 </div>
                 {tickets.length === 0 && !loading && (
                   <div className={styles.noSelection}>
-                    No tickets available.
+                    <Text c="red" fw={500}>
+                      No tickets available for this event.
+                    </Text>
+                    <Text size="sm" c="dimmed" mt="xs">
+                      Please contact the event organizer or try refreshing the
+                      page.
+                    </Text>
                   </div>
                 )}
-                <div className={styles.ticketsGrid}>
-                  {tickets.map((ticket, idx) => {
-                    const actualCardColor =
-                      idx === 0 && event.customization?.card_color
-                        ? event.customization.card_color
-                        : fallbackColors[
-                            (intervalIndex + idx) % fallbackColors.length
-                          ];
-                    return (
-                      <div
-                        key={ticket.id}
-                        className={`${styles.ticketCard} ${
-                          selectedTicket === ticket.id ? styles.selected : ""
-                        }`}
-                        style={{ background: actualCardColor }}
-                        onClick={() =>
-                          setSelectedTicket((cur) =>
-                            cur === ticket.id ? null : ticket.id
-                          )
-                        }
-                      >
-                        <div className={styles.ticketHeader}>
-                          <div className={styles.ticketIcon}>
-                            {getTicketTypeIcon(ticket.category_name)}
+                <div className={styles.ticketsList}>
+                  {tickets.length > 0 ? (
+                    tickets.map((ticket, idx) => {
+                      const badgeColor =
+                        idx === 0 && event.customization?.card_color
+                          ? event.customization.card_color
+                          : fallbackColors[
+                              (intervalIndex + idx) % fallbackColors.length
+                            ];
+                      return (
+                        <div
+                          key={ticket.id}
+                          className={`${styles.ticketCard} ${
+                            selectedTickets[ticket.id] > 0
+                              ? styles.selected
+                              : ""
+                          }`}
+                        >
+                          <div className={styles.ticketInfo}>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                gap: "0.75rem",
+                                marginBottom: "0.5rem",
+                                borderBottom: "1px solid #e0e0e0",
+                                paddingBottom: "0.5rem",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  gap: "0.75rem",
+                                }}
+                              >
+                                <Text
+                                  fw={600}
+                                  size="lg"
+                                  className={styles.ticketName}
+                                >
+                                  {ticket.name}
+                                </Text>
+                                <div
+                                  className={styles.ticketBadge}
+                                  style={{
+                                    backgroundColor: badgeColor,
+                                    color: "#ffffff",
+                                  }}
+                                >
+                                  {ticket.category_name}
+                                </div>
+                              </div>
+                              <div className={styles.quantitySelector}>
+                                <select
+                                  className={styles.quantityDropdown}
+                                  value={selectedTickets[ticket.id] || 0}
+                                  onChange={(e) =>
+                                    handleQuantityChange(
+                                      ticket.id,
+                                      parseInt(e.target.value)
+                                    )
+                                  }
+                                >
+                                  {[0, 1, 2, 3, 4, 5, 6].map((num) => (
+                                    <option key={num} value={num}>
+                                      {num}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                            <div className={styles.ticketDescription}>
+                              <div className={styles.ticketDescriptionItem}>
+                                <Text
+                                  size="sm"
+                                  className={styles.ticketDescription}
+                                >
+                                  Admits one
+                                </Text>
+                                <Text
+                                  size="sm"
+                                  className={styles.ticketDescription}
+                                >
+                                  This tickets includes
+                                </Text>
+                              </div>
+                              <div className={styles.ticketPrice}>
+                                <Text
+                                  fw={700}
+                                  size="xl"
+                                  className={styles.priceAmount}
+                                >
+                                  ₦
+                                  {Number.parseFloat(
+                                    ticket.category_price
+                                  ).toFixed(2)}
+                                </Text>
+                              </div>
+                            </div>
                           </div>
-                          {getTicketTypeBadge(ticket.category_name)}
                         </div>
-                        <div className={styles.ticketContent}>
-                          <Text
-                            fw={600}
-                            size="lg"
-                            className={styles.ticketName}
-                          >
-                            {ticket.name}
-                          </Text>
-                          <Text size="sm" className={styles.eventName}>
-                            {event.title}
-                          </Text>
-                        </div>
-                        <div className={styles.ticketPrice}>
-                          <Text size="xs" className={styles.ticketPrice}>
-                            PRICE
-                          </Text>
-                          <Text
-                            fw={700}
-                            size="xl"
-                            className={styles.priceAmount}
-                          >
-                            ₦
-                            {Number.parseFloat(ticket.category_price).toFixed(
-                              2
-                            )}
-                          </Text>
-                        </div>
-                        <div className={styles.ticketPerforations}></div>
-                        {selectedTicket === ticket.id && (
-                          <div className={styles.selectedIndicator}>
-                            <IconTicket size={16} />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  ) : (
+                    <div
+                      style={{
+                        padding: "1rem",
+                        textAlign: "center",
+                        color: "#666",
+                      }}
+                    >
+                      No tickets to display
+                    </div>
+                  )}
                 </div>
-              </Paper>
+              </div>
+            )}
+
+            {/* Email Preference Section */}
+            {currentStep === 2 && (
+              <div className={styles.contactSection}>
+                <Text fw={600} size="lg" className={styles.sectionTitle}>
+                  Email Delivery
+                </Text>
+                <div className={styles.contactForm}>
+                  <Text fw={500} size="md" mb="md" color="dark">
+                    Send ticket to a different email address?
+                  </Text>
+                  <Radio.Group
+                    value={
+                      sendToDifferentEmails === null
+                        ? ""
+                        : sendToDifferentEmails.toString()
+                    }
+                    onChange={(value) => {
+                      if (value === "true") {
+                        handleEmailPreferenceSelection(true);
+                      } else if (value === "false") {
+                        handleEmailPreferenceSelection(false);
+                      }
+                    }}
+                  >
+                    <Stack gap="sm">
+                      <Radio value="true" label="Yes" />
+                      <Radio value="false" label="No" />
+                    </Stack>
+                  </Radio.Group>
+                </div>
+              </div>
+            )}
+
+            {/* Contact Information Section */}
+            {currentStep === 3 && contactForms.length > 0 && (
+              <div className={styles.contactSection}>
+                <Text fw={600} size="lg" className={styles.sectionTitle}>
+                  Contact information
+                </Text>
+                <div className={styles.contactForm}>
+                  {contactForms.map((form, index) => (
+                    <div key={index} className={styles.contactFormItem}>
+                      {contactForms.length > 1 && (
+                        <Text fw={500} size="md" mb="md" color="dark">
+                          Ticket {index + 1}: {form.ticketName}
+                        </Text>
+                      )}
+                      <Stack gap="md">
+                        <div className={styles.formRow}>
+                          <div className={styles.inputGroup}>
+                            <label className={styles.label}>
+                              First Name{" "}
+                              <span className={styles.required}>*</span>
+                            </label>
+                            <input
+                              style={{ marginBottom: "1rem" }}
+                              type="text"
+                              placeholder="Enter first name"
+                              value={form.firstName}
+                              onChange={(e) =>
+                                updateContactForm(
+                                  index,
+                                  "firstName",
+                                  e.currentTarget.value
+                                )
+                              }
+                              required
+                              className={styles.input}
+                            />
+                          </div>
+                          <div className={styles.inputGroup}>
+                            <label className={styles.label}>
+                              Last Name{" "}
+                              <span className={styles.required}>*</span>
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Enter last name"
+                              value={form.lastName}
+                              onChange={(e) =>
+                                updateContactForm(
+                                  index,
+                                  "lastName",
+                                  e.currentTarget.value
+                                )
+                              }
+                              required
+                              className={styles.input}
+                            />
+                          </div>
+                        </div>
+                        <div className={styles.inputGroup}>
+                          <label className={styles.label}>
+                            Email address{" "}
+                            <span className={styles.required}>*</span>
+                          </label>
+                          <input
+                            type="email"
+                            placeholder="Enter email address"
+                            value={form.email}
+                            onChange={(e) =>
+                              updateContactForm(
+                                index,
+                                "email",
+                                e.currentTarget.value
+                              )
+                            }
+                            required
+                            className={styles.input}
+                          />
+                        </div>
+                        <div className={styles.inputGroup}>
+                          <label className={styles.label}>
+                            Confirm email address{" "}
+                            <span className={styles.required}>*</span>
+                          </label>
+                          <input
+                            type="email"
+                            placeholder="Confirm email address"
+                            value={form.confirmEmail}
+                            onChange={(e) =>
+                              updateContactForm(
+                                index,
+                                "confirmEmail",
+                                e.currentTarget.value
+                              )
+                            }
+                            required
+                            className={styles.input}
+                          />
+                        </div>
+                        <div>
+                          <Text size="sm" fw={500} mb="xs">
+                            Phone number <span style={{ color: "red" }}>*</span>
+                          </Text>
+                          <PhoneInput
+                            international
+                            defaultCountry="NG"
+                            placeholder="Enter phone number"
+                            value={form.phoneNumber}
+                            onChange={(value) =>
+                              updateContactForm(
+                                index,
+                                "phoneNumber",
+                                value || ""
+                              )
+                            }
+                            className={styles.phoneInput}
+                          />
+                        </div>
+                      </Stack>
+
+                      {/* Vendor Questions Section */}
+                      {questions.length > 0 ? (
+                        <div className={styles.questionsSection}>
+                          <Text fw={500} size="md" mb="md" color="dark">
+                            Additional Information ({questions.length}{" "}
+                            questions)
+                          </Text>
+                          <Stack gap="md">
+                            {questions.map((q) => {
+                              const currentAnswer = form.questionAnswers.find(
+                                (a) => a.questionId === q.id
+                              );
+                              const hasValidOptions =
+                                q.options &&
+                                Array.isArray(q.options) &&
+                                q.options.length > 0;
+
+                              return (
+                                <div key={q.id} className={styles.questionItem}>
+                                  <label
+                                    htmlFor={`question-${q.id}-${index}`}
+                                    className={styles.questionLabel}
+                                  >
+                                    {q.title || "Unnamed Question"}
+                                    {q.required && (
+                                      <span className={styles.required}>*</span>
+                                    )}
+                                  </label>
+
+                                  {q.type === "textarea" ? (
+                                    <Textarea
+                                      id={`question-${q.id}-${index}`}
+                                      placeholder={
+                                        q.placeholder || "Your answer here..."
+                                      }
+                                      value={
+                                        (currentAnswer?.value as string) || ""
+                                      }
+                                      onChange={(e) =>
+                                        updateContactFormQuestion(
+                                          index,
+                                          q.id,
+                                          e.currentTarget.value
+                                        )
+                                      }
+                                      required={q.required}
+                                      className={styles.questionInput}
+                                      minRows={3}
+                                      disabled={paymentLoading}
+                                    />
+                                  ) : q.type === "text" ||
+                                    q.type === "email" ? (
+                                    <input
+                                      id={`question-${q.id}-${index}`}
+                                      type={
+                                        q.type === "email" ? "email" : "text"
+                                      }
+                                      placeholder={
+                                        q.placeholder || "Your answer here..."
+                                      }
+                                      value={
+                                        (currentAnswer?.value as string) || ""
+                                      }
+                                      onChange={(e) =>
+                                        updateContactFormQuestion(
+                                          index,
+                                          q.id,
+                                          e.currentTarget.value
+                                        )
+                                      }
+                                      required={q.required}
+                                      className={styles.input}
+                                      disabled={paymentLoading}
+                                    />
+                                  ) : q.type === "select" ? (
+                                    hasValidOptions ? (
+                                      <Select
+                                        id={`question-${q.id}-${index}`}
+                                        placeholder={
+                                          q.placeholder || "Select an option..."
+                                        }
+                                        data={q.options!.map((opt) => ({
+                                          value: opt.id,
+                                          label: opt.text,
+                                        }))}
+                                        value={
+                                          (currentAnswer?.value as string) ||
+                                          null
+                                        }
+                                        onChange={(selectedValue) =>
+                                          updateContactFormQuestion(
+                                            index,
+                                            q.id,
+                                            selectedValue || ""
+                                          )
+                                        }
+                                        required={q.required}
+                                        disabled={paymentLoading}
+                                        className={styles.input}
+                                        searchable
+                                        nothingFoundMessage="No options"
+                                      />
+                                    ) : (
+                                      <Text c="dimmed" size="sm" mt="xs">
+                                        No options available for this question.
+                                      </Text>
+                                    )
+                                  ) : q.type === "checkbox" ? (
+                                    hasValidOptions ? (
+                                      <Checkbox.Group
+                                        id={`question-${q.id}-${index}`}
+                                        value={
+                                          (currentAnswer?.value as string[]) ||
+                                          []
+                                        }
+                                        onChange={(selectedValues) =>
+                                          updateContactFormQuestion(
+                                            index,
+                                            q.id,
+                                            selectedValues
+                                          )
+                                        }
+                                        required={q.required}
+                                        className={styles.customCheckbox}
+                                      >
+                                        <Stack mt="xs" gap="xs">
+                                          {q.options!.map((opt) => (
+                                            <Checkbox
+                                              key={opt.id}
+                                              value={opt.id}
+                                              label={opt.text}
+                                              disabled={paymentLoading}
+                                              className={styles.customCheckbox}
+                                              styles={{
+                                                input: {
+                                                  backgroundColor: "#15302B",
+                                                  borderColor: "#15302B",
+                                                  "&:checked": {
+                                                    backgroundColor:
+                                                      "#15302B !important",
+                                                    borderColor:
+                                                      "#15302B !important",
+                                                  },
+                                                  "&[data-checked]": {
+                                                    backgroundColor:
+                                                      "#15302B !important",
+                                                    borderColor:
+                                                      "#15302B !important",
+                                                  },
+                                                },
+                                                icon: {
+                                                  color: "white !important",
+                                                },
+                                              }}
+                                            />
+                                          ))}
+                                        </Stack>
+                                      </Checkbox.Group>
+                                    ) : (
+                                      <Text c="dimmed" size="sm" mt="xs">
+                                        No options available for this question.
+                                      </Text>
+                                    )
+                                  ) : q.type === "radio" ? (
+                                    hasValidOptions ? (
+                                      <Radio.Group
+                                        id={`question-${q.id}-${index}`}
+                                        value={
+                                          (currentAnswer?.value as string) || ""
+                                        }
+                                        onChange={(selectedValue) =>
+                                          updateContactFormQuestion(
+                                            index,
+                                            q.id,
+                                            selectedValue
+                                          )
+                                        }
+                                        required={q.required}
+                                      >
+                                        <Stack mt="xs" gap="xs">
+                                          {q.options!.map((opt) => (
+                                            <Radio
+                                              key={opt.id}
+                                              value={opt.id}
+                                              label={opt.text}
+                                              disabled={paymentLoading}
+                                            />
+                                          ))}
+                                        </Stack>
+                                      </Radio.Group>
+                                    ) : (
+                                      <Text c="dimmed" size="sm" mt="xs">
+                                        No options available for this question.
+                                      </Text>
+                                    )
+                                  ) : (
+                                    <input
+                                      placeholder={`Unsupported question type: ${q.type}`}
+                                      disabled
+                                      className={styles.input}
+                                    />
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </Stack>
+                        </div>
+                      ) : (
+                        <div className={styles.questionsSection}>
+                          <Text fw={500} size="md" mb="md" color="dimmed">
+                            No additional questions for this event
+                          </Text>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Payment Section */}
+            {currentStep === 4 && (
+              <div className={styles.contactSection}>
+                <Text fw={600} size="lg" className={styles.sectionTitle}>
+                  {calculateTotal() <= 0
+                    ? "Registration Confirmation"
+                    : "Payment"}
+                </Text>
+                <div className={styles.contactForm}>
+                  <Stack gap="md">
+                    {calculateTotal() <= 0 ? (
+                      <Paper p="md" bg="green.0" radius="md">
+                        <Text size="md" c="green.8" fw={500}>
+                          🎉 This is a free event! You can register without any
+                          payment.
+                        </Text>
+                        <Text size="sm" c="green.7" mt="xs">
+                          Click &quot;Register for free&quot; to complete your
+                          registration.
+                        </Text>
+                      </Paper>
+                    ) : (
+                      <>
+                        <Radio.Group
+                          value={selectedPaymentMethod}
+                          onChange={setSelectedPaymentMethod}
+                        >
+                          <Stack gap="sm">
+                            <Radio
+                              value="card"
+                              label={
+                                <div>
+                                  <Text fw={500}>Pay with Card or Bank</Text>
+                                  <Text size="sm" c="dimmed">
+                                    Pay with Mastercard, Visa, Verve or with
+                                    bank transfer
+                                  </Text>
+                                </div>
+                              }
+                            />
+                            <Radio value="opay" label="Pay with Opay" />
+                          </Stack>
+                        </Radio.Group>
+
+                        {/* Legal Disclaimer */}
+                        <Paper p="md" bg="green.0" radius="md">
+                          <Text size="sm" c="green.8">
+                            By completing your purchase, you agree to the
+                            Kuepass{" "}
+                            <Text
+                              component="span"
+                              c="green.9"
+                              fw={500}
+                              style={{ cursor: "pointer" }}
+                            >
+                              Terms and Conditions
+                            </Text>
+                            ,{" "}
+                            <Text
+                              component="span"
+                              c="green.9"
+                              fw={500}
+                              style={{ cursor: "pointer" }}
+                            >
+                              Refund Policy
+                            </Text>
+                            , and{" "}
+                            <Text
+                              component="span"
+                              c="green.9"
+                              fw={500}
+                              style={{ cursor: "pointer" }}
+                            >
+                              Privacy Policy
+                            </Text>
+                            .
+                          </Text>
+                        </Paper>
+                      </>
+                    )}
+                  </Stack>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Image and Summary */}
+          <div className={styles.rightColumn}>
+            {/* Event Image */}
+            <div className={styles.imageSection}>
+              <Image
+                src={bannerUrl}
+                alt={event.title}
+                className={styles.eventImage}
+                width={600}
+                height={300}
+              />
             </div>
 
+            {/* Summary Section */}
             <div className={styles.summarySection}>
-              <Paper className={styles.summaryBox}>
-                {questions.length > 0 && selectedTicket && (
+              <Text fw={600} size="lg" className={styles.summaryTitle}>
+                Summary
+              </Text>
+              <div className={styles.summaryContent}>
+                {hasSelectedTickets() ? (
                   <>
-                    <Divider my="lg" />
-                    <div className={styles.questionsSection}>
-                      <div className={styles.sectionHeader}>
-                        <Text fw={600} size="lg">
-                          Additional Information
-                        </Text>
-                        <Text size="sm" c="dimmed">
-                          Please provide the following details
-                        </Text>
-                      </div>
-                      <Stack gap="md">
-                        {questions.map((q) => {
-                          const currentAnswer = answers.find(
-                            (a) => a.questionId === q.id
-                          );
-                          // Helper variable to check if options are valid and present
-                          const hasValidOptions =
-                            q.options &&
-                            Array.isArray(q.options) &&
-                            q.options.length > 0;
+                    {Object.entries(selectedTickets).map(
+                      ([ticketId, quantity]) => {
+                        if (quantity <= 0) return null;
+                        const ticket = tickets.find((t) => t.id === ticketId);
+                        if (!ticket) return null;
 
-                          return (
-                            <div key={q.id} className={styles.questionItem}>
-                              <label
-                                htmlFor={`question-${q.id}`}
-                                className={styles.questionLabel}
-                              >
-                                {q.title || "Unnamed Question"}
-                                {q.required && (
-                                  <span className={styles.required}>*</span>
-                                )}
-                              </label>
+                        const ticketPrice =
+                          Number.parseFloat(ticket.category_price) || 0;
+                        const subtotal = ticketPrice * quantity;
 
-                              {q.type === "textarea" ? (
-                                <Textarea
-                                  id={`question-${q.id}`}
-                                  placeholder={
-                                    q.placeholder || "Your answer here..."
-                                  }
-                                  value={(currentAnswer?.value as string) || ""}
-                                  onChange={(e) =>
-                                    updateAnswer(q.id, e.currentTarget.value)
-                                  }
-                                  required={q.required}
-                                  className={styles.questionInput}
-                                  minRows={3}
-                                  disabled={paymentLoading}
-                                />
-                              ) : q.type === "text" || q.type === "email" ? (
-                                <TextInput
-                                  id={`question-${q.id}`}
-                                  type={q.type === "email" ? "email" : "text"}
-                                  placeholder={
-                                    q.placeholder || "Your answer here..."
-                                  }
-                                  value={(currentAnswer?.value as string) || ""}
-                                  onChange={(e) =>
-                                    updateAnswer(q.id, e.currentTarget.value)
-                                  }
-                                  required={q.required}
-                                  className={styles.input}
-                                  disabled={paymentLoading}
-                                />
-                              ) : q.type === "select" ? (
-                                hasValidOptions ? (
-                                  <Select
-                                    id={`question-${q.id}`}
-                                    placeholder={
-                                      q.placeholder || "Select an option..."
-                                    }
-                                    data={q.options!.map((opt) => ({
-                                      value: opt.id,
-                                      label: opt.text,
-                                    }))}
-                                    value={
-                                      (currentAnswer?.value as string) || null
-                                    }
-                                    onChange={(selectedValue) =>
-                                      updateAnswer(q.id, selectedValue || "")
-                                    }
-                                    required={q.required}
-                                    disabled={paymentLoading}
-                                    className={styles.input}
-                                    searchable
-                                    nothingFoundMessage="No options"
-                                  />
-                                ) : (
-                                  <Text c="dimmed" size="sm" mt="xs">
-                                    No options available for this question.
-                                  </Text>
-                                )
-                              ) : q.type === "checkbox" ? (
-                                hasValidOptions ? (
-                                  <Checkbox.Group
-                                    id={`question-${q.id}`}
-                                    value={
-                                      (currentAnswer?.value as string[]) || []
-                                    }
-                                    onChange={(selectedValues) =>
-                                      updateAnswer(q.id, selectedValues)
-                                    }
-                                    required={q.required} // Native required might not work as expected, use form validation
-                                  >
-                                    <Stack mt="xs" gap="xs">
-                                      {q.options!.map((opt) => (
-                                        <Checkbox
-                                          key={opt.id}
-                                          value={opt.id}
-                                          label={opt.text}
-                                          disabled={paymentLoading}
-                                        />
-                                      ))}
-                                    </Stack>
-                                  </Checkbox.Group>
-                                ) : (
-                                  <Text c="dimmed" size="sm" mt="xs">
-                                    No options available for this question.
-                                  </Text>
-                                )
-                              ) : q.type === "radio" ? (
-                                hasValidOptions ? (
-                                  <Radio.Group
-                                    id={`question-${q.id}`}
-                                    value={
-                                      (currentAnswer?.value as string) || ""
-                                    }
-                                    onChange={(selectedValue) =>
-                                      updateAnswer(q.id, selectedValue)
-                                    }
-                                    required={q.required} // Native required might not work as expected
-                                  >
-                                    <Stack mt="xs" gap="xs">
-                                      {q.options!.map((opt) => (
-                                        <Radio
-                                          key={opt.id}
-                                          value={opt.id}
-                                          label={opt.text}
-                                          disabled={paymentLoading}
-                                        />
-                                      ))}
-                                    </Stack>
-                                  </Radio.Group>
-                                ) : (
-                                  <Text c="dimmed" size="sm" mt="xs">
-                                    No options available for this question.
-                                  </Text>
-                                )
-                              ) : (
-                                <TextInput
-                                  placeholder={`Unsupported question type: ${q.type}`}
-                                  disabled
-                                  className={styles.input}
-                                />
-                              )}
-                            </div>
-                          );
-                        })}
-                      </Stack>
-                    </div>
-                  </>
-                )}
-                {/* Order Summary ... unchanged ... */}
-                <div className={styles.summaryHeader}>
-                  <Group gap="sm">
-                    <ThemeIcon variant="light" color="green">
-                      <IconCreditCard size={20} />
-                    </ThemeIcon>
-                    <Text fw={600} size="lg">
-                      Order Summary
-                    </Text>
-                  </Group>
-                </div>
-                <div className={styles.summaryContent}>
-                  {selectedTicket &&
-                  tickets.find((t) => t.id === selectedTicket) ? (
-                    <>
+                        return (
+                          <div key={ticketId} className={styles.summaryItem}>
+                            <Text size="sm">
+                              {quantity} x {ticket.name.toLowerCase()}
+                            </Text>
+                            <Text fw={500}>₦{subtotal.toFixed(2)}</Text>
+                          </div>
+                        );
+                      }
+                    )}
+                    {/* Fees section commented out - not needed for now
+                    {calculateTotal() > 0 && (
                       <div className={styles.summaryItem}>
                         <Text size="sm">
-                          Ticket (
-                          {tickets.find((t) => t.id === selectedTicket)?.name})
+                          Fees (
+                          {Object.values(selectedTickets).reduce(
+                            (sum, qty) => sum + qty,
+                            0
+                          )}{" "}
+                          tickets × ₦{fees.toFixed(2)})
                         </Text>
                         <Text fw={500}>
                           ₦
-                          {Math.max(
-                            0,
-                            calculateTotal() -
-                              (Number.parseFloat(
-                                tickets.find((t) => t.id === selectedTicket)
-                                  ?.category_price || "0"
-                              ) > 0
-                                ? fees
-                                : 0)
+                          {(
+                            Object.values(selectedTickets).reduce(
+                              (sum, qty) => sum + qty,
+                              0
+                            ) * fees
                           ).toFixed(2)}
                         </Text>
                       </div>
-                      {Number.parseFloat(
-                        tickets.find((t) => t.id === selectedTicket)
-                          ?.category_price || "0"
-                      ) > 0 && (
-                        <div className={styles.summaryItem}>
-                          <Text size="sm">Service Fee</Text>
-                          <Text fw={500}>₦{fees.toFixed(2)}</Text>
-                        </div>
-                      )}
-                      <Divider my="md" />
-                      <div className={styles.summaryTotal}>
-                        <Text fw={700} size="lg">
-                          Total Amount
-                        </Text>
-                        <Text fw={700} size="xl" className={styles.totalPrice}>
-                          ₦{calculateTotal().toFixed(2)}
-                        </Text>
-                      </div>
-                    </>
-                  ) : (
-                    <div className={styles.noSelection}>
-                      Please select a ticket.
-                    </div>
-                  )}
-                </div>
-                <button
-                  className={styles.purchaseBtn}
-                  disabled={
-                    !selectedTicket ||
-                    !!phoneError ||
-                    paymentLoading ||
-                    !event ||
-                    !user ||
-                    !isMounted
-                  }
-                  onClick={handlePurchase}
-                >
-                  {paymentLoading ? (
-                    <Group justify="center" gap="xs">
-                      <Loader size="sm" color="white" />
-                      <Text>Processing...</Text>
-                    </Group>
-                  ) : (
-                    <Group justify="center" gap="xs">
-                      <IconCreditCard size={20} />
-                      <Text>
-                        {calculateTotal() > 0
-                          ? "Proceed to Payment"
-                          : "Register for Free"}
+                    )}
+                    */}
+                    <Divider my="md" />
+                    <div className={styles.summaryTotal}>
+                      <Text fw={700} size="lg">
+                        Total
                       </Text>
-                    </Group>
-                  )}
-                </button>
-              </Paper>
+                      <Text fw={700} size="xl" className={styles.totalPrice}>
+                        ₦{calculateTotal().toFixed(2)}
+                      </Text>
+                    </div>
+                  </>
+                ) : (
+                  <div className={styles.noSelection}>
+                    Please select a ticket.
+                  </div>
+                )}
+              </div>
+              <Button
+                className={styles.continueButton}
+                disabled={
+                  (currentStep === 1 && !hasSelectedTickets()) ||
+                  (currentStep === 2 && sendToDifferentEmails === null) ||
+                  (currentStep === 3 &&
+                    contactForms.some((form) => {
+                      // Check basic fields
+                      if (
+                        !form.firstName.trim() ||
+                        !form.lastName.trim() ||
+                        !form.email.trim() ||
+                        !form.phoneNumber.trim() ||
+                        form.email !== form.confirmEmail
+                      ) {
+                        return true;
+                      }
+
+                      // Check phone number format (E.164 format)
+                      const phoneRegex = /^\+[1-9]\d{1,14}$/;
+                      if (!phoneRegex.test(form.phoneNumber.trim())) {
+                        return true;
+                      }
+                      // Check required questions
+                      return questions
+                        .filter((q) => q.required)
+                        .some((q) => {
+                          const ans = form.questionAnswers.find(
+                            (a) => a.questionId === q.id
+                          );
+                          if (!ans?.value) return true;
+                          if (Array.isArray(ans.value))
+                            return ans.value.length === 0;
+                          if (typeof ans.value === "string")
+                            return ans.value.trim() === "";
+                          return true;
+                        });
+                    })) ||
+                  (currentStep === 4 &&
+                    calculateTotal() > 0 &&
+                    !selectedPaymentMethod) ||
+                  paymentLoading ||
+                  !event ||
+                  !isMounted
+                }
+                onClick={
+                  currentStep === 1
+                    ? handleContinueToContact
+                    : currentStep === 2
+                    ? () => {} // No action needed for step 2, handled by radio selection
+                    : handlePurchase
+                }
+                fullWidth
+              >
+                {paymentLoading ? (
+                  <Group justify="center" gap="xs">
+                    <Loader size="sm" color="white" />
+                    <Text>Processing...</Text>
+                  </Group>
+                ) : currentStep === 1 ? (
+                  "Continue"
+                ) : currentStep === 2 ? (
+                  "Select an option above"
+                ) : currentStep === 3 ? (
+                  calculateTotal() <= 0 ? (
+                    "Register for free"
+                  ) : (
+                    "Continue"
+                  )
+                ) : currentStep === 4 ? (
+                  selectedPaymentMethod ? (
+                    calculateTotal() <= 0 ? (
+                      "Register for free"
+                    ) : (
+                      "Order ticket"
+                    )
+                  ) : calculateTotal() <= 0 ? (
+                    "Register for free"
+                  ) : (
+                    "Select a payment method"
+                  )
+                ) : calculateTotal() <= 0 ? (
+                  "Register for free"
+                ) : (
+                  "Order ticket"
+                )}
+              </Button>
             </div>
           </div>
-        </Container>
-        <Modal
-          show={showModal}
-          onClose={closeModal}
-          title="Registration Successful!"
-          message={
-            event
-              ? `Registered for "${event.title}". Confirmation sent. Redirecting...`
-              : "Registration successful! Redirecting..."
-          }
-        />
-      </div>
-    </ProtectedRoute>
+        </div>
+      </Container>
+      <QRCodePopup
+        show={showQRModal}
+        onClose={closeQRModal}
+        attendeeId={registeredAttendeeId || undefined}
+        email={contactForms[0]?.email || undefined}
+        eventId={event?.id || undefined}
+      />
+    </div>
   );
 }

@@ -848,8 +848,8 @@ export const CustomQuestionsStep: React.FC<CustomQuestionsStepProps> = ({
       setIsComplete(true);
       onCompletionChange(true); // Notify parent
     } else {
-        setIsComplete(false); // Ensure it's marked as incomplete if validation fails
-        onCompletionChange(false);
+      setIsComplete(false); // Ensure it's marked as incomplete if validation fails
+      onCompletionChange(false);
     }
   };
 

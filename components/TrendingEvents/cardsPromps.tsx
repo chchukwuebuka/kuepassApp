@@ -1,8 +1,9 @@
 "use client";
 import React from "react";
 import styled from "styled-components";
-import { Card, Image, Text, Badge, Group } from "@mantine/core";
+import { Card, Text, Badge, Group } from "@mantine/core";
 import Link from "next/link";
+import Image from "next/image";
 import { FaCalendar, FaUser, FaMapMarkerAlt, FaClock } from "react-icons/fa";
 
 export interface EventCardProps {
@@ -16,19 +17,19 @@ export interface EventCardProps {
   category?: string;
   isFeatured?: boolean;
   eventId?: string;
+  price?: string;
 }
 
 const EventCard: React.FC<EventCardProps> = ({
   image,
   title,
   date,
-  time,
   organizer,
-  location,
   address,
   category,
   isFeatured = false,
   eventId = "event-details",
+  price,
 }) => {
   // Compute the href for "View Details" button
   const detailsHref =
@@ -40,45 +41,51 @@ const EventCard: React.FC<EventCardProps> = ({
     <CardWrapper>
       <CardContent>
         <ImageWrapper>
-          {category && <CategoryBadge>{category}</CategoryBadge>}
+          {category && (
+            <CategoryBadge category={category}>{category}</CategoryBadge>
+          )}
           {isFeatured && <FeaturedBadge>Featured</FeaturedBadge>}
-          <CardImage src={image} alt={title} radius="md" height={180} />
+          <CardImage src={image} alt={title} />
         </ImageWrapper>
 
         <CardBody>
-          <CardTitle>{title}</CardTitle>
+          <div
+            style={{ borderBottom: "1px solid #e9ecef", paddingBottom: "10px" }}
+          >
+            <CardTitle>{title}</CardTitle>
+          </div>
 
           <MetaInfo>
             <MetaItem>
-              <CalendarIcon />
+              <Image
+                src="/images/location.png"
+                alt="Location"
+                width="30"
+                height="30"
+                style={{ width: "30px", height: "30x", objectFit: "contain" }}
+              />
+              <MetaText>{address}</MetaText>
+            </MetaItem>
+
+            <MetaItem>
+              <Image
+                src="/images/Edate.png"
+                alt="Location"
+                width="30"
+                height="30"
+                style={{ width: "30px", height: "30x", objectFit: "contain" }}
+              />
               <MetaText>{date}</MetaText>
             </MetaItem>
 
             <MetaItem>
-              <TimeIcon />
-              <MetaText>{time}</MetaText>
-            </MetaItem>
-
-            <MetaItem>
-              <OrganizerIcon />
-              <MetaText>{organizer}</MetaText>
-            </MetaItem>
-
-            <MetaItem>
-              <LocationIcon />
-              <MetaText>{location}</MetaText>
-            </MetaItem>
-
-            <MetaItem>
-              <LocationIcon />
-              <MetaText>{address}</MetaText>
+              <MetaText>
+                {price && price !== "0" && price !== "free"
+                  ? `N${price}`
+                  : "Free"}
+              </MetaText>
             </MetaItem>
           </MetaInfo>
-
-          {/* Updated StyledLink to use the same conditional logic */}
-          <StyledLink href={detailsHref}>
-            <ViewDetailsButton>View Details</ViewDetailsButton>
-          </StyledLink>
         </CardBody>
       </CardContent>
     </CardWrapper>
@@ -88,11 +95,12 @@ const EventCard: React.FC<EventCardProps> = ({
 // Styled Components
 
 const CardWrapper = styled.div`
-  width: 300px;
+  width: 100%;
+  max-width: 350px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 
   &:hover {
-    transform: translateY(-6px);
+    transform: translateY(-4px);
   }
 
   @media (max-width: 576px) {
@@ -101,19 +109,23 @@ const CardWrapper = styled.div`
   }
 `;
 
+// const CardHeader = styled.div`
+//   border-bottom: 1px solid #e9ecef;
+// `;
+
 const CardContent = styled(Card)`
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
   overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  border: none;
   background-color: white;
 
   &:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 `;
 
@@ -122,20 +134,34 @@ const ImageWrapper = styled.div`
   overflow: hidden;
 `;
 
-const CardImage = styled(Image)`
-  transition: transform 0.5s ease;
+const CardImage = styled.img`
+  transition: transform 0.3s ease;
   width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 16px 16px 0 0;
 
   ${CardContent}:hover & {
-    transform: scale(1.05);
+    transform: scale(1.02);
   }
 `;
 
-const CategoryBadge = styled(Badge)`
+const CategoryBadge = styled(Badge)<{ category?: string }>`
   position: absolute;
   top: 12px;
   left: 12px;
-  background-color: rgba(5, 99, 72, 0.85);
+  background-color: ${(props) => {
+    switch (props.category?.toLowerCase()) {
+      case "upcoming":
+        return "#F5B645";
+      case "ongoing":
+        return "#15302B";
+      case "past":
+        return "red";
+      default:
+        return "red";
+    }
+  }};
   color: white;
   font-size: 0.75rem;
   z-index: 2;
@@ -154,7 +180,7 @@ const FeaturedBadge = styled(Badge)`
 `;
 
 const CardBody = styled.div`
-  padding: 1.25rem;
+  padding: 0.5rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -162,15 +188,15 @@ const CardBody = styled.div`
 `;
 
 const CardTitle = styled(Text)`
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #000;
-  line-height: 1.4;
-  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #151515;
+  line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  margin: 0;
 `;
 
 const MetaInfo = styled.div`
@@ -186,36 +212,36 @@ const MetaItem = styled(Group)`
 `;
 
 const MetaText = styled(Text)`
-  font-size: 0.875rem;
-  color: #555;
+  font-size: 0.9rem;
+  color: #666;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 `;
 
 const CalendarIcon = styled(FaCalendar)`
-  color: #056348;
+  color: #999;
   width: 14px;
   height: 14px;
   min-width: 14px;
 `;
 
 const TimeIcon = styled(FaClock)`
-  color: #056348;
+  color: #999;
   width: 14px;
   height: 14px;
   min-width: 14px;
 `;
 
 const OrganizerIcon = styled(FaUser)`
-  color: #056348;
+  color: #999;
   width: 14px;
   height: 14px;
   min-width: 14px;
 `;
 
 const LocationIcon = styled(FaMapMarkerAlt)`
-  color: #056348;
+  color: #999;
   width: 14px;
   height: 14px;
   min-width: 14px;
@@ -227,9 +253,9 @@ const StyledLink = styled(Link)`
 `;
 
 const ViewDetailsButton = styled.button`
-  background-color: #ebf8ff;
-  color: rgb(164, 150, 255);
-  border: none;
+  background-color: #f8f9fa;
+  color: #000;
+  border: 1px solid #e9ecef;
   border-radius: 8px;
   width: 100%;
   padding: 0.75rem 1rem;
@@ -240,9 +266,10 @@ const ViewDetailsButton = styled.button`
   margin-top: 0.5rem;
 
   &:hover {
-    background-color: #056348;
+    background-color: #ff6b35;
     color: #fff;
-    transform: translateY(-2px);
+    border-color: #ff6b35;
+    transform: translateY(-1px);
   }
 
   &:active {

@@ -10,11 +10,25 @@ import {
   Center,
   Loader,
   Paper,
+  TextInput,
+  Select,
+  Group,
+  Box,
+  ActionIcon,
 } from "@mantine/core";
+import {
+  IconSearch,
+  IconMapPin,
+  IconCalendar,
+  IconTag,
+  IconCurrencyDollar,
+  IconChevronDown,
+} from "@tabler/icons-react";
 import Navbar from "@/components/navbar";
 import styles from "./styles.module.css";
-import { getAuthToken, isAuthenticated } from "@/app/services/auth"; // Remove authenticatedRequest import
+import { getAuthToken, isAuthenticated } from "@/app/services/auth";
 import { useLoadingState } from "@/store/loadingHook";
+import Footer from "@/components/Footer";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -25,7 +39,8 @@ interface EventData {
   title: string;
   start_date: string;
   end_date: string;
-  location: string;
+  address?: string;
+  location?: string;
   creator?: { id: number; username: string };
   customization?: {
     banner_url: string;
@@ -59,19 +74,26 @@ interface MappedEvent {
   category: "Upcoming" | "Ongoing" | "Ended";
   image: string;
   date: string;
-  location: string;
+  address: string;
   name: string;
   ownership: "Created" | "Registered" | "None";
+  price?: string;
 }
 
 type CategoryFilter = "All" | MappedEvent["category"];
 type OwnershipFilter = "All" | "Created" | "Registered";
 
 const ExploreEvents: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [locationFilter, setLocationFilter] = useState("Enugu Nigeria");
+  const [dateFilter, setDateFilter] = useState("All dates");
+  const [eventTypeFilter, setEventTypeFilter] = useState("All Events");
+  const [priceFilter, setPriceFilter] = useState("Price");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("All");
   const [ownershipFilter, setOwnershipFilter] =
     useState<OwnershipFilter>("All");
   const [events, setEvents] = useState<MappedEvent[]>([]);
+  const [featuredEvent, setFeaturedEvent] = useState<MappedEvent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { withLoading } = useLoadingState();
@@ -122,10 +144,10 @@ const ExploreEvents: React.FC = () => {
             throw new Error(`Failed to fetch events: ${eventsRes.status}`);
           }
           const eventsJson = await eventsRes.json();
-          const allEvents: EventData[] = eventsJson.data || []; // adjust if your API returns differently
+          const allEvents: EventData[] = eventsJson.data || [];
 
           // 2) Check if we have a token; if so, fetch /users/me and /attendees/
-          const token = getAuthToken(); // returns string|null
+          const token = getAuthToken();
           let userId: number | null = null;
           let allAttendees: AttendeeData[] = [];
 
@@ -150,8 +172,6 @@ const ExploreEvents: React.FC = () => {
               allAttendees = attendeeJson.data || [];
             }
           }
-
-          // If not logged in, userId === null and allAttendees remains empty
 
           // Build a set of event IDs the user has registered for
           const registeredEventIds = new Set<string>();
@@ -179,13 +199,22 @@ const ExploreEvents: React.FC = () => {
               category: getEventCategory(e.start_date, e.end_date),
               image: bannerImage,
               date: formatDateRange(e.start_date, e.end_date),
-              location: e.location,
+              address: e.address || e.location || "Location not specified",
               name: e.creator?.username || "Unknown Host",
               ownership: ownershipStatus,
+              price: e.price || "Free",
             };
           });
 
           setEvents(mappedEvents);
+
+          // Set the first upcoming event as featured
+          const upcomingEvent = mappedEvents.find(
+            (e) => e.category === "Upcoming"
+          );
+          if (upcomingEvent) {
+            setFeaturedEvent(upcomingEvent);
+          }
         });
       } catch (err: any) {
         console.error("[ExploreEvents] Error:", err);
@@ -202,24 +231,43 @@ const ExploreEvents: React.FC = () => {
   }, []);
 
   const filteredEvents = events.filter((ev) => {
+    const searchMatch =
+      ev.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ev.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ev.address.toLowerCase().includes(searchQuery.toLowerCase());
     const categoryMatch =
       categoryFilter === "All" || ev.category === categoryFilter;
     const ownershipMatch =
       ownershipFilter === "All" || ev.ownership === ownershipFilter;
-    return categoryMatch && ownershipMatch;
+    return searchMatch && categoryMatch && ownershipMatch;
   });
 
-  const FilterBtn: React.FC<{
+  const FilterDropdown: React.FC<{
+    icon: React.ReactNode;
     label: string;
-    active: boolean;
-    onClick: () => void;
-  }> = ({ label, active, onClick }) => (
-    <button
-      className={`${styles.avatarButton} ${active ? styles.activeButton : ""}`}
-      onClick={onClick}
-    >
-      {label}
-    </button>
+    value: string;
+    onChange: (value: string) => void;
+    options: { value: string; label: string }[];
+  }> = ({ icon, label, value, onChange, options }) => (
+    <Select
+      leftSection={icon}
+      rightSection={<IconChevronDown size={16} />}
+      placeholder={label}
+      value={value}
+      onChange={(val) => onChange(val || "")}
+      data={options}
+      styles={{
+        input: {
+          borderRadius: "12px",
+          border: "1px solid #e5e7eb",
+          backgroundColor: "#f9fafb",
+          fontSize: "14px",
+          fontWeight: 500,
+          color: "#374151",
+          minWidth: "140px",
+        },
+      }}
+    />
   );
 
   const EventCardDisplay: React.FC<{ eventData: MappedEvent }> = ({
@@ -233,40 +281,46 @@ const ExploreEvents: React.FC = () => {
     }, [eventData.image]);
 
     return (
-      <div className={styles.card}>
-        <div className={styles.imageContainer}>
+      <div className={styles.eventCard}>
+        <div className={styles.eventImageContainer}>
           <Image
             src={imageSrc}
             alt={eventData.title}
-            className={styles.cardImage}
+            className={styles.eventImage}
             onError={handleImageError}
             fallbackSrc="/images/placeholder.jpg"
           />
-          <div className={styles.categoryBadge}>
-            <span
-              className={`${styles.cardSubtitles} ${
-                styles[`category${eventData.category}`]
-              }`}
-            >
-              {eventData.category}
-            </span>
-          </div>
         </div>
-        <div className={styles.cardDetails}>
-          <h3 className={styles.cardTitle}>{eventData.title}</h3>
-          <p className={styles.cardSubtitle}>
-            <span className={styles.iconText}>📅</span> {eventData.date}
-          </p>
-          <p className={styles.cardSubtitle}>
-            <span className={styles.iconText}>📍</span> {eventData.location}
-          </p>
-          <div className={styles.cardFooter}>
-            <p className={styles.cardHost}>
-              <span className={styles.hostLabel}>Host:</span> {eventData.name}
-            </p>
-            {eventData.ownership !== "None" && (
-              <div className={styles.ownershipBadge}>{eventData.ownership}</div>
-            )}
+        <div className={styles.eventContent}>
+          <div style={{ borderBottom: "1px solid #E6E6E6" }}>
+            <h3 className={styles.eventTitle}>{eventData.title}</h3>
+          </div>
+          <div className={styles.eventDetails}>
+            <div className={styles.eventDetail}>
+              <Image
+                src="/images/location.png"
+                alt="Location"
+                width="30"
+                height="30"
+                style={{ width: "30px", height: "30x", objectFit: "contain" }}
+              />
+              <span>{eventData.address}</span>
+            </div>
+            <div className={styles.eventDetail}>
+              <Image
+                src="/images/Edate.png"
+                alt="Location"
+                width="30"
+                height="30"
+                style={{ width: "30px", height: "30x", objectFit: "contain" }}
+              />
+              <span>{eventData.date}</span>
+            </div>
+          </div>
+          <div className={styles.eventType}>
+            {eventData.price === "Free" || eventData.price === "0.00000000"
+              ? "Free"
+              : "Paid"}
           </div>
         </div>
       </div>
@@ -274,40 +328,131 @@ const ExploreEvents: React.FC = () => {
   };
 
   return (
-    <div className={styles.container}>
-      <Stack className={styles.navStark}>
+    <div className={styles.pageContainer}>
+      <Stack className={styles.navStack}>
         <Navbar />
       </Stack>
 
+      {/* Search Bar */}
+      <div className={styles.searchSection}>
+        <TextInput
+          leftSection={<IconSearch size={20} color="#F5B645" />}
+          placeholder="Search events, artists, teams, and more"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className={styles.searchInput}
+          styles={{
+            input: {
+              borderRadius: "40px",
+              color: "#A1A1A1",
+              border: "1px solid #a9a9a9",
+              backgroundColor: "white",
+              fontSize: "16px",
+              height: "48px",
+              width: "100%",
+            },
+          }}
+        />
+      </div>
+
+      {/* Title Page Banner */}
+      <div className={styles.titlePageContainer}>Featured Events</div>
       <div className={styles.titlePage}>
-        <h2 className={styles.title}>Explore Events</h2>
+        <h2 className={styles.title}>
+          FLAVOUR N&apos;BANIA: The <br /> Awakening{" "}
+        </h2>
+        <p className={styles.titlePageSubtitle}>SEP 25 </p>
       </div>
 
-      <div className={styles.filterContainer}>
-        <div className={styles.filters}>
-          {(["All", "Created", "Registered"] as OwnershipFilter[]).map((f) => (
-            <FilterBtn
-              key={f}
-              label={f}
-              active={ownershipFilter === f}
-              onClick={() => onOwnershipChange(f)}
-            />
-          ))}
-        </div>
-        <div className={styles.filters}>
-          {(["All", "Upcoming", "Ongoing", "Ended"] as CategoryFilter[]).map(
-            (f) => (
-              <FilterBtn
-                key={f}
-                label={f}
-                active={categoryFilter === f}
-                onClick={() => setCategoryFilter(f)}
+      {/* Featured Events Section */}
+      {featuredEvent && (
+        <div className={styles.featuredSection}>
+          <h2 className={styles.featuredTitle}>Featured Events</h2>
+          <div className={styles.featuredBanner}>
+            <div className={styles.featuredImageContainer}>
+              <Image
+                src={featuredEvent.image}
+                alt={featuredEvent.title}
+                className={styles.featuredImage}
+                fallbackSrc="/images/placeholder.jpg"
               />
-            )
-          )}
+              <div className={styles.featuredOverlay} />
+            </div>
+            <div className={styles.featuredContent}>
+              <h3 className={styles.featuredEventTitle}>
+                {featuredEvent.title}
+              </h3>
+              <p className={styles.featuredEventDate}>SEP 25</p>
+              <Button className={styles.getTicketsBtn}>
+                Get your tickets now
+              </Button>
+            </div>
+            <div className={styles.paginationDots}>
+              <div
+                className={styles.dot}
+                style={{ backgroundColor: "#f97316" }}
+              />
+              <div className={styles.dot} />
+              <div className={styles.dot} />
+              <div className={styles.dot} />
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* Filter Section */}
+      <div className={styles.filtersSection}>
+        <Group gap="md" justify="center" wrap="wrap">
+          <FilterDropdown
+            icon={<IconMapPin size={16} color="#6b7280" />}
+            label="Enugu Nigeria"
+            value={locationFilter}
+            onChange={setLocationFilter}
+            options={[
+              { value: "Enugu Nigeria", label: "Enugu Nigeria" },
+              { value: "Lagos Nigeria", label: "Lagos Nigeria" },
+              { value: "Abuja Nigeria", label: "Abuja Nigeria" },
+            ]}
+          />
+          <FilterDropdown
+            icon={<IconCalendar size={16} color="#6b7280" />}
+            label="All dates"
+            value={dateFilter}
+            onChange={setDateFilter}
+            options={[
+              { value: "All dates", label: "All dates" },
+              { value: "Today", label: "Today" },
+              { value: "This week", label: "This week" },
+              { value: "This month", label: "This month" },
+            ]}
+          />
+          <FilterDropdown
+            icon={<IconTag size={16} color="#6b7280" />}
+            label="All Events"
+            value={eventTypeFilter}
+            onChange={setEventTypeFilter}
+            options={[
+              { value: "All Events", label: "All Events" },
+              { value: "Concert", label: "Concert" },
+              { value: "Conference", label: "Conference" },
+              { value: "Workshop", label: "Workshop" },
+            ]}
+          />
+          <FilterDropdown
+            icon={<IconCurrencyDollar size={16} color="#6b7280" />}
+            label="Price"
+            value={priceFilter}
+            onChange={setPriceFilter}
+            options={[
+              { value: "Price", label: "Price" },
+              { value: "Free", label: "Free" },
+              { value: "Paid", label: "Paid" },
+            ]}
+          />
+        </Group>
       </div>
 
+      {/* Events Grid */}
       {isLoading ? (
         <Center style={{ padding: "2rem" }}>
           <Loader />
@@ -336,14 +481,14 @@ const ExploreEvents: React.FC = () => {
           style={{ textAlign: "center" }}
         >
           <Text>
-            No events match your filters or you haven't created/registered for
-            any events yet.
+            No events match your filters or you haven&apos;t created/registered
+            for any events yet.
           </Text>
         </Paper>
       ) : (
-        <div className={styles.cardsGrid}>
+        <div className={styles.eventsGrid}>
           {filteredEvents.map((eventItem) => (
-            <div key={eventItem.id} className={styles.cardWrapper}>
+            <div key={eventItem.id} className={styles.eventCardWrapper}>
               <Link
                 href={
                   eventItem.ownership === "Created"
@@ -358,6 +503,7 @@ const ExploreEvents: React.FC = () => {
           ))}
         </div>
       )}
+      <Footer />
     </div>
   );
 };

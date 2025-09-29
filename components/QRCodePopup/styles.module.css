@@ -1,34 +1,42 @@
 .container {
   padding: 0;
+  max-width: 100%;
 }
 
 .qrCard {
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   border: 2px solid #e2e8f0;
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.5rem;
   text-align: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .qrContainer {
   background: white;
-  padding: 1.5rem;
+  padding: 1rem;
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   display: inline-block;
   border: 2px solid #e2e8f0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .qrImage {
   width: 200px;
   height: 200px;
   object-fit: contain;
+  max-width: 100%;
 }
 
 .detailsCard {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .detailsCard .mantine-Group-root {
@@ -50,8 +58,17 @@
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .qrContainer {
+  .container {
+    padding: 0.5rem;
+  }
+  
+  .qrCard {
     padding: 1rem;
+    margin: 0.5rem 0;
+  }
+  
+  .qrContainer {
+    padding: 0.75rem;
   }
   
   .qrImage {
@@ -59,9 +76,42 @@
     height: 150px;
   }
   
+  .detailsCard {
+    padding: 1rem;
+  }
+  
   .detailsCard .mantine-Group-root {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
+    padding: 0.75rem 0;
+  }
+  
+  .detailsCard .mantine-Group-root:first-child {
+    padding-top: 0;
+  }
+  
+  .detailsCard .mantine-Group-root:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .qrImage {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .qrCard {
+    padding: 0.75rem;
+  }
+  
+  .qrContainer {
+    padding: 0.5rem;
+  }
+  
+  .detailsCard {
+    padding: 0.75rem;
   }
 }

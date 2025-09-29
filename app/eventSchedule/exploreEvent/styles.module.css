@@ -1,30 +1,401 @@
+/* Main Container */
+.pageContainer {
+  background-color: #f9fafb;
+  min-height: 100vh;
+}
+
+.navStack {
+  margin-bottom: 4rem;
+}
+
+/* Search Section */
+.searchSection {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background-color: #f9fafb;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .searchSection {
+    padding: 1rem 0.5rem;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .searchSection {
+    padding: 1rem 0.25rem;
+  }
+}
+
+/* Search Input Styles */
+.searchInput {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .searchInput {
+    font-size: 14px !important;
+    height: 44px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .searchInput {
+    font-size: 14px !important;
+    height: 40px !important;
+  }
+}
+
+/* Featured Events Section */
+.featuredSection {
+  padding: 0 1rem 3rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.featuredTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.featuredBanner {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  height: 300px;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+}
+
+.featuredImageContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.featuredImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.featuredOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.6) 0%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+}
+
+.featuredContent {
+  position: absolute;
+  bottom: 2rem;
+  left: 2rem;
+  color: white;
+  z-index: 2;
+}
+
+.featuredEventTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: white;
+}
+
+.featuredEventDate {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 1.5rem 0;
+  color: white;
+}
+
+.getTicketsBtn {
+  background-color: #f97316;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.getTicketsBtn:hover {
+  background-color: #ea580c;
+  transform: translateY(-1px);
+}
+
+.paginationDots {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+  z-index: 2;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+/* Filters Section */
+.filtersSection {
+  padding: 2rem 1rem;
+  background-color: #f9fafb;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .filtersSection {
+    padding: 1rem 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .filtersSection {
+    padding: 1rem 0.25rem;
+  }
+}
+
+/* Events Grid */
+.eventsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  padding: 2rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.eventCardWrapper {
+  transition: transform 0.3s ease;
+}
+
+.eventCardWrapper:hover {
+  transform: translateY(-4px);
+}
+
+.eventLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+/* Event Card */
+.eventCard {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 18px;
+}
+
+.eventCard:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.eventImageContainer {
+  position: relative;
+  width: 100%;
+  height: 200px;
+
+
+}
+
+.eventImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-top-left-radius: 17.52px;
+border-top-right-radius: 17.52px;
+}
+
+.eventContent {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.eventTitle {
+  font-size: 21px;
+  font-weight: 500;
+  color: #151515;
+  margin: 0 0 1rem 0;
+  line-height: 1.3;
+  /* padding: 14px 0; */
+}
+
+.eventDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-grow: 1;
+}
+
+.eventDetail {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+
+
+font-weight: 400;
+font-style: Regular;
+font-size: 12.77px;
+}
+
+.eventPrice {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin-top: auto;
+}
+
+.eventType {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+  width: 20%;
+  margin-top: auto;
+  padding: 4px 4px;
+  background-color: #F2F2F2;
+  border-radius: 7px;
+  display: inline-block;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .eventsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .featuredBanner {
+    height: 250px;
+  }
+  
+  .featuredContent {
+    bottom: 1.5rem;
+    left: 1.5rem;
+  }
+  
+  .featuredEventTitle {
+    font-size: 1.5rem;
+  }
+  
+  .featuredEventDate {
+    font-size: 1rem;
+  }
+  
+  .eventsGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 1rem;
+  }
+  
+  .filtersSection {
+    padding: 1rem;
+  }
+  
+  .searchSection {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .featuredBanner {
+    height: 200px;
+  }
+  
+  .featuredContent {
+    bottom: 1rem;
+    left: 1rem;
+  }
+  
+  .featuredEventTitle {
+    font-size: 1.25rem;
+  }
+  
+  .featuredEventDate {
+    font-size: 0.875rem;
+  }
+  
+  .getTicketsBtn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .eventContent {
+    padding: 1rem;
+  }
+  
+  .eventTitle {
+    font-size: 1.125rem;
+  }
+}
+
+/* Legacy styles for backward compatibility */
 .container {
   margin: 0 auto;
   background-color: #f9fafb;
   min-height: 100vh;
 }
 
-.navStark{
+/* .navStark {
   margin-bottom: 80px;
-}
+} */
 
 .titlePage {
   background-image: url(../../../public/images/exploreImage.png);
   background-size: cover;
   background-position: center;
-  width: 100%;
-  height: 280px;
+  width: 96%;
+  height: 480px;
   display: flex;
   justify-content: center;
-  align-items: center;
-  background-color: #023825;
+  flex-direction: column;
+  border-radius: 20px;
+  padding-left: 26px;
+  align-items: left;
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
   position: relative;
+  margin: 0 auto;
 }
 
-.titlePage::before {
+/* .titlePage::before {
   content: '';
   position: absolute;
   top: 0;
@@ -32,16 +403,42 @@
   right: 0;
   bottom: 0;
   background-color: rgba(2, 56, 37, 0.5);
-}
+} */
 
 .title {
   font-size: 2.5rem;
-  font-weight: 700;
-  text-align: center;
+  font-weight: 900;
+  text-align: left;
   color: #ffffff;
   position: relative;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   letter-spacing: 1px;
+  padding: 0;
+  margin: 0;
+}
+
+.titlePageSubtitle{
+  font-size: 2.5rem;
+  font-weight: 900;
+  text-align: left;
+  color: #ffffff;
+  position: relative;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
+  padding: 0;
+  margin: 0;
+}
+
+.titlePageContainer{
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: left;
+  color: #151515;
+  position: relative;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
+  padding-left: 26.5px;
+  margin: 0;
 }
 
 .filterContainer {
@@ -260,6 +657,10 @@
   .cardsGrid {
     grid-template-columns: repeat(2, 1fr);
     max-width: 85%;
+  }
+  
+  .filters {
+    max-width: 500px;
   }
 }
 
