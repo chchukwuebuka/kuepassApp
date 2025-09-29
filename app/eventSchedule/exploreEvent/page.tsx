@@ -356,19 +356,19 @@ const ExploreEvents: React.FC = () => {
       </div>
 
       {/* Title Page Banner */}
-      <div className={styles.titlePageContainer}>Featured Events</div>
+      {/* <div className={styles.titlePageContainer}>Featured Events</div>
       <div className={styles.titlePage}>
         <h2 className={styles.title}>
           FLAVOUR N&apos;BANIA: The <br /> Awakening{" "}
         </h2>
         <p className={styles.titlePageSubtitle}>SEP 25 </p>
-      </div>
+      </div> */}
 
       {/* Featured Events Section */}
       {featuredEvent && (
         <div className={styles.featuredSection}>
-          <h2 className={styles.featuredTitle}>Featured Events</h2>
-          <div className={styles.featuredBanner}>
+          <h2 className={styles.titlePageContainer}>Featured Events</h2>
+          <div className={styles.titlePage}>
             <div className={styles.featuredImageContainer}>
               <Image
                 src={featuredEvent.image}
