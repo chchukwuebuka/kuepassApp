@@ -20,16 +20,36 @@ const AboutUs: React.FC = () => {
               </TagContainer>
 
               <MainTagline>
-                <Image src="/images/tr3.png" alt="Spark" style={{position: "absolute", width: "35px", height: "35px", left: "-30px", top: "-10px"}}/>
+                <Image
+                  src="/images/tr3.png"
+                  alt="Spark"
+                  style={{
+                    position: "absolute",
+                    width: "35px",
+                    height: "35px",
+                    left: "-30px",
+                    top: "-10px",
+                  }}
+                />
                 We believe events inspire.{" "}
                 <ItalicKuepass>Kuepass</ItalicKuepass> helps you create, share,
                 and enjoy them effortlessly.
               </MainTagline>
 
-<LearnMoreButtonContainer>
-              <LearnMoreButton>Learn More</LearnMoreButton>
-              <Image src="/images/curl.png" alt="Spark" style={{position: "absolute", width: "65px", height: "65px", left: "150px", bottom: "-30px"}}/>
-            </LearnMoreButtonContainer>
+              <LearnMoreButtonContainer>
+                <LearnMoreButton>Learn More</LearnMoreButton>
+                <Image
+                  src="/images/curl.png"
+                  alt="Spark"
+                  style={{
+                    position: "absolute",
+                    width: "65px",
+                    height: "65px",
+                    left: "150px",
+                    bottom: "-30px",
+                  }}
+                />
+              </LearnMoreButtonContainer>
             </LeftSection>
           </Grid.Col>
 

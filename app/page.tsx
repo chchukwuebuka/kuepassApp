@@ -11,10 +11,8 @@ import styles from "./page.module.css";
 import PlatformShowcase from "@/components/PlatformShowcase";
 import ServicesSection from "@/components/Services";
 import StatsSection from "@/components/StatsSection";
-import HelpSection from "@/components/HelpSection"; 
+import HelpSection from "@/components/HelpSection";
 import FAQSection from "@/components/FAQSection";
-
-
 
 export default function KuepassHome() {
   const searchParams = useSearchParams();
