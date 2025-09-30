@@ -150,7 +150,7 @@ export default function ManualRegisterEvent() {
 
   useEffect(() => {
     // Hardcoded event ID
-    const hardcodedEventId = "500";
+    const hardcodedEventId = "501";
     fetchAllData(hardcodedEventId);
   }, []);
 
@@ -272,8 +272,8 @@ export default function ManualRegisterEvent() {
 
     try {
       // Hardcoded values
-      const hardcodedEventId = "499";
-      const hardcodedTicketId = "bee1a000-d505-470a-9275-79db914a2e1f";
+      const hardcodedEventId = "501";
+      const hardcodedTicketId = "d55616c5-294f-4f1c-b331-95c94fc59d56";
 
       // Format phone number to international format
       const formatPhoneNumber = (phone: string): string => {
