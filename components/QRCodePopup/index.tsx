@@ -48,6 +48,7 @@ interface QRCodePopupProps {
   attendeeId?: string;
   email?: string;
   eventId?: string;
+  onRetry?: () => void;
 }
 
 const API_BASE_URL =
@@ -60,6 +61,7 @@ export default function QRCodePopup({
   attendeeId,
   email,
   eventId,
+  onRetry,
 }: QRCodePopupProps) {
   const [qrData, setQrData] = useState<QRCodeData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -67,27 +69,44 @@ export default function QRCodePopup({
   const modalContentRef = useRef<HTMLDivElement>(null);
 
   const fetchQRCode = useCallback(async () => {
+    console.log("QRCodePopup: Starting fetchQRCode with params:", {
+      attendeeId,
+      email,
+      eventId,
+    });
     setLoading(true);
     setError(null);
 
     try {
       let url = `${API_BASE_URL}/attendee-qr-code/`;
 
-      // Build query parameters
+      // Build query parameters with priority order
       const params = new URLSearchParams();
+
+      // Priority 1: If we have attendeeId, use it directly
       if (attendeeId) {
         params.append("attendee_id", attendeeId);
+        console.log("QRCodePopup: Using attendeeId for lookup");
       }
-      if (email) {
+      // Priority 2: If we have email and eventId, use them
+      else if (email && eventId) {
         params.append("email", email);
-      }
-      if (eventId) {
         params.append("event_id", eventId);
+        console.log("QRCodePopup: Using email and eventId for lookup");
+      }
+      // Priority 3: If we only have eventId, try to find the most recent registration
+      else if (eventId) {
+        params.append("event_id", eventId);
+        console.log("QRCodePopup: Using only eventId for lookup");
+      } else {
+        throw new Error("Insufficient parameters to fetch QR code");
       }
 
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
+
+      console.log("QRCodePopup: Fetching from URL:", url);
 
       const response = await fetch(url, {
         method: "GET",
@@ -97,25 +116,36 @@ export default function QRCodePopup({
         },
       });
 
+      console.log("QRCodePopup: Response status:", response.status);
+
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error("QR code not found for this attendee");
+          throw new Error(
+            "QR code not found for this attendee. Please check your registration details."
+          );
         }
         if (response.status === 400) {
-          throw new Error("Missing required parameters");
+          throw new Error("Invalid parameters provided for QR code lookup");
+        }
+        if (response.status === 500) {
+          throw new Error(
+            "Server error occurred while fetching QR code. Please try again later."
+          );
         }
         throw new Error(`Failed to fetch QR code: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log("QRCodePopup: Response data:", data);
 
       if (data.success && data.data) {
         setQrData(data.data);
+        console.log("QRCodePopup: QR data set successfully");
       } else {
         throw new Error(data.message || "Failed to retrieve QR code data");
       }
     } catch (err: any) {
-      console.error("Error fetching QR code:", err);
+      console.error("QRCodePopup: Error fetching QR code:", err);
       setError(err.message || "Failed to load QR code");
     } finally {
       setLoading(false);
@@ -123,8 +153,23 @@ export default function QRCodePopup({
   }, [attendeeId, email, eventId]);
 
   useEffect(() => {
-    if (show && (attendeeId || (email && eventId))) {
+    // Check if we have sufficient parameters to fetch QR code
+    const hasValidParams = attendeeId || (email && eventId) || eventId;
+
+    if (show && hasValidParams) {
+      console.log("QRCodePopup: Fetching QR code with params:", {
+        attendeeId,
+        email,
+        eventId,
+      });
       fetchQRCode();
+    } else {
+      console.log("QRCodePopup: Not fetching QR code. Show:", show, "Params:", {
+        attendeeId,
+        email,
+        eventId,
+        hasValidParams,
+      });
     }
   }, [show, attendeeId, email, eventId, fetchQRCode]);
 
@@ -238,15 +283,26 @@ export default function QRCodePopup({
 
         {error && (
           <Center style={{ height: "300px" }}>
-            <Alert
-              icon={<IconAlertCircle size="1rem" />}
-              title="Error"
-              color="red"
-              variant="light"
-              style={{ maxWidth: 400 }}
-            >
-              {error}
-            </Alert>
+            <Stack align="center" gap="md" style={{ maxWidth: 400 }}>
+              <Alert
+                icon={<IconAlertCircle size="1rem" />}
+                title="Unable to Load QR Code"
+                color="red"
+                variant="light"
+              >
+                {error}
+              </Alert>
+              {onRetry && (
+                <Button
+                  onClick={onRetry}
+                  variant="outline"
+                  color="red"
+                  leftSection={<IconCheck size={16} />}
+                >
+                  Try Again
+                </Button>
+              )}
+            </Stack>
           </Center>
         )}
 

@@ -15,40 +15,65 @@ function PaymentSuccessContent() {
   const [eventId, setEventId] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const [maxRetries] = useState(3);
 
   useEffect(() => {
     const ref = searchParams.get("reference");
     const event = searchParams.get("eventId");
     const userEmail = searchParams.get("email");
     const stat = searchParams.get("status");
+    const attendeeId = searchParams.get("attendeeId");
+
+    console.log("Payment Success URL params:", {
+      ref,
+      event,
+      userEmail,
+      stat,
+      attendeeId,
+    });
 
     setReference(ref);
     setEventId(event);
     setEmail(userEmail);
 
-    // Basic validation
-    if (!ref || !event) {
-      console.warn("URL is missing payment reference or event ID.");
+    // Enhanced validation - allow different parameter combinations
+    const hasRequiredParams =
+      (ref && event) || (ref && userEmail) || attendeeId;
+
+    if (!hasRequiredParams) {
+      console.warn(
+        "URL is missing required parameters for QR code generation."
+      );
       // Redirect to error page after timeout
       setTimeout(() => router.push("/error"), 5000);
       return;
     }
 
-    if (stat === "success" || stat === "verified") {
-      console.log(`Payment successful for reference: ${ref}, event: ${event}`);
-      // Show QR modal after a short delay to ensure payment is processed
+    // Handle different success scenarios
+    const isPaymentSuccess = stat === "success" || stat === "verified" || !stat;
+
+    if (isPaymentSuccess) {
+      console.log(
+        `Payment successful for reference: ${ref}, event: ${event}, attendeeId: ${attendeeId}`
+      );
+
+      // Show QR modal with progressive delay based on retry count
+      const delay = Math.min(1000 + retryCount * 500, 3000);
+
       setTimeout(() => {
+        console.log("Setting showQRModal to true");
         setShowQRModal(true);
         setLoading(false);
-      }, 1000);
+      }, delay);
     } else {
       console.warn(
-        "Landed on success page, but status is not 'success':",
+        "Landed on success page, but status indicates failure:",
         stat
       );
       setLoading(false);
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, retryCount]);
 
   const closeQRModal = () => {
     setShowQRModal(false);
@@ -60,6 +85,18 @@ function PaymentSuccessContent() {
       );
     } else {
       setTimeout(() => router.push("/"), 1000);
+    }
+  };
+
+  const handleQRModalError = () => {
+    console.log("QR modal failed to load, attempting retry...");
+    if (retryCount < maxRetries) {
+      setRetryCount((prev) => prev + 1);
+      setShowQRModal(false);
+      setLoading(true);
+    } else {
+      console.error("Max retries reached for QR code loading");
+      setLoading(false);
     }
   };
 
@@ -79,16 +116,46 @@ function PaymentSuccessContent() {
       <QRCodePopup
         show={showQRModal}
         onClose={closeQRModal}
+        attendeeId={searchParams.get("attendeeId") || undefined}
         email={email || undefined}
         eventId={eventId || undefined}
+        onRetry={handleQRModalError}
       />
 
       {/* Fallback content if QR modal fails to load */}
       {!showQRModal && (
-        <Center style={{ height: "100vh" }}>
-          <Text>
-            Payment successful! Please check your email for confirmation.
+        <Center
+          style={{ height: "100vh", flexDirection: "column", gap: "1rem" }}
+        >
+          <Text size="xl" fw={600} c="green">
+            ✅ Payment Successful!
           </Text>
+          <Text size="lg" ta="center">
+            Your payment has been processed successfully.
+          </Text>
+          {reference && (
+            <Text size="sm" c="dimmed">
+              Reference: {reference}
+            </Text>
+          )}
+          {eventId && (
+            <Text size="sm" c="dimmed">
+              Event ID: {eventId}
+            </Text>
+          )}
+          <Text size="md" ta="center" mt="md">
+            Please check your email for confirmation and ticket details.
+          </Text>
+          <Text size="sm" c="dimmed" ta="center">
+            Your QR code ticket should appear shortly. If it doesn&apos;t,
+            please refresh the page.
+          </Text>
+          {retryCount > 0 && (
+            <Text size="sm" c="orange" ta="center">
+              Attempting to load your ticket... (Attempt {retryCount + 1}/
+              {maxRetries + 1})
+            </Text>
+          )}
         </Center>
       )}
     </>
