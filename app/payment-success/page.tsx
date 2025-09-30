@@ -14,6 +14,7 @@ function PaymentSuccessContent() {
   const [reference, setReference] = useState<string | null>(null);
   const [eventId, setEventId] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+  const [attendeeId, setAttendeeId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const [maxRetries] = useState(3);
@@ -36,6 +37,7 @@ function PaymentSuccessContent() {
     setReference(ref);
     setEventId(event);
     setEmail(userEmail);
+    setAttendeeId(attendeeId);
 
     // Enhanced validation - allow different parameter combinations
     const hasRequiredParams =
@@ -116,7 +118,7 @@ function PaymentSuccessContent() {
       <QRCodePopup
         show={showQRModal}
         onClose={closeQRModal}
-        attendeeId={searchParams.get("attendeeId") || undefined}
+        attendeeId={attendeeId || undefined}
         email={email || undefined}
         eventId={eventId || undefined}
         onRetry={handleQRModalError}
