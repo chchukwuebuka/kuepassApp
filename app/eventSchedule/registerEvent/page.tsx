@@ -676,7 +676,7 @@ export default function RegisterEvent() {
               first_name: form.firstName,
               last_name: form.lastName,
               phone_number: form.phoneNumber.trim(),
-              payment_status: "pending", // Cash payments are pending until paid at venue
+              payment_status: "cash", // Cash payments are treated as completed for email sending
               responses: form.questionAnswers.map((answer) => ({
                 question: answer.questionId,
                 text_response:
@@ -688,7 +688,7 @@ export default function RegisterEvent() {
             };
 
             console.log(
-              `Creating attendee ${i + 1} for cash payment:`,
+              `Creating attendee ${i + 1} for cash payment (status: cash):`,
               attendeePayload
             );
 
@@ -713,7 +713,9 @@ export default function RegisterEvent() {
 
             const attendeeData = await attendeeResponse.json();
             console.log(
-              `Attendee ${i + 1} created successfully for cash payment:`,
+              `Attendee ${
+                i + 1
+              } created successfully for cash payment (status: cash):`,
               attendeeData
             );
 
@@ -1601,10 +1603,11 @@ export default function RegisterEvent() {
                               💰 Cash Payment Notice
                             </Text>
                             <Text size="sm" c="orange.7" mt="xs">
-                              You will be registered for the event and can pay
-                              the ticket amount in cash when you arrive at the
-                              venue. Please bring the exact amount and arrive
-                              early to complete payment.
+                              You will be registered for the event and receive a
+                              confirmation email with your QR code ticket. You
+                              can pay the ticket amount in cash when you arrive
+                              at the venue. Please bring the exact amount and
+                              arrive early to complete payment.
                             </Text>
                           </Paper>
                         )}
