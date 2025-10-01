@@ -6,7 +6,6 @@ import Link from "next/link";
 import NextImage from "next/image";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
-import { authenticatedRequest } from "@/app/services/auth";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -19,6 +18,8 @@ function HeroSection() {
     id: string;
     title: string;
     start_date: string;
+    banner_url?: string;
+    price?: string;
   } | null>(null);
   const words = ["Create", "Discover", "Manage", "Enjoy"];
 
@@ -28,29 +29,18 @@ function HeroSection() {
   useEffect(() => {
     const fetchLatestEvent = async () => {
       try {
-        const response = await authenticatedRequest<any>(
-          `${API_BASE_URL}/events/?is_active=true&ordering=-start_date&limit=1`,
-          "GET"
+        // Use regular fetch like explore events page
+        const eventsRes = await fetch(
+          `${API_BASE_URL}/events/?is_active=true&ordering=-start_date&limit=1`
         );
-
-        let eventData = null;
-
-        // Handle different response structures
-        if (Array.isArray(response) && response.length > 0) {
-          eventData = response[0];
-        } else if (
-          response?.success &&
-          Array.isArray(response.data) &&
-          response.data.length > 0
-        ) {
-          eventData = response.data[0];
-        } else if (
-          response?.data &&
-          Array.isArray(response.data) &&
-          response.data.length > 0
-        ) {
-          eventData = response.data[0];
+        if (!eventsRes.ok) {
+          throw new Error(`Failed to fetch events: ${eventsRes.status}`);
         }
+        const eventsJson = await eventsRes.json();
+        const allEvents = eventsJson.data || [];
+
+        // Get the first event (latest upcoming)
+        const eventData = allEvents[0];
 
         // Only set the event if we have valid data and the event is in the future
         if (
@@ -68,6 +58,8 @@ function HeroSection() {
               id: eventData.id,
               title: eventData.title,
               start_date: eventData.start_date,
+              banner_url: eventData.customization?.banner_url,
+              price: eventData.price,
             });
           } else {
             // If the event is in the past, set to null to show fallback
@@ -110,6 +102,7 @@ function HeroSection() {
 
   return (
     <HeroContainer>
+      <BackgroundImage />
       <ShapeDivider />
 
       <ContentContainer>
@@ -133,30 +126,62 @@ function HeroSection() {
           <EventCard>
             <EventCardImage>
               <Image
-                src="/images/banner.png"
-                alt="Event thumbnail"
+                src={latestEvent?.banner_url || "/images/banner.png"}
+                alt={latestEvent?.title || "Event thumbnail"}
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </EventCardImage>
             <EventDetails>
               <EventDetail>event name</EventDetail>
-              <EventDetaill>Comedy night laugh off</EventDetaill>
+              <EventDetaill>
+                {latestEvent?.title || "Comedy night laugh off"}
+              </EventDetaill>
               <EventDetail>
-                Ticket Type: <br />{" "}
-                <span style={{ color: "#ffffff" }}> Free</span>
+                Date: <br />{" "}
+                <span style={{ color: "#ffffff" }}>
+                  {latestEvent?.start_date
+                    ? new Date(latestEvent.start_date).toLocaleDateString(
+                        "en-US",
+                        {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        }
+                      )
+                    : "TBD"}
+                </span>
+              </EventDetail>
+              <EventDetail>
+                Price: <br />{" "}
+                <span style={{ color: "#ffffff" }}>
+                  {latestEvent?.price &&
+                  latestEvent.price !== "0" &&
+                  latestEvent.price !== "0.00"
+                    ? `₦${latestEvent.price}`
+                    : "Free"}
+                </span>
               </EventDetail>
             </EventDetails>
             <ViewsTag>
-              View{" "}
-              <span
-                style={{
-                  fontSize: "22px",
-                  marginLeft: "4px",
-                  fontWeight: "600",
-                }}
+              <Link
+                href={
+                  latestEvent?.id
+                    ? `/eventSchedule/eventDetails/${latestEvent.id}`
+                    : "#"
+                }
+                style={{ textDecoration: "none", color: "inherit" }}
               >
-                →
-              </span>
+                View{" "}
+                <span
+                  style={{
+                    fontSize: "22px",
+                    marginLeft: "4px",
+                    fontWeight: "600",
+                  }}
+                >
+                  →
+                </span>
+              </Link>
             </ViewsTag>
           </EventCard>
         </HeroContent>
@@ -186,11 +211,11 @@ const BackgroundImage = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  /* background-image: url("/images/heroImage.png");
+  background-image: url("/images/heroImage.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  z-index: -3; */
+  z-index: -3;
 `;
 
 const ViewsTag = styled.div`

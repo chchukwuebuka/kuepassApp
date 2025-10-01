@@ -790,12 +790,7 @@ export default function EventDetails() {
                         size="lg"
                         onClick={handleRegisterNowClick}
                       >
-                        Get your Ticket @{" "}
-                        {event?.price &&
-                        event.price !== "0" &&
-                        event.price !== "free"
-                          ? `N${event.price}`
-                          : "Free"}
+                        Get your Ticket @ 5,000 NGN
                       </Button>
                       <Menu shadow="md" width={200}>
                         <Menu.Target>
@@ -862,16 +857,24 @@ export default function EventDetails() {
                     <Text className={styles.detailLabel}>Duration</Text>
                     <Text className={styles.detailValue}>
                       {event?.start_date && event?.end_date
-                        ? `${Math.ceil(
-                            (new Date(event.end_date).getTime() -
-                              new Date(event.start_date).getTime()) /
-                              (1000 * 60 * 60)
-                          )}h ${Math.ceil(
-                            ((new Date(event.end_date).getTime() -
-                              new Date(event.start_date).getTime()) %
-                              (1000 * 60 * 60)) /
-                              (1000 * 60)
-                          )}mins`
+                        ? (() => {
+                            const durationMs =
+                              new Date(event.end_date).getTime() -
+                              new Date(event.start_date).getTime();
+                            const hours = Math.abs(
+                              Math.ceil(durationMs / (1000 * 60 * 60))
+                            );
+                            const minutes = Math.abs(
+                              Math.ceil(
+                                (durationMs % (1000 * 60 * 60)) / (1000 * 60)
+                              )
+                            );
+
+                            if (minutes === 0) {
+                              return `${hours}h`;
+                            }
+                            return `${hours}h ${minutes}mins`;
+                          })()
                         : "TBD"}
                     </Text>
                   </div>
@@ -931,11 +934,12 @@ export default function EventDetails() {
                   <div className={styles.detailContent}>
                     <Text className={styles.detailLabel}>Cost</Text>
                     <Text className={styles.detailValue}>
-                      {event?.price &&
+                      {/* {event?.price &&
                       event.price !== "0" &&
                       event.price !== "free"
                         ? `N${event.price}`
-                        : "Free"}
+                        : "Free"} */}
+                      5,000 NGN
                     </Text>
                   </div>
                 </div>
@@ -949,7 +953,7 @@ export default function EventDetails() {
                 <Text className={styles.aboutText}>
                   {event?.description || "No description available."}
                 </Text>
-                <Text className={styles.readMoreLink}>Read more...</Text>
+                {/* <Text className={styles.readMoreLink}>Read more...</Text> */}
               </div>
 
               {/* Countdown Section */}
@@ -1030,9 +1034,10 @@ export default function EventDetails() {
                 {event?.start_date ? formatTime(event.start_date) : "TBD"} WAT
               </Text>
               <Text className={styles.sidebarPriceText}>
-                {event?.price && event.price !== "0" && event.price !== "free"
+                {/* {event?.price && event.price !== "0" && event.price !== "free"
                   ? `N${event.price}`
-                  : "Free"}
+                  : "Free"} */}
+                5,000 NGN
               </Text>
               <Button
                 className={styles.getTicketButton}
