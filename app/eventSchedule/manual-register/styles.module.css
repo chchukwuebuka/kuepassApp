@@ -22,11 +22,23 @@
   margin: 0 auto;
 }
 
-.headerBadge {
+.headerTop {
   margin-bottom: 1rem;
+}
+
+.headerBadge {
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.05em;
+}
+
+.homeButton {
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.homeButton:hover {
+  transform: translateY(-1px);
 }
 
 .title {
@@ -461,6 +473,12 @@
   
   .container {
     padding: 0 0.5rem;
+  }
+  
+  .headerTop {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
   }
   
   .title {
