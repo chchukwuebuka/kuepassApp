@@ -108,6 +108,7 @@ interface AttendeeRequestPayload {
   first_name: string;
   last_name: string;
   phone_number: string;
+  payment_method?: string;
   payment_status: string;
   responses: Array<{
     question: string;
@@ -676,7 +677,8 @@ export default function RegisterEvent() {
               first_name: form.firstName,
               last_name: form.lastName,
               phone_number: form.phoneNumber.trim(),
-              payment_status: "cash", // Cash payments are treated as completed for email sending
+              payment_method: "cash", // This tells the backend it's a cash payment
+              payment_status: "pending", // Backend will handle the status logic
               responses: form.questionAnswers.map((answer) => ({
                 question: answer.questionId,
                 text_response:
@@ -688,7 +690,9 @@ export default function RegisterEvent() {
             };
 
             console.log(
-              `Creating attendee ${i + 1} for cash payment (status: cash):`,
+              `Creating attendee ${
+                i + 1
+              } for cash payment (method: cash, status: pending):`,
               attendeePayload
             );
 
@@ -715,7 +719,7 @@ export default function RegisterEvent() {
             console.log(
               `Attendee ${
                 i + 1
-              } created successfully for cash payment (status: cash):`,
+              } created successfully for cash payment (method: cash, status: pending):`,
               attendeeData
             );
 
