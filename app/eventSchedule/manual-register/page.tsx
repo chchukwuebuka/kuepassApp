@@ -633,8 +633,9 @@ export default function ManualRegisterEvent() {
                     </ThemeIcon>
                     <div>
                       <Text fw={600} size="lg">
-                        ARCON Registration
+                      COAL CITY CAMPUS FEST 4.0 (Shoot for the stars)
                       </Text>
+                      
                       <Text size="sm" c="dimmed">
                         You will be registered for this event
                       </Text>
