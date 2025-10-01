@@ -501,14 +501,29 @@ export default function ManualRegisterEvent() {
         {/* Header Section */}
         <div className={styles.header}>
           <div className={styles.headerContent}>
-            <Badge
-              size="lg"
-              variant="gradient"
-              gradient={{ from: "#025a3a", to: "#059669" }}
-              className={styles.headerBadge}
+            <Group
+              justify="space-between"
+              align="center"
+              className={styles.headerTop}
             >
-              Event Registration
-            </Badge>
+              <Badge
+                size="lg"
+                variant="gradient"
+                gradient={{ from: "#025a3a", to: "#059669" }}
+                className={styles.headerBadge}
+              >
+                Event Registration
+              </Badge>
+              <Button
+                variant="light"
+                color="green"
+                leftSection={<IconCalendarEvent size={16} />}
+                onClick={() => router.push("/")}
+                className={styles.homeButton}
+              >
+                Home
+              </Button>
+            </Group>
             <h1 className={styles.title}>Register For {event.title}</h1>
             <p className={styles.subtitle}>
               You are just one step away from securing your spot!
@@ -633,9 +648,9 @@ export default function ManualRegisterEvent() {
                     </ThemeIcon>
                     <div>
                       <Text fw={600} size="lg">
-                      COAL CITY CAMPUS FEST 4.0 (Shoot for the stars)
+                        COAL CITY CAMPUS FEST 4.0 (Shoot for the stars)
                       </Text>
-                      
+
                       <Text size="sm" c="dimmed">
                         You will be registered for this event
                       </Text>
