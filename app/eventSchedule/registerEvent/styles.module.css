@@ -1337,6 +1337,7 @@
 
   .leftColumn {
     padding: 1rem;
+    padding-bottom: 5rem; /* Add space for sticky button */
   }
 
   .rightColumn {
@@ -1348,12 +1349,9 @@
 
   .summarySection {
     margin-right: 0;
-    position: sticky;
-    bottom: 0;
     background-color: #ffffff;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-    z-index: 10;
     padding: 1rem;
+    margin-bottom: 1rem;
   }
 
   /* Better progress steps for mobile */
@@ -1482,6 +1480,11 @@
     /* padding: 1rem 1.5rem; */
     font-size: 1rem;
     border-radius: 12px;
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    margin-top: auto;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
   }
 
   .quantityDropdown {
@@ -1499,6 +1502,7 @@
 
   .leftColumn {
     padding: 0.75rem;
+    padding-bottom: 5rem; /* Add space for sticky button */
   }
 
   .header {
