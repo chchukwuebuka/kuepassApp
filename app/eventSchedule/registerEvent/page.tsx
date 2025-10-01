@@ -1697,7 +1697,6 @@ export default function RegisterEvent() {
                       ) {
                         return true;
                       }
-
                       // Check phone number format (E.164 format)
                       const phoneRegex = /^\+[1-9]\d{1,14}$/;
                       if (!phoneRegex.test(form.phoneNumber.trim())) {
