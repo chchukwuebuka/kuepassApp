@@ -108,6 +108,7 @@ interface AttendeeRequestPayload {
   first_name: string;
   last_name: string;
   phone_number: string;
+  payment_method?: string;
   payment_status: string;
   responses: Array<{
     question: string;
@@ -676,7 +677,8 @@ export default function RegisterEvent() {
               first_name: form.firstName,
               last_name: form.lastName,
               phone_number: form.phoneNumber.trim(),
-              payment_status: "pending", // Cash payments are pending until paid at venue
+              payment_method: "cash", // This tells the backend it's a cash payment
+              payment_status: "pending", // Backend will handle the status logic
               responses: form.questionAnswers.map((answer) => ({
                 question: answer.questionId,
                 text_response:
@@ -688,7 +690,9 @@ export default function RegisterEvent() {
             };
 
             console.log(
-              `Creating attendee ${i + 1} for cash payment:`,
+              `Creating attendee ${
+                i + 1
+              } for cash payment (method: cash, status: pending):`,
               attendeePayload
             );
 
@@ -713,7 +717,9 @@ export default function RegisterEvent() {
 
             const attendeeData = await attendeeResponse.json();
             console.log(
-              `Attendee ${i + 1} created successfully for cash payment:`,
+              `Attendee ${
+                i + 1
+              } created successfully for cash payment (method: cash, status: pending):`,
               attendeeData
             );
 
@@ -1601,10 +1607,11 @@ export default function RegisterEvent() {
                               💰 Cash Payment Notice
                             </Text>
                             <Text size="sm" c="orange.7" mt="xs">
-                              You will be registered for the event and can pay
-                              the ticket amount in cash when you arrive at the
-                              venue. Please bring the exact amount and arrive
-                              early to complete payment.
+                              You will be registered for the event and receive a
+                              confirmation email with your QR code ticket. You
+                              can pay the ticket amount in cash when you arrive
+                              at the venue. Please bring the exact amount and
+                              arrive early to complete payment.
                             </Text>
                           </Paper>
                         )}
