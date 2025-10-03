@@ -146,16 +146,23 @@ const ExploreEvents: React.FC = () => {
           const eventsJson = await eventsRes.json();
           const allEvents: EventData[] = eventsJson.data || [];
 
-          // 2) Check if we have a token; if so, fetch /users/me and /attendees/
+          // 2) Check if we have a token; if so, fetch user data and attendees in parallel
           const token = getAuthToken();
           let userId: number | null = null;
           let allAttendees: AttendeeData[] = [];
 
           if (token) {
-            // 2a) Fetch current user
-            const userRes = await fetch(`${API_BASE_URL}/users/me/`, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
+            // 2a & 2b) Fetch user data and attendees in parallel for faster loading
+            const [userRes, attendeeRes] = await Promise.all([
+              fetch(`${API_BASE_URL}/users/me/`, {
+                headers: { Authorization: `Bearer ${token}` },
+              }),
+              fetch(`${API_BASE_URL}/attendees/`, {
+                headers: { Authorization: `Bearer ${token}` },
+              }),
+            ]);
+
+            // Process user response
             if (userRes.ok) {
               const userJson: ApiUserResponse = await userRes.json();
               if (userJson.success && userJson.data.id) {
@@ -163,10 +170,7 @@ const ExploreEvents: React.FC = () => {
               }
             }
 
-            // 2b) Fetch attendees (only if user is logged in)
-            const attendeeRes = await fetch(`${API_BASE_URL}/attendees/`, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
+            // Process attendees response
             if (attendeeRes.ok) {
               const attendeeJson = await attendeeRes.json();
               allAttendees = attendeeJson.data || [];

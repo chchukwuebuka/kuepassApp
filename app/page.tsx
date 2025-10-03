@@ -85,6 +85,7 @@ export default function KuepassHome() {
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
             zIndex: -2,
+            willChange: "transform",
           }}
         />
         <div
