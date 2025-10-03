@@ -45,7 +45,7 @@ const EventCard: React.FC<EventCardProps> = ({
             <CategoryBadge category={category}>{category}</CategoryBadge>
           )}
           {isFeatured && <FeaturedBadge>Featured</FeaturedBadge>}
-          <CardImage src={image} alt={title} />
+          <CardImage src={image} alt={title} loading="lazy" />
         </ImageWrapper>
 
         <CardBody>

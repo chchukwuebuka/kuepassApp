@@ -12,7 +12,7 @@ import {
   Alert,
 } from "@mantine/core";
 import { IconQrcode, IconCopy } from "@tabler/icons-react";
-import QRCode from "qrcode.react";
+import { QRCodeSVG } from "qrcode.react";
 import styles from "./styles.module.css";
 
 export default function GenerateQRPage() {
@@ -75,7 +75,7 @@ export default function GenerateQRPage() {
             <Card padding="lg" radius="md" className={styles.qrCard}>
               <Stack gap="md" align="center">
                 <div className={styles.qrContainer}>
-                  <QRCode
+                  <QRCodeSVG
                     value={qrUrl}
                     size={200}
                     level="M"

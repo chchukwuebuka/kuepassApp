@@ -221,54 +221,47 @@ export default function EventDetails() {
     setIsAuthCheckComplete(true);
   }, []);
 
-  // Get user's location for directions
+  // Set hardcoded location (replace with your actual coordinates)
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.error("Error getting user location:", error);
-          // If user denies location, fall back to just showing the event address
-          if (event?.location || event?.address) {
-            const fallbackUrl = `https://www.google.com/maps/embed/v1/place?key=${
-              process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-            }&q=${encodeURIComponent(
-              event.location || event.address || "Nigeria"
-            )}`;
-            setMapUrl(fallbackUrl);
-          }
-        }
-      );
-    }
-  }, [event?.location, event?.address]);
+    // Hardcoded coordinates - replace with your location
+    // Example: Lagos, Nigeria coordinates
+    setUserLocation({
+      lat: 6.4483, // Replace with your latitude
+      lng: 7.5139, // Replace with your longitude
+    });
+  }, []);
 
-  // Build the directions URL when we have both event address and user location
+  // Build the directions URL immediately - much simpler approach
   useEffect(() => {
-    // Wait until you have the event address AND the user's location
-    if ((event?.location || event?.address) && userLocation) {
-      const destination = encodeURIComponent(
-        event.location || event.address || "Nigeria"
-      );
-      const origin = `${userLocation.lat},${userLocation.lng}`;
+    if (event) {
+      // Try to get the most specific location information
+      let destination = "";
 
-      // Use the public Google Maps directions URL (no API key required)
-      const directionsUrl = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3024.2219901290355!2d-74.00369368400567!3d40.71312937933185!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDQyJzQ3LjMiTiA3NMKwMDAnMTMuMiJX!5e0!3m2!1sen!2sus!4v1478485804044&q=${destination}`;
+      if (
+        event.address &&
+        event.address.trim() !== "" &&
+        event.address !== "TBD"
+      ) {
+        destination = event.address;
+      } else if (
+        event.location &&
+        event.location.trim() !== "" &&
+        event.location !== "Event Location"
+      ) {
+        destination = event.location;
+      } else {
+        // Fallback to a default location if no specific address is available
+        destination = "Lagos, Nigeria"; // You can change this to your preferred default
+      }
 
-      setMapUrl(directionsUrl);
-    } else if (event?.location || event?.address) {
-      // Fallback to simple place search without API key
-      const destination = encodeURIComponent(
-        event.location || event.address || "Nigeria"
-      );
-      const fallbackUrl = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3024.2219901290355!2d-74.00369368400567!3d40.71312937933185!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDQyJzQ3LjMiTiA3NMKwMDAnMTMuMiJX!5e0!3m2!1sen!2sus!4v1478485804044&q=${destination}`;
-      setMapUrl(fallbackUrl);
+      console.log("Map destination:", destination); // Debug log
+
+      const encodedDestination = encodeURIComponent(destination);
+      const mapUrl = `https://maps.google.com/maps?q=${encodedDestination}&output=embed`;
+
+      setMapUrl(mapUrl);
     }
-  }, [event?.location, event?.address, userLocation]);
+  }, [event]);
 
   const fetchAttendees = useCallback(async () => {
     if (!id) return;
@@ -446,6 +439,14 @@ export default function EventDetails() {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const formatPrice = (price: string | number | undefined): string => {
+    if (!price) return "Free";
+    if (price === "free" || price === "0" || price === 0) return "Free";
+    const numericPrice = parseFloat(price.toString());
+    if (isNaN(numericPrice) || numericPrice <= 0) return "Free";
+    return `N${price}`;
   };
 
   const truncateDescription = (
@@ -790,7 +791,7 @@ export default function EventDetails() {
                         size="lg"
                         onClick={handleRegisterNowClick}
                       >
-                        Get your Ticket @ 5,000 NGN
+                        Get your Ticket @ {formatPrice(event?.price)}
                       </Button>
                       <Menu shadow="md" width={200}>
                         <Menu.Target>
@@ -934,12 +935,7 @@ export default function EventDetails() {
                   <div className={styles.detailContent}>
                     <Text className={styles.detailLabel}>Cost</Text>
                     <Text className={styles.detailValue}>
-                      {/* {event?.price &&
-                      event.price !== "0" &&
-                      event.price !== "free"
-                        ? `N${event.price}`
-                        : "Free"} */}
-                      5,000 NGN
+                      {formatPrice(event?.price)}
                     </Text>
                   </div>
                 </div>
@@ -973,6 +969,26 @@ export default function EventDetails() {
                 <Title order={2} className={styles.sectionTitle}>
                   Direction
                 </Title>
+
+                {/* Debug info - remove this after testing */}
+                {process.env.NODE_ENV === "development" && (
+                  <div
+                    style={{
+                      marginBottom: "1rem",
+                      padding: "0.5rem",
+                      background: "#f0f0f0",
+                      borderRadius: "4px",
+                    }}
+                  >
+                    <Text size="xs">
+                      Event Location: {event?.location || "Not set"}
+                    </Text>
+                    <Text size="xs">
+                      Event Address: {event?.address || "Not set"}
+                    </Text>
+                  </div>
+                )}
+
                 <div className={styles.mapContainer}>
                   {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? (
                     // Check if the mapUrl is ready
@@ -1034,10 +1050,7 @@ export default function EventDetails() {
                 {event?.start_date ? formatTime(event.start_date) : "TBD"} WAT
               </Text>
               <Text className={styles.sidebarPriceText}>
-                {/* {event?.price && event.price !== "0" && event.price !== "free"
-                  ? `N${event.price}`
-                  : "Free"} */}
-                5,000 NGN
+                {formatPrice(event?.price)}
               </Text>
               <Button
                 className={styles.getTicketButton}

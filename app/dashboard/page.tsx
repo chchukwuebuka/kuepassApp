@@ -9,13 +9,52 @@ import Sidebar from "@/components/Sidebar";
 import TopBanner from "@/components/TopBanner";
 import StatsCard from "@/components/StatsCard";
 import UserTable from "@/components/UserTable";
-import Customization from "@/components/Customization";
-import TicketDashboard from "@/components/UserManagement";
-import Finance from "@/components/Finance";
 import { Stack, Loader, Center, Text } from "@mantine/core";
 import { authenticatedRequest } from "@/app/services/auth";
-import YourPromotionKitComponent from "@/components/Generate";
-import SalesAnalyticsPage from "@/components/SalesAnalytics";
+import dynamic from "next/dynamic";
+
+// Lazy load heavy components
+const Customization = dynamic(() => import("@/components/Customization"), {
+  loading: () => (
+    <Center>
+      <Loader />
+    </Center>
+  ),
+});
+const TicketDashboard = dynamic(() => import("@/components/UserManagement"), {
+  loading: () => (
+    <Center>
+      <Loader />
+    </Center>
+  ),
+});
+const Finance = dynamic(() => import("@/components/Finance"), {
+  loading: () => (
+    <Center>
+      <Loader />
+    </Center>
+  ),
+});
+const YourPromotionKitComponent = dynamic(
+  () => import("@/components/Generate"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
+const SalesAnalyticsPage = dynamic(
+  () => import("@/components/SalesAnalytics"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||

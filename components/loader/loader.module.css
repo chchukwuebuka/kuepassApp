@@ -57,6 +57,8 @@
       border-radius: 50%;
       border-style: solid;
       animation: spin 3s linear infinite;
+      will-change: transform;
+      transform: translateZ(0); /* Force GPU acceleration */
     }
     
     .outerRing {
@@ -117,6 +119,8 @@
       background: #025a3a;
       border-radius: 50%;
       animation: float 3s ease-in-out infinite;
+      will-change: transform, opacity;
+      transform: translateZ(0);
     }
     
     .dot1 {

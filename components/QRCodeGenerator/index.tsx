@@ -18,7 +18,7 @@ import {
   IconDownload,
   IconShare,
 } from "@tabler/icons-react";
-import QRCode from "qrcode.react";
+import { QRCodeSVG } from "qrcode.react";
 import styles from "./styles.module.css";
 
 interface QRCodeGeneratorProps {
@@ -157,7 +157,7 @@ export default function QRCodeGenerator({
           <Card padding="lg" radius="md" className={styles.qrDisplayCard}>
             <Stack gap="md" align="center">
               <div className={styles.qrContainer}>
-                <QRCode
+                <QRCodeSVG
                   id="qr-code-canvas"
                   value={qrData}
                   size={200}

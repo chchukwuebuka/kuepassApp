@@ -33,16 +33,19 @@ import {
 } from "chart.js";
 import styles from "./styles.module.css";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  ChartTitle,
-  Tooltip,
-  Legend,
-  Filler
-);
+// Only register Chart.js once
+if (!ChartJS.getChart("chart")) {
+  ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    ChartTitle,
+    Tooltip,
+    Legend,
+    Filler
+  );
+}
 
 interface ForecastDataPoint {
   ds: string;
