@@ -12,17 +12,17 @@ const TestimonialCarousel: React.FC = () => {
       id: 1,
       quote:
         "Honestly, Kuepass is a game-changer. I used to spend days managing ticket sales on a spreadsheet. Now, I can track everything in real-time from my phone. It gives me the freedom to actually focus on making the event great.",
-      author: "Chuka D.",
+      author: "Oracle Triple E.",
       title: "Music Promoter & Artist Manager",
-      avatar: "/images/avatar1.jpg",
+      avatar: "/images/oracle.jpg",
     },
     {
       id: 2,
       quote:
         "The platform has revolutionized how we manage our events. The real-time tracking and seamless user experience make event management effortless.",
-      author: "Sarah M.",
+      author: "Adewale M.",
       title: "Event Coordinator",
-      avatar: "/images/avatar2.jpg",
+      avatar: "/images/testiman.png",
     },
     {
       id: 3,
@@ -30,15 +30,15 @@ const TestimonialCarousel: React.FC = () => {
         "Kuepass has transformed our event planning process. The intuitive interface and powerful features help us deliver exceptional experiences.",
       author: "Michael K.",
       title: "Festival Director",
-      avatar: "/images/avatar3.jpg",
+      avatar: "/images/testiwoman.png",
     },
     {
       id: 4,
       quote:
         "This platform has made event management so much easier. The analytics and real-time updates give us complete control over our events.",
-      author: "Lisa P.",
+      author: "Chika Okolo.",
       title: "Concert Manager",
-      avatar: "/images/avatar4.jpg",
+      avatar: "/images/members1.jpg",
     },
   ];
 
@@ -79,10 +79,19 @@ const TestimonialCarousel: React.FC = () => {
 
           <AuthorSection>
             <AvatarContainer>
-              <Avatar
-                src={currentTestimonial.avatar}
-                alt={currentTestimonial.author}
-              />
+              <Picture>
+                {(currentTestimonial.avatar.includes("testiman") ||
+                  currentTestimonial.avatar.includes("testiwoman")) && (
+                  <source
+                    srcSet={currentTestimonial.avatar.replace(".png", ".webp")}
+                    type="image/webp"
+                  />
+                )}
+                <Avatar
+                  src={currentTestimonial.avatar}
+                  alt={currentTestimonial.author}
+                />
+              </Picture>
             </AvatarContainer>
             <AuthorInfo>
               <AuthorName>{currentTestimonial.author}</AuthorName>
@@ -132,7 +141,7 @@ const HeaderText = styled.h2`
 `;
 
 const HighlightText = styled.span`
-  background-color: #DCFF40;
+  background-color: #dcff40;
   padding: 0 0.25rem;
   border-radius: 2px;
 `;
@@ -210,6 +219,12 @@ const AvatarContainer = styled.div`
     width: 50px;
     height: 50px;
   }
+`;
+
+const Picture = styled.picture`
+  width: 100%;
+  height: 100%;
+  display: block;
 `;
 
 const Avatar = styled.img`

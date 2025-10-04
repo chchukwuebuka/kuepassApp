@@ -126,12 +126,16 @@ export default function ManualRegisterEvent() {
     lastName: "",
     email: "",
     phoneNumber: "",
+    title: "", // Add title field
+    institution: "", // Add institution field
   });
   const [formErrors, setFormErrors] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phoneNumber: "",
+    title: "", // Add title error field
+    institution: "", // Add institution error field
   });
 
   useEffect(() => {
@@ -150,7 +154,7 @@ export default function ManualRegisterEvent() {
 
   useEffect(() => {
     // Hardcoded event ID
-    const hardcodedEventId = "501";
+    const hardcodedEventId = "505";
     fetchAllData(hardcodedEventId);
   }, []);
 
@@ -163,7 +167,18 @@ export default function ManualRegisterEvent() {
       const eventResponse = await fetch(`${API_BASE_URL}/events/${eventId}/`);
       if (eventResponse.ok) {
         const eventData = await eventResponse.json();
-        setEvent(eventData);
+        console.log("Raw event data:", eventData); // Debug log
+
+        // Handle different response structures
+        const eventResult = eventData?.data || eventData;
+        console.log("Processed event data:", eventResult); // Debug log
+
+        if (eventResult && eventResult.id) {
+          setEvent(eventResult as EventData);
+          console.log("Event set successfully:", eventResult.title); // Debug log
+        } else {
+          throw new Error("Event data not found in response.");
+        }
       } else {
         setError("Could not fetch event details.");
       }
@@ -224,6 +239,8 @@ export default function ManualRegisterEvent() {
       lastName: "",
       email: "",
       phoneNumber: "",
+      title: "",
+      institution: "",
     };
 
     if (!formData.firstName.trim()) {
@@ -239,6 +256,12 @@ export default function ManualRegisterEvent() {
     }
     if (!formData.phoneNumber.trim()) {
       errors.phoneNumber = "Phone number is required.";
+    }
+    if (!formData.title.trim()) {
+      errors.title = "Professional title is required.";
+    }
+    if (!formData.institution.trim()) {
+      errors.institution = "Institution/Organization is required.";
     }
 
     setFormErrors(errors);
@@ -272,8 +295,8 @@ export default function ManualRegisterEvent() {
 
     try {
       // Hardcoded values
-      const hardcodedEventId = "501";
-      const hardcodedTicketId = "d55616c5-294f-4f1c-b331-95c94fc59d56";
+      const hardcodedEventId = "505";
+      const hardcodedTicketId = "0de854ce-a750-49e0-89d6-2db94d1ecca6";
 
       // Format phone number to international format
       const formatPhoneNumber = (phone: string): string => {
@@ -319,6 +342,8 @@ export default function ManualRegisterEvent() {
         name: fullName,
         email: formData.email.trim(),
         phone_number: formattedPhone,
+        title: formData.title.trim(), // Add title
+        institution: formData.institution.trim(), // Add institution
         event: hardcodedEventId,
         ticket_id: hardcodedTicketId,
         payment_status: "bypassed", // Mark payment as bypassed for manually added attendees
@@ -394,12 +419,16 @@ export default function ManualRegisterEvent() {
       lastName: "",
       email: "",
       phoneNumber: "",
+      title: "", // Add title reset
+      institution: "", // Add institution reset
     });
     setFormErrors({
       firstName: "",
       lastName: "",
       email: "",
       phoneNumber: "",
+      title: "", // Add title error reset
+      institution: "", // Add institution error reset
     });
     setAnswers([]);
   };
@@ -552,52 +581,63 @@ export default function ManualRegisterEvent() {
                   <label className={styles.questionLabel}>
                     First Name <span className={styles.required}>*</span>
                   </label>
-                  <TextInput
+                  <input
+                    type="text"
                     placeholder="Enter first name"
                     value={formData.firstName}
                     onChange={(e) =>
                       handleInputChange("firstName", e.currentTarget.value)
                     }
-                    error={formErrors.firstName}
                     className={styles.input}
                     disabled={paymentLoading}
-                    leftSection={<IconUser size={16} />}
                   />
+                  {formErrors.firstName && (
+                    <Text size="xs" color="red" mt={5}>
+                      {formErrors.firstName}
+                    </Text>
+                  )}
                 </div>
 
                 <div className={styles.questionItem}>
                   <label className={styles.questionLabel}>
                     Last Name <span className={styles.required}>*</span>
                   </label>
-                  <TextInput
+                  <input
+                    type="text"
                     placeholder="Enter last name"
                     value={formData.lastName}
                     onChange={(e) =>
                       handleInputChange("lastName", e.currentTarget.value)
                     }
-                    error={formErrors.lastName}
                     className={styles.input}
                     disabled={paymentLoading}
-                    leftSection={<IconUser size={16} />}
                   />
+                  {formErrors.lastName && (
+                    <Text size="xs" color="red" mt={5}>
+                      {formErrors.lastName}
+                    </Text>
+                  )}
                 </div>
 
                 <div className={styles.questionItem}>
                   <label className={styles.questionLabel}>
                     Email Address <span className={styles.required}>*</span>
                   </label>
-                  <TextInput
+                  <input
                     type="email"
                     placeholder="Enter email address"
                     value={formData.email}
                     onChange={(e) =>
                       handleInputChange("email", e.currentTarget.value)
                     }
-                    error={formErrors.email}
                     className={styles.input}
                     disabled={paymentLoading}
-                    leftSection={<IconMail size={16} />}
                   />
+                  {formErrors.email && (
+                    <Text size="xs" color="red" mt={5}>
+                      {formErrors.email}
+                    </Text>
+                  )}
                 </div>
 
                 <div className={styles.questionItem}>
@@ -627,6 +667,48 @@ export default function ManualRegisterEvent() {
                     </Text>
                   )}
                 </div>
+
+                <div className={styles.questionItem}>
+                  <label className={styles.questionLabel}>
+                    Employment Status <span className={styles.required}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g.,  Employed, Self Employed, Student etc." 
+                    value={formData.title}
+                    onChange={(e) =>
+                      handleInputChange("title", e.currentTarget.value)
+                    }
+                    className={styles.input}
+                    disabled={paymentLoading}
+                  />
+                  {formErrors.title && (
+                    <Text size="xs" color="red" mt={5}>
+                      {formErrors.title}
+                    </Text>
+                  )}
+                </div>
+
+                <div className={styles.questionItem}>
+                  <label className={styles.questionLabel}>
+                    Business Name <span className={styles.required}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g.,  Type Your Company Name"
+                    value={formData.institution}
+                    onChange={(e) =>
+                      handleInputChange("institution", e.currentTarget.value)
+                    }
+                    className={styles.input}
+                    disabled={paymentLoading}
+                  />
+                  {formErrors.institution && (
+                    <Text size="xs" color="red" mt={5}>
+                      {formErrors.institution}
+                    </Text>
+                  )}
+                </div>
               </div>
 
               <Divider my="xl" />
@@ -648,7 +730,7 @@ export default function ManualRegisterEvent() {
                     </ThemeIcon>
                     <div>
                       <Text fw={600} size="lg">
-                        COAL CITY CAMPUS FEST 4.0 (Shoot for the stars)
+                        {event?.title || "Loading event..."}
                       </Text>
 
                       <Text size="sm" c="dimmed">
@@ -713,7 +795,7 @@ export default function ManualRegisterEvent() {
                                 disabled={paymentLoading}
                               />
                             ) : q.type === "text" || q.type === "email" ? (
-                              <TextInput
+                              <input
                                 id={`question-${q.id}`}
                                 type={q.type === "email" ? "email" : "text"}
                                 placeholder={
@@ -853,6 +935,8 @@ export default function ManualRegisterEvent() {
                   !formData.lastName ||
                   !formData.email ||
                   !formData.phoneNumber ||
+                  !formData.title || // Add title check
+                  !formData.institution || // Add institution check
                   Object.values(formErrors).some((error) => error !== "") ||
                   paymentLoading ||
                   !event ||
