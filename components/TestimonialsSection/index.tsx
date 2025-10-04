@@ -41,12 +41,21 @@ const TestimonialsSection: React.FC = () => {
           {testimonials.map((testimonial) => (
             <TestimonialCard key={testimonial.id}>
               <AvatarContainer>
-                <Avatar
-                  src={testimonial.avatar}
-                  alt={testimonial.name}
-                  width={60}
-                  height={60}
-                />
+                <picture>
+                  {(testimonial.avatar.includes("testiman") ||
+                    testimonial.avatar.includes("testiwoman")) && (
+                    <source
+                      srcSet={testimonial.avatar.replace(".png", ".webp")}
+                      type="image/webp"
+                    />
+                  )}
+                  <Avatar
+                    src={testimonial.avatar}
+                    alt={testimonial.name}
+                    width={60}
+                    height={60}
+                  />
+                </picture>
               </AvatarContainer>
 
               <UserInfo>

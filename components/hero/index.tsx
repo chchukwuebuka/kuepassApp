@@ -20,58 +20,167 @@ function HeroSection() {
     start_date: string;
     banner_url?: string;
     price?: string;
+    tickets?: Array<{
+      id: string;
+      name: string;
+      category_name: string;
+      category_price: string;
+    }>;
   } | null>(null);
   const words = ["Create", "Discover", "Manage", "Enjoy"];
 
   // Ref for the scroll indicator
   const scrollRef = useRef(null);
 
+  // Helper function to format date
+  const formatEventDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      const options: Intl.DateTimeFormatOptions = {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      };
+      return date.toLocaleDateString("en-US", options);
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return dateString;
+    }
+  };
+
+  // Helper function to get primary ticket type
+  const getPrimaryTicketType = (
+    tickets: Array<{
+      name: string;
+      category_name: string;
+      category_price: string;
+    }>
+  ): string => {
+    if (!tickets || tickets.length === 0) return "General";
+
+    // Find the first ticket or prioritize based on category
+    const primaryTicket =
+      tickets.find((ticket) => ticket.category_name === "Paid") ||
+      tickets.find((ticket) => ticket.category_name === "Free") ||
+      tickets[0];
+
+    return primaryTicket?.name || "General";
+  };
+
   useEffect(() => {
     const fetchLatestEvent = async () => {
       try {
-        // Use regular fetch like explore events page
-        const eventsRes = await fetch(
-          `${API_BASE_URL}/events/?is_active=true&ordering=-start_date&limit=1`
-        );
+        console.log("Hero: Starting to fetch latest event...");
+
+        // Use the same approach as event details page - fetch all events first
+        const eventsRes = await fetch(`${API_BASE_URL}/events/`);
+        console.log("Hero: Events response status:", eventsRes.status);
+
         if (!eventsRes.ok) {
           throw new Error(`Failed to fetch events: ${eventsRes.status}`);
         }
+
         const eventsJson = await eventsRes.json();
-        const allEvents = eventsJson.data || [];
+        console.log("Hero: Events response data:", eventsJson);
 
-        // Get the first event (latest upcoming)
-        const eventData = allEvents[0];
+        // Handle different response formats like event details page
+        let allEvents = [];
+        if (Array.isArray(eventsJson)) {
+          allEvents = eventsJson;
+        } else if (eventsJson?.data && Array.isArray(eventsJson.data)) {
+          allEvents = eventsJson.data;
+        } else if (eventsJson?.success && Array.isArray(eventsJson.data)) {
+          allEvents = eventsJson.data;
+        }
 
-        // Only set the event if we have valid data and the event is in the future
-        if (
-          eventData &&
-          eventData.id &&
-          eventData.title &&
-          eventData.start_date
-        ) {
-          const eventDate = new Date(eventData.start_date);
-          const now = new Date();
+        console.log("Hero: All events array:", allEvents);
 
-          // Only show events that are in the future (upcoming events)
-          if (eventDate > now) {
+        // Filter for active events and sort by start_date
+        const activeEvents = allEvents
+          .filter((event) => event.is_active !== false)
+          .sort(
+            (a, b) =>
+              new Date(a.start_date).getTime() -
+              new Date(b.start_date).getTime()
+          );
+
+        console.log("Hero: Active events:", activeEvents);
+
+        // Get the first upcoming event
+        const now = new Date();
+        const upcomingEvent = activeEvents.find((event) => {
+          const eventDate = new Date(event.start_date);
+          return eventDate > now;
+        });
+
+        const eventData = upcomingEvent || activeEvents[0];
+        console.log("Hero: Selected event data:", eventData);
+
+        if (eventData && eventData.id && eventData.title) {
+          // Fetch tickets for this event (same approach as event details page)
+          try {
+            console.log("Hero: Fetching tickets for event:", eventData.id);
+            const ticketsRes = await fetch(
+              `${API_BASE_URL}/tickets/?event=${eventData.id}`
+            );
+            console.log("Hero: Tickets response status:", ticketsRes.status);
+
+            let tickets = [];
+            if (ticketsRes.ok) {
+              const ticketsData = await ticketsRes.json();
+              console.log("Hero: Tickets response data:", ticketsData);
+
+              // Handle different response formats
+              let ticketsResult = [];
+              if (Array.isArray(ticketsData)) {
+                ticketsResult = ticketsData;
+              } else if (ticketsData?.data && Array.isArray(ticketsData.data)) {
+                ticketsResult = ticketsData.data;
+              } else if (
+                ticketsData?.results &&
+                Array.isArray(ticketsData.results)
+              ) {
+                ticketsResult = ticketsData.results;
+              }
+
+              tickets = ticketsResult.filter(
+                (ticket) => ticket.event === eventData.id
+              );
+              console.log("Hero: Filtered tickets:", tickets);
+            }
+
+            const eventToSet = {
+              id: eventData.id,
+              title: eventData.title,
+              start_date: eventData.start_date,
+              banner_url:
+                eventData.customization?.banner_url || eventData.banner_url,
+              price: eventData.price,
+              tickets: tickets,
+            };
+            console.log("Hero: Setting event:", eventToSet);
+
+            setLatestEvent(eventToSet);
+          } catch (ticketError) {
+            console.error("Hero: Failed to fetch tickets:", ticketError);
+            // Still set the event without tickets
             setLatestEvent({
               id: eventData.id,
               title: eventData.title,
               start_date: eventData.start_date,
-              banner_url: eventData.customization?.banner_url,
+              banner_url:
+                eventData.customization?.banner_url || eventData.banner_url,
               price: eventData.price,
+              tickets: [],
             });
-          } else {
-            // If the event is in the past, set to null to show fallback
-            setLatestEvent(null);
           }
         } else {
-          // No valid event data found
+          console.log("Hero: No valid event data found, setting to null");
           setLatestEvent(null);
         }
       } catch (err) {
-        console.error("Failed to fetch latest event:", err);
-        // Set to null on error to show fallback
+        console.error("Hero: Failed to fetch latest event:", err);
         setLatestEvent(null);
       }
     };
@@ -132,33 +241,19 @@ function HeroSection() {
               />
             </EventCardImage>
             <EventDetails>
-              <EventDetail>event name</EventDetail>
               <EventDetaill>
                 {latestEvent?.title || "Comedy night laugh off"}
               </EventDetaill>
+              <EventDetaill>
+                {latestEvent?.tickets
+                  ? getPrimaryTicketType(latestEvent.tickets)
+                  : "General"}
+              </EventDetaill>
               <EventDetail>
-                Date: <br />{" "}
                 <span style={{ color: "#ffffff" }}>
                   {latestEvent?.start_date
-                    ? new Date(latestEvent.start_date).toLocaleDateString(
-                        "en-US",
-                        {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        }
-                      )
+                    ? formatEventDate(latestEvent.start_date)
                     : "TBD"}
-                </span>
-              </EventDetail>
-              <EventDetail>
-                Price: <br />{" "}
-                <span style={{ color: "#ffffff" }}>
-                  {latestEvent?.price &&
-                  latestEvent.price !== "0" &&
-                  latestEvent.price !== "0.00"
-                    ? `₦${latestEvent.price}`
-                    : "Free"}
                 </span>
               </EventDetail>
             </EventDetails>
@@ -439,14 +534,7 @@ const EventCard = styled.div`
   }
 
   @media (max-width: 992px) {
-    position: relative;
-    bottom: auto;
-    right: auto;
-    margin-top: 20px;
-    width: 100%;
-    max-width: 300px;
-    margin-left: auto;
-    margin-right: auto;
+    display: none;
   }
 `;
 
