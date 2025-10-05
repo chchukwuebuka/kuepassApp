@@ -189,7 +189,7 @@
 
 /* Phone Input Styles */
 .phoneContainer {
-  width: 100%;
+  width: 100% !important;
 }
 
 .phoneInput {
@@ -197,9 +197,10 @@
   height: 42px !important;
   border: 1px solid #d1d5db !important;
   border-radius: 8px !important;
-  padding: 0.75rem 1rem !important;
+  padding: 0.75rem 1rem 0.75rem 60px !important;
   font-size: 0.875rem !important;
   transition: all 0.2s ease !important;
+  padding-left: 60px !important;
 }
 
 .phoneInput:focus {
@@ -213,6 +214,8 @@
   border-radius: 8px 0 0 8px !important;
   background: #f9fafb !important;
   transition: all 0.2s ease !important;
+  height: 42px !important;
+  padding: 0 8px !important;
 }
 
 .phoneButton:hover {

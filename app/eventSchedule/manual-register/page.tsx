@@ -218,10 +218,10 @@ export default function ManualRegisterEvent() {
   const handlePhoneChange = (value: string) => {
     setFormData((prev) => ({ ...prev, phoneNumber: value }));
 
-    if (!value) {
+    if (!value || value.length < 10) {
       setFormErrors((prev) => ({
         ...prev,
-        phoneNumber: "Phone number is required.",
+        phoneNumber: "Please enter a valid phone number.",
       }));
     } else {
       setFormErrors((prev) => ({ ...prev, phoneNumber: "" }));
@@ -256,6 +256,8 @@ export default function ManualRegisterEvent() {
     }
     if (!formData.phoneNumber.trim()) {
       errors.phoneNumber = "Phone number is required.";
+    } else if (formData.phoneNumber.trim().length < 10) {
+      errors.phoneNumber = "Please enter a valid phone number.";
     }
     if (!formData.title.trim()) {
       errors.title = "Professional title is required.";
@@ -298,40 +300,11 @@ export default function ManualRegisterEvent() {
       const hardcodedEventId = "505";
       const hardcodedTicketId = "0de854ce-a750-49e0-89d6-2db94d1ecca6";
 
-      // Format phone number to international format
-      const formatPhoneNumber = (phone: string): string => {
-        // Remove all non-digit characters
-        const digits = phone.replace(/\D/g, "");
+      // Format phone number - react-phone-input-2 returns the number without the + sign
+      const formattedPhone = formData.phoneNumber.trim().startsWith("+")
+        ? formData.phoneNumber.trim()
+        : `+${formData.phoneNumber.trim()}`;
 
-        // If it already starts with country code, return as is
-        if (digits.startsWith("234") && digits.length >= 13) {
-          return `+${digits}`;
-        }
-
-        // If it's a Nigerian number without country code, add +234
-        if (digits.length === 10 && digits.startsWith("0")) {
-          return `+234${digits.substring(1)}`;
-        }
-
-        // If it's a Nigerian number without leading 0, add +234
-        if (digits.length === 10 && !digits.startsWith("0")) {
-          return `+234${digits}`;
-        }
-
-        // If it's already 13 digits and starts with 234, add +
-        if (digits.length === 13 && digits.startsWith("234")) {
-          return `+${digits}`;
-        }
-
-        // For other cases, try to add + if not present
-        if (!phone.startsWith("+")) {
-          return `+${digits}`;
-        }
-
-        return phone;
-      };
-
-      const formattedPhone = formatPhoneNumber(formData.phoneNumber.trim());
       const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
 
       console.log("📞 Phone number formatting:");
@@ -654,12 +627,15 @@ export default function ManualRegisterEvent() {
                     inputProps={{
                       required: true,
                       disabled: paymentLoading,
+                      placeholder: "810 123 4567",
                     }}
                     specialLabel=""
                     enableSearch={true}
                     searchPlaceholder="Search country..."
                     searchNotFound="No country found"
                     preferredCountries={["ng", "us", "gb", "ca"]}
+                    disableCountryCode={false}
+                    countryCodeEditable={false}
                   />
                   {formErrors.phoneNumber && (
                     <Text size="xs" color="red" mt={5}>
@@ -674,7 +650,7 @@ export default function ManualRegisterEvent() {
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g.,  Employed, Self Employed, Student etc." 
+                    placeholder="e.g.,  Employed, Self Employed, Student etc."
                     value={formData.title}
                     onChange={(e) =>
                       handleInputChange("title", e.currentTarget.value)
@@ -712,7 +688,7 @@ export default function ManualRegisterEvent() {
               </div>
 
               <Divider my="xl" />
-              <div className={styles.sectionHeader}>
+              {/* <div className={styles.sectionHeader}>
                 <Group gap="sm">
                   <ThemeIcon variant="light" color="green">
                     <IconTicket size={20} />
@@ -739,7 +715,7 @@ export default function ManualRegisterEvent() {
                     </div>
                   </Group>
                 </Card>
-              </div>
+              </div> */}
             </Paper>
           </div>
 
