@@ -535,12 +535,8 @@ export default function PartnerRegisterEvent() {
                 gradient={{ from: "#025a3a", to: "#059669" }}
                 className={styles.headerBadge}
               >
-                Partner Registration
-                {registrationSourceId && (
-                  <Text component="span" size="xs" ml={5}>
-                    ({registrationSourceId})
-                  </Text>
-                )}
+                Event Registration
+                
               </Badge>
               <Button
                 variant="light"
@@ -552,7 +548,7 @@ export default function PartnerRegisterEvent() {
                 Home
               </Button>
             </Group>
-            <h1 className={styles.title}>Register For {event.title}</h1>
+            <h1 className={styles.title}>REGISTER FOR {event.title}</h1>
             <p className={styles.subtitle}>
               You are just one step away from securing your spot!
             </p>
