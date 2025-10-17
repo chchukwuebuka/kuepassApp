@@ -819,9 +819,6 @@ export default function EventDetails() {
                         </Menu.Dropdown>
                       </Menu>
                     </Group>
-                    <Text className={styles.salesCounter}>
-                      Over 200 tickets sold
-                    </Text>
                   </div>
                 </div>
                 <div className={styles.heroRight}>
