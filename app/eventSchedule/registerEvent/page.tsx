@@ -164,7 +164,6 @@ export default function RegisterEvent() {
       firstName: string;
       lastName: string;
       email: string;
-      confirmEmail: string;
       phoneNumber: string;
       questionAnswers: Answer[];
     }>
@@ -223,7 +222,6 @@ export default function RegisterEvent() {
       firstName: string;
       lastName: string;
       email: string;
-      confirmEmail: string;
       phoneNumber: string;
       questionAnswers: Answer[];
     }> = [];
@@ -248,7 +246,6 @@ export default function RegisterEvent() {
           firstName: "",
           lastName: "",
           email: "",
-          confirmEmail: "",
           phoneNumber: "",
           questionAnswers: [],
         });
@@ -265,7 +262,6 @@ export default function RegisterEvent() {
       firstName: string;
       lastName: string;
       email: string;
-      confirmEmail: string;
       phoneNumber: string;
       questionAnswers: Answer[];
     }> = [];
@@ -282,7 +278,6 @@ export default function RegisterEvent() {
               firstName: "",
               lastName: "",
               email: "",
-              confirmEmail: "",
               phoneNumber: "",
               questionAnswers: [],
             });
@@ -503,8 +498,7 @@ export default function RegisterEvent() {
           !form.firstName.trim() ||
           !form.lastName.trim() ||
           !form.email.trim() ||
-          !form.phoneNumber.trim() ||
-          form.email !== form.confirmEmail
+          !form.phoneNumber.trim()
         ) {
           alert("Please fill in all required fields correctly.");
           return;
@@ -1097,10 +1091,12 @@ export default function RegisterEvent() {
                                   size="xl"
                                   className={styles.priceAmount}
                                 >
-                                  ₦
-                                  {Number.parseFloat(
-                                    ticket.category_price
-                                  ).toFixed(2)}
+                                  {Number.parseFloat(ticket.category_price) ===
+                                  0
+                                    ? "Free"
+                                    : `₦${Number.parseFloat(
+                                        ticket.category_price
+                                      ).toFixed(2)}`}
                                 </Text>
                               </div>
                             </div>
@@ -1194,26 +1190,6 @@ export default function RegisterEvent() {
                               updateContactForm(
                                 index,
                                 "email",
-                                e.currentTarget.value
-                              )
-                            }
-                            required
-                            className={styles.input}
-                          />
-                        </div>
-                        <div className={styles.inputGroup}>
-                          <label className={styles.label}>
-                            Confirm email address{" "}
-                            <span className={styles.required}>*</span>
-                          </label>
-                          <input
-                            type="email"
-                            placeholder="Confirm email address"
-                            value={form.confirmEmail}
-                            onChange={(e) =>
-                              updateContactForm(
-                                index,
-                                "confirmEmail",
                                 e.currentTarget.value
                               )
                             }
@@ -1663,8 +1639,7 @@ export default function RegisterEvent() {
                         !form.firstName.trim() ||
                         !form.lastName.trim() ||
                         !form.email.trim() ||
-                        !form.phoneNumber.trim() ||
-                        form.email !== form.confirmEmail
+                        !form.phoneNumber.trim()
                       ) {
                         return true;
                       }
