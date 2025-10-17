@@ -169,9 +169,6 @@ export default function RegisterEvent() {
       questionAnswers: Answer[];
     }>
   >([]);
-  const [sendToDifferentEmails, setSendToDifferentEmails] = useState<
-    boolean | null
-  >(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<string>("");
 
@@ -342,26 +339,15 @@ export default function RegisterEvent() {
       0
     );
 
-    // If more than one ticket, show email preference question first
-    if (totalTickets > 1 && sendToDifferentEmails === null) {
-      setCurrentStep(2); // Show email preference question
+    // If more than one ticket, automatically create separate forms for each ticket
+    if (totalTickets > 1) {
+      addAdditionalContactForms(); // Create separate forms for each ticket
+      setCurrentStep(3); // Go directly to contact forms
     } else {
-      // Initialize forms and proceed to contact forms
+      // Single ticket - initialize forms and proceed to contact forms
       initializeContactForms();
       setCurrentStep(3); // Show contact forms
     }
-  };
-
-  const handleEmailPreferenceSelection = (preference: boolean) => {
-    setSendToDifferentEmails(preference);
-    if (preference) {
-      // User wants different emails - show separate forms for each ticket
-      addAdditionalContactForms();
-    } else {
-      // User wants same email - ensure we have exactly one form
-      initializeContactForms();
-    }
-    setCurrentStep(3); // Show contact forms
   };
 
   const handleGoBack = () => {
@@ -749,7 +735,6 @@ export default function RegisterEvent() {
             question_answers: form.questionAnswers,
           })),
           selected_tickets: selectedTickets,
-          send_to_different_emails: sendToDifferentEmails,
         };
 
         const paymentInitPayload = {
@@ -955,22 +940,22 @@ export default function RegisterEvent() {
                   <div className={styles.progressLine}></div>
                   <div
                     className={`${styles.progressStep} ${
-                      currentStep >= 2 ? styles.active : ""
+                      currentStep >= 3 ? styles.active : ""
                     }`}
                   >
                     <div className={styles.stepCircle}>
-                      {currentStep > 2 ? "✓" : "2"}
+                      {currentStep > 3 ? "✓" : "2"}
                     </div>
                     <Text size="sm">Contact</Text>
                   </div>
                   <div className={styles.progressLine}></div>
                   <div
                     className={`${styles.progressStep} ${
-                      currentStep >= 3 ? styles.active : ""
+                      currentStep >= 4 ? styles.active : ""
                     }`}
                   >
                     <div className={styles.stepCircle}>
-                      {currentStep > 3 ? "✓" : "3"}
+                      {currentStep > 4 ? "✓" : "3"}
                     </div>
                     <Text size="sm">Payment</Text>
                   </div>
@@ -1134,39 +1119,6 @@ export default function RegisterEvent() {
                       No tickets to display
                     </div>
                   )}
-                </div>
-              </div>
-            )}
-
-            {/* Email Preference Section */}
-            {currentStep === 2 && (
-              <div className={styles.contactSection}>
-                <Text fw={600} size="lg" className={styles.sectionTitle}>
-                  Email Delivery
-                </Text>
-                <div className={styles.contactForm}>
-                  <Text fw={500} size="md" mb="md" color="dark">
-                    Send ticket to a different email address?
-                  </Text>
-                  <Radio.Group
-                    value={
-                      sendToDifferentEmails === null
-                        ? ""
-                        : sendToDifferentEmails.toString()
-                    }
-                    onChange={(value) => {
-                      if (value === "true") {
-                        handleEmailPreferenceSelection(true);
-                      } else if (value === "false") {
-                        handleEmailPreferenceSelection(false);
-                      }
-                    }}
-                  >
-                    <Stack gap="sm">
-                      <Radio value="true" label="Yes" />
-                      <Radio value="false" label="No" />
-                    </Stack>
-                  </Radio.Group>
                 </div>
               </div>
             )}
@@ -1644,35 +1596,55 @@ export default function RegisterEvent() {
               <div className={styles.summaryContent}>
                 {hasSelectedTickets() ? (
                   <>
-                    {Object.entries(selectedTickets).map(
-                      ([ticketId, quantity]) => {
-                        if (quantity <= 0) return null;
-                        const ticket = tickets.find((t) => t.id === ticketId);
-                        if (!ticket) return null;
+                    {calculateTotal() > 0 ? (
+                      <>
+                        {Object.entries(selectedTickets).map(
+                          ([ticketId, quantity]) => {
+                            if (quantity <= 0) return null;
+                            const ticket = tickets.find(
+                              (t) => t.id === ticketId
+                            );
+                            if (!ticket) return null;
 
-                        const ticketPrice =
-                          Number.parseFloat(ticket.category_price) || 0;
-                        const subtotal = ticketPrice * quantity;
+                            const ticketPrice =
+                              Number.parseFloat(ticket.category_price) || 0;
+                            const subtotal = ticketPrice * quantity;
 
-                        return (
-                          <div key={ticketId} className={styles.summaryItem}>
-                            <Text size="sm">
-                              {quantity} x {ticket.name.toLowerCase()}
-                            </Text>
-                            <Text fw={500}>₦{subtotal.toFixed(2)}</Text>
-                          </div>
-                        );
-                      }
+                            return (
+                              <div
+                                key={ticketId}
+                                className={styles.summaryItem}
+                              >
+                                <Text size="sm">
+                                  {quantity} x {ticket.name.toLowerCase()}
+                                </Text>
+                                <Text fw={500}>₦{subtotal.toFixed(2)}</Text>
+                              </div>
+                            );
+                          }
+                        )}
+                        <Divider my="md" />
+                        <div className={styles.summaryTotal}>
+                          <Text fw={700} size="lg">
+                            Total
+                          </Text>
+                          <Text
+                            fw={700}
+                            size="xl"
+                            className={styles.totalPrice}
+                          >
+                            ₦{calculateTotal().toFixed(2)}
+                          </Text>
+                        </div>
+                      </>
+                    ) : (
+                      // For free tickets, show a simple message
+                      <div className={styles.freeTicketMessage}>
+                        <Text size="sm" c="green.7" fw={500}>
+                          Free ticket selected
+                        </Text>
+                      </div>
                     )}
-                    <Divider my="md" />
-                    <div className={styles.summaryTotal}>
-                      <Text fw={700} size="lg">
-                        Total
-                      </Text>
-                      <Text fw={700} size="xl" className={styles.totalPrice}>
-                        ₦{calculateTotal().toFixed(2)}
-                      </Text>
-                    </div>
                   </>
                 ) : (
                   <div className={styles.noSelection}>
@@ -1684,7 +1656,6 @@ export default function RegisterEvent() {
                 className={styles.continueButton}
                 disabled={
                   (currentStep === 1 && !hasSelectedTickets()) ||
-                  (currentStep === 2 && sendToDifferentEmails === null) ||
                   (currentStep === 3 &&
                     contactForms.some((form) => {
                       // Check basic fields
@@ -1725,11 +1696,7 @@ export default function RegisterEvent() {
                   !isMounted
                 }
                 onClick={
-                  currentStep === 1
-                    ? handleContinueToContact
-                    : currentStep === 2
-                    ? () => {} // No action needed for step 2, handled by radio selection
-                    : handlePurchase
+                  currentStep === 1 ? handleContinueToContact : handlePurchase
                 }
                 fullWidth
               >
@@ -1740,8 +1707,6 @@ export default function RegisterEvent() {
                   </Group>
                 ) : currentStep === 1 ? (
                   "Continue"
-                ) : currentStep === 2 ? (
-                  "Select an option above"
                 ) : currentStep === 3 ? (
                   calculateTotal() <= 0 ? (
                     "Register for free"
