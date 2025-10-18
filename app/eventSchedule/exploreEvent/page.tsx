@@ -47,6 +47,11 @@ interface EventData {
   };
   description?: string;
   price?: string;
+  collaborators?: Array<{
+    id: number;
+    email: string;
+    username?: string;
+  }>;
 }
 
 interface AttendeeData {
@@ -146,34 +151,78 @@ const ExploreEvents: React.FC = () => {
           const eventsJson = await eventsRes.json();
           const allEvents: EventData[] = eventsJson.data || [];
 
+          // Debug: Check if events have collaborator data
+          console.log("Events data from API:", allEvents);
+          allEvents.forEach((event) => {
+            console.log(
+              `Event "${event.title}" - Has collaborators:`,
+              !!event.collaborators,
+              "Collaborators:",
+              event.collaborators
+            );
+          });
+
           // 2) Check if we have a token; if so, fetch user data and attendees in parallel
           const token = getAuthToken();
           let userId: number | null = null;
+          let userEmail: string | null = null;
           let allAttendees: AttendeeData[] = [];
 
+          console.log("Auth token exists:", !!token);
+          console.log("Is authenticated:", isAuthenticated());
+
           if (token) {
-            // 2a & 2b) Fetch user data and attendees in parallel for faster loading
-            const [userRes, attendeeRes] = await Promise.all([
-              fetch(`${API_BASE_URL}/users/me/`, {
-                headers: { Authorization: `Bearer ${token}` },
-              }),
-              fetch(`${API_BASE_URL}/attendees/`, {
-                headers: { Authorization: `Bearer ${token}` },
-              }),
-            ]);
+            try {
+              // 2a & 2b) Fetch user data and attendees in parallel for faster loading
+              const [userRes, attendeeRes] = await Promise.all([
+                fetch(`${API_BASE_URL}/users/me/`, {
+                  headers: { Authorization: `Bearer ${token}` },
+                }),
+                fetch(`${API_BASE_URL}/attendees/`, {
+                  headers: { Authorization: `Bearer ${token}` },
+                }),
+              ]);
 
-            // Process user response
-            if (userRes.ok) {
-              const userJson: ApiUserResponse = await userRes.json();
-              if (userJson.success && userJson.data.id) {
-                userId = userJson.data.id;
+              console.log("User API response status:", userRes.status);
+              console.log("Attendees API response status:", attendeeRes.status);
+
+              // Process user response
+              if (userRes.ok) {
+                const userJson: ApiUserResponse = await userRes.json();
+                console.log("User API response:", userJson);
+                if (userJson.success && userJson.data.id) {
+                  userId = userJson.data.id;
+                  userEmail = userJson.data.email;
+                  console.log("User ID:", userId, "User Email:", userEmail);
+                }
+              } else {
+                console.error(
+                  "User API failed:",
+                  userRes.status,
+                  await userRes.text()
+                );
+                // If authentication fails, clear the token and redirect to login
+                if (userRes.status === 401 || userRes.status === 404) {
+                  console.log("Authentication failed, clearing token");
+                  localStorage.removeItem("auth_token");
+                  // You might want to redirect to login here
+                  // window.location.href = '/auth/signin';
+                }
               }
-            }
 
-            // Process attendees response
-            if (attendeeRes.ok) {
-              const attendeeJson = await attendeeRes.json();
-              allAttendees = attendeeJson.data || [];
+              // Process attendees response
+              if (attendeeRes.ok) {
+                const attendeeJson = await attendeeRes.json();
+                allAttendees = attendeeJson.data || [];
+              } else {
+                console.error(
+                  "Attendees API failed:",
+                  attendeeRes.status,
+                  await attendeeRes.text()
+                );
+              }
+            } catch (error) {
+              console.error("Error fetching user data:", error);
             }
           }
 
@@ -185,17 +234,47 @@ const ExploreEvents: React.FC = () => {
               .forEach((a) => registeredEventIds.add(a.event));
           }
 
+          console.log("User ID:", userId);
+          console.log("Registered event IDs:", Array.from(registeredEventIds));
+
           // Map events into the shape the UI needs
           const mappedEvents: MappedEvent[] = allEvents.map((e) => {
             const bannerImage =
               e.customization?.banner_url || "/images/placeholder.jpg";
 
             let ownershipStatus: MappedEvent["ownership"] = "None";
+
+            // Check if user is the creator
             if (userId !== null && e.creator && e.creator.id === userId) {
               ownershipStatus = "Created";
-            } else if (userId !== null && registeredEventIds.has(e.id)) {
+              console.log(
+                `Event "${e.title}" is owned by current user (ID: ${userId})`
+              );
+            }
+            // Check if user is a collaborator (by email)
+            else if (
+              userEmail &&
+              e.collaborators &&
+              e.collaborators.some((collab) => collab.email === userEmail)
+            ) {
+              ownershipStatus = "Created"; // Treat collaborators the same as creators for dashboard access
+              console.log(
+                `Event "${e.title}" - user is a collaborator (email: ${userEmail})`
+              );
+            }
+            // Check if user is registered for the event
+            else if (userId !== null && registeredEventIds.has(e.id)) {
               ownershipStatus = "Registered";
             }
+
+            // Debug: Show all events and their creators/collaborators
+            console.log(
+              `Event "${e.title}" - Creator ID: ${
+                e.creator?.id
+              }, Current User ID: ${userId}, User Email: ${userEmail}, Collaborators: ${
+                e.collaborators?.map((c) => c.email).join(", ") || "None"
+              }, Ownership: ${ownershipStatus}`
+            );
 
             return {
               id: e.id,
@@ -500,6 +579,20 @@ const ExploreEvents: React.FC = () => {
                     : `/eventSchedule/eventDetails/${eventItem.id}`
                 }
                 className={styles.eventLink}
+                onClick={() => {
+                  console.log(
+                    `Clicking on event "${eventItem.title}" with ownership: ${eventItem.ownership}`
+                  );
+                  if (eventItem.ownership === "Created") {
+                    console.log(
+                      `Redirecting to dashboard with eventId: ${eventItem.id}`
+                    );
+                  } else {
+                    console.log(
+                      `Redirecting to event details: ${eventItem.id}`
+                    );
+                  }
+                }}
               >
                 <EventCardDisplay eventData={eventItem} />
               </Link>
