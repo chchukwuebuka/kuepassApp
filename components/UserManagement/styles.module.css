@@ -9,7 +9,7 @@
   background-color: whitesmoke;
   width: 10rem;
   border-radius: 8px;
-  padding-left: 10px;
+  padding: 10px;
   height: 100px;
 }
 
@@ -25,7 +25,7 @@
 
 .inputIMGcard {
   padding-top: 20px;
-  width: 16%;
+  width: 20%;
   display: flex;
   align-items: center;
   flex-direction: column;

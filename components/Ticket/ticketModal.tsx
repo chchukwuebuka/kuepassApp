@@ -505,7 +505,7 @@ interface TicketModalProps {
   };
 }
 
-const TicketModal: React.FC<TicketModalProps> = ({
+const   TicketModal: React.FC<TicketModalProps> = ({
   isModalOpen,
   closeModal,
   addTicket,

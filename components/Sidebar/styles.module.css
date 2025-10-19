@@ -72,6 +72,21 @@
   color: red;
 }
 
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+.disabled .link {
+  color: #999 !important;
+}
+
+.disabled:hover .link {
+  background: transparent !important;
+  color: #999 !important;
+}
+
 .label{
       margin-left: 10px;
 }

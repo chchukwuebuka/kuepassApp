@@ -4,22 +4,33 @@ import styles from "./styles.module.css";
 interface TabFilterProps {
   filter: string;
   setFilter: (filter: string) => void;
+  totalAttendees: number;
+  validatedAttendees: number;
 }
 
-const TabFilter: React.FC<TabFilterProps> = ({ filter, setFilter }) => {
+const TabFilter: React.FC<TabFilterProps> = ({
+  filter,
+  setFilter,
+  totalAttendees,
+  validatedAttendees,
+}) => {
   return (
     <div className={styles.tabs}>
       <button
-        className={`${styles.tabButton} ${filter === "all" ? styles.activeTab : ""}`}
+        className={`${styles.tabButton} ${
+          filter === "all" ? styles.activeTab : ""
+        }`}
         onClick={() => setFilter("all")}
       >
-        All 142
+        All {totalAttendees}
       </button>
       <button
-        className={`${styles.tabButton} ${filter === "validated" ? styles.activeTab : ""}`}
+        className={`${styles.tabButton} ${
+          filter === "validated" ? styles.activeTab : ""
+        }`}
         onClick={() => setFilter("validated")}
       >
-        Validated 42
+        Validated {validatedAttendees}
       </button>
     </div>
   );
