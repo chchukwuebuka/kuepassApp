@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -28,9 +26,9 @@ interface ApiTicket extends Ticket {
 }
 
 const TicketDashboard: React.FC<TicketDashboardProps> = ({ eventId }) => {
-  const [regularTickets, setRegularTickets] = useState({ sold: 0, total: 0 });
-  const [vipTickets, setVipTickets] = useState({ sold: 0, total: 0 });
+  const [tickets, setTickets] = useState<ApiTicket[]>([]);
   const [totalAttendees, setTotalAttendees] = useState(0);
+  const [validatedAttendees, setValidatedAttendees] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState("all");
@@ -51,7 +49,18 @@ const TicketDashboard: React.FC<TicketDashboardProps> = ({ eventId }) => {
         `${API_BASE_URL}/attendees/?event_id=${eventId}`,
         "GET"
       );
-      setTotalAttendees(attendeesResponse.length || 0);
+
+      const totalCount = attendeesResponse.length || 0;
+      const validatedCount = attendeesResponse.filter(
+        (attendee) => attendee.is_validated === true
+      ).length;
+
+      setTotalAttendees(totalCount);
+      setValidatedAttendees(validatedCount);
+
+      console.log(
+        `Total attendees: ${totalCount}, Validated attendees: ${validatedCount}`
+      );
 
       // 2. Fetch tickets for this event (which now include sold_count)
       const ticketsResponse = await authenticatedRequest<ApiTicket[]>(
@@ -70,37 +79,8 @@ const TicketDashboard: React.FC<TicketDashboardProps> = ({ eventId }) => {
 
       console.log("Tickets API response with sold_count:", tickets);
 
-      // 3. Find the tickets and set the state directly from API data
-      const vipTicket = tickets.find((t) =>
-        t.name.toLowerCase().includes("vip")
-      );
-      const regularTicket = tickets.find(
-        (t) => !t.name.toLowerCase().includes("vip")
-      );
-
-      if (regularTicket) {
-        setRegularTickets({
-          sold: regularTicket.sold_count, // Use the count directly from the API
-          total:
-            regularTicket.quantity === "Unlimited"
-              ? Infinity
-              : parseInt(regularTicket.quantity as string),
-        });
-      } else {
-        console.warn("Regular ticket type not found for this event.");
-      }
-
-      if (vipTicket) {
-        setVipTickets({
-          sold: vipTicket.sold_count, // Use the count directly from the API
-          total:
-            vipTicket.quantity === "Unlimited"
-              ? Infinity
-              : parseInt(vipTicket.quantity as string),
-        });
-      } else {
-        console.warn("VIP ticket type not found for this event.");
-      }
+      // 3. Store all tickets for dynamic display
+      setTickets(tickets);
     } catch (err: any) {
       console.error("Error fetching data:", err.message);
       setError("Failed to load dashboard data.");
@@ -120,6 +100,20 @@ const TicketDashboard: React.FC<TicketDashboardProps> = ({ eventId }) => {
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+
+  // Helper function to determine if a ticket is free
+  const isTicketFree = (ticket: ApiTicket): boolean => {
+    const price = parseFloat(ticket.category_price);
+    return price === 0 || isNaN(price);
+  };
+
+  // Helper function to format ticket price
+  const formatTicketPrice = (ticket: ApiTicket): string => {
+    if (isTicketFree(ticket)) {
+      return "Free";
+    }
+    return `₦${parseFloat(ticket.category_price).toFixed(2)}`;
+  };
 
   const addTicket = async (ticketData: {
     name: string;
@@ -164,23 +158,31 @@ const TicketDashboard: React.FC<TicketDashboardProps> = ({ eventId }) => {
       )}
 
       <div className={styles.summary}>
-        <div className={styles.summaryRegular}>
-          <h4 className={styles.summaryText}>REGULAR</h4>
-          <p className={styles.summaryNumber}>
-            {regularTickets.sold}/
-            {regularTickets.total === Infinity
-              ? "Unlimited"
-              : regularTickets.total}
-          </p>
-        </div>
+        {tickets.map((ticket) => {
+          const totalQuantity = (() => {
+            if (
+              ticket.quantity === "Unlimited" ||
+              ticket.quantity === null ||
+              ticket.quantity === undefined
+            ) {
+              return Infinity;
+            }
+            const parsed = parseInt(ticket.quantity as string);
+            return isNaN(parsed) ? Infinity : parsed;
+          })();
 
-        <div className={styles.summaryRegular}>
-          <h4 className={styles.summaryText}>VIP</h4>
-          <p className={styles.summaryNumber}>
-            {vipTickets.sold}/
-            {vipTickets.total === Infinity ? "Unlimited" : vipTickets.total}
-          </p>
-        </div>
+          return (
+            <div key={ticket.id} className={styles.summaryRegular}>
+              <h4 className={styles.summaryText}>
+                {ticket.name} - {formatTicketPrice(ticket)}
+              </h4>
+              {/* <p className={styles.summaryNumber}>
+                {ticket.sold_count}/
+                {totalQuantity === Infinity ? "Unlimited" : totalQuantity}
+              </p> */}
+            </div>
+          );
+        })}
 
         <div className={styles.inputIMGcard}>
           <button
@@ -208,7 +210,12 @@ const TicketDashboard: React.FC<TicketDashboardProps> = ({ eventId }) => {
         <ExportButton eventId={eventId} />
       </div>
 
-      <TabFilter filter={filter} setFilter={setFilter} />
+      <TabFilter
+        filter={filter}
+        setFilter={setFilter}
+        totalAttendees={totalAttendees}
+        validatedAttendees={validatedAttendees}
+      />
       <UserTable searchQuery={searchQuery} filter={filter} eventId={eventId} />
 
       <TicketModal

@@ -8,7 +8,7 @@ import {
   persistor,
   useAppDispatch,
 } from "@/store/store";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   IconChevronDown,
@@ -37,11 +37,15 @@ import { clearAuth } from "@/app/services/auth";
 const Navbar: React.FC = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const pathname = usePathname();
   const [opened, { open, close }] = useDisclosure(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   const isLogged = useSelector((state: RootState) => state.user.isLogged);
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
+
+  // Check if we're on the dashboard page
+  const isOnDashboard = pathname?.startsWith("/dashboard");
 
   // Handle scroll effect
   useEffect(() => {
@@ -107,7 +111,7 @@ const Navbar: React.FC = () => {
       <header
         className={`${styles.navFlexEnhanced} ${
           isScrolled ? styles.scrolled : ""
-        }`}
+        } ${isOnDashboard ? styles.dashboardNav : ""}`}
       >
         <div className={styles.navContainer}>
           <Link href="/">

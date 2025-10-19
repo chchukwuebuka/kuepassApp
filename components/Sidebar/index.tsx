@@ -30,18 +30,39 @@ interface SidebarProps {
 
 const menuItems: {
   key: PageKey;
-  icon?: ReactElement; 
+  icon?: ReactElement;
   label: string;
   isBottom?: boolean;
+  disabled?: boolean;
 }[] = [
   { key: "overview", icon: <FaHome />, label: "Overview" },
-  { key: "customization", icon: <FaUsers />, label: "Customization" },
-  { key: "userManagement", icon: <FaUsers />, label: "User Management" }, // ✅ Fixed key
-  { key: "finance", icon: <FaMoneyBill />, label: "Finance" },
-  { key: "salesAnalytics", icon: <FaChartLine />, label: "Sales Analytics" },
-  { key: "Generate Promotion Kit", icon: <FaStore />, label: "Generate Promotion Kit" },
-  { key: "store", icon: <FaStore />, label: "Store" },
-  { key: "support", icon: <FaCog />, label: "Support", isBottom: true },
+  {
+    key: "customization",
+    icon: <FaUsers />,
+    label: "Customization",
+  },
+  { key: "userManagement", icon: <FaUsers />, label: "User Management" },
+  { key: "finance", icon: <FaMoneyBill />, label: "Finance", disabled: true },
+  {
+    key: "salesAnalytics",
+    icon: <FaChartLine />,
+    label: "Sales Analytics",
+    disabled: true,
+  },
+  {
+    key: "Generate Promotion Kit",
+    icon: <FaStore />,
+    label: "Generate Promotion Kit",
+    disabled: true,
+  },
+  { key: "store", icon: <FaStore />, label: "Store", disabled: true },
+  {
+    key: "support",
+    icon: <FaCog />,
+    label: "Support",
+    isBottom: true,
+    disabled: true,
+  },
   { key: "logout", icon: <FaSignOutAlt />, label: "Log Out", isBottom: true },
 ];
 
@@ -55,8 +76,10 @@ const Sidebar = ({ activePage, onNavClick }: SidebarProps) => {
         {topItems.map((item) => (
           <li
             key={item.key}
-            className={activePage === item.key ? styles.active : ""}
-            onClick={() => onNavClick(item.key)}
+            className={`${activePage === item.key ? styles.active : ""} ${
+              item.disabled ? styles.disabled : ""
+            }`}
+            onClick={() => !item.disabled && onNavClick(item.key)}
           >
             <span className={styles.link}>
               {item.icon} {/* ✅ Ensure icon is rendered */}
@@ -71,8 +94,8 @@ const Sidebar = ({ activePage, onNavClick }: SidebarProps) => {
             key={item.key}
             className={`${activePage === item.key ? styles.active : ""} ${
               item.label === "Log Out" ? styles.logout : ""
-            }`}
-            onClick={() => onNavClick(item.key)}
+            } ${item.disabled ? styles.disabled : ""}`}
+            onClick={() => !item.disabled && onNavClick(item.key)}
           >
             <span className={styles.link}>
               {item.icon} {/* ✅ Ensure icon is rendered */}

@@ -39,6 +39,35 @@
   color: #000000 !important;
 }
 
+/* Dashboard-specific styles - black text */
+.dashboardNav .link {
+  color: #000000 !important;
+}
+
+.dashboardNav .link:hover {
+  color: #f59e0b !important;
+}
+
+.dashboardNav .navBTNEnhanced {
+  color: #000000 !important;
+}
+
+.dashboardNav .navBTN1Enhanced {
+  color: #000000 !important;
+}
+
+.dashboardNav .userName {
+  color: #000000 !important;
+}
+
+.dashboardNav .mobileNavLink {
+  color: #000000 !important;
+}
+
+.dashboardNav .mobileNavBTN1 {
+  color: #000000 !important;
+}
+
 .navContainer {
   display: flex;
   align-items: center;

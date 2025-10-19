@@ -14,7 +14,10 @@ const roboto = Roboto({
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <>
+    <div className={styles.dashboardLayout}>
+
       <Navbar />
+    </div>
       <div className={styles.dashboardLayout}>
         <div className={`${styles.container} ${roboto.className}`}>
           {children}
