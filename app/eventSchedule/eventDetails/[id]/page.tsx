@@ -791,7 +791,7 @@ export default function EventDetails() {
                         size="lg"
                         onClick={handleRegisterNowClick}
                       >
-                        Get your Ticket @ {formatPrice(event?.price)}
+                        Get Access Card @ {formatPrice(event?.price)}
                       </Button>
                       <Menu shadow="md" width={200}>
                         <Menu.Target>
@@ -842,7 +842,7 @@ export default function EventDetails() {
           <div className={styles.mainColumn}>
             <Paper className={styles.contentCard}>
               {/* Event Details Grid */}
-              <div className={styles.highlightedText}>selling out fast</div>
+              <div className={styles.highlightedText}>INVITATION</div>
               <div className={styles.creatorName}>
                 by {event?.creator?.username || "Unknown Host"}
               </div>
@@ -941,7 +941,7 @@ export default function EventDetails() {
               {/* About Section */}
               <div className={styles.section}>
                 <Title order={2} className={styles.sectionTitle}>
-                  About
+                  Description
                 </Title>
                 <Text className={styles.aboutText}>
                   {event?.description || "No description available."}
@@ -1054,7 +1054,7 @@ export default function EventDetails() {
                 onClick={handleRegisterNowClick}
                 fullWidth
               >
-                Get ticket
+                Get Access Card
               </Button>
             </div>
           </div>

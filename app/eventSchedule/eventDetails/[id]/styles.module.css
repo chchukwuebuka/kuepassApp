@@ -191,7 +191,7 @@
   padding: 0 24px;
   height: 56px;
   border-radius: 70px;
-  font-size: 18px;
+  font-size: 22px;
   border: none;
   min-width: 280px;
   flex: 1;
@@ -801,7 +801,7 @@
   border: none;
   border-radius: 25px;
   height: 48px;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 500;
   width: 100%;
   margin-top: 8px;
