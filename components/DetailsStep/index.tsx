@@ -1,5 +1,3 @@
-
-
 // // components/DetailsStep/index.tsx
 
 // import React from "react";
@@ -35,7 +33,7 @@
 //     <div>
 //       <div className={styles.formSection}>
 //         <h3 className={styles.sectionTitle}>Event Details</h3>
-        
+
 //         {/* Title */}
 //         <div className={styles.formGroup}>
 //           <label htmlFor="title" className={styles.label}>
@@ -59,7 +57,7 @@
 //             <label htmlFor="description" className={styles.label}>
 //               Description <span className={styles.required}>*</span>
 //             </label>
-            
+
 //             <Menu shadow="md" width={200}>
 //               <Menu.Target>
 //                 <Button
@@ -116,7 +114,7 @@
 
 //       <div className={styles.formSection}>
 //         <h3 className={styles.sectionTitle}>Location & Schedule</h3>
-        
+
 //         {/* Location */}
 //         <div className={styles.formGroup}>
 //           <label className={styles.label}>
@@ -237,7 +235,6 @@
 
 // export default DetailsStep;
 
-
 import React from "react";
 import { EventFormData } from "../../store/types";
 import styles from "./styles.module.css";
@@ -252,7 +249,7 @@ interface DetailsStepProps {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
   handleLocationChange: (value: "Virtual" | "Physical") => void;
-  onAiAction: (mode: 'generate' | 'refine' | 'complete') => void;
+  onAiAction: (mode: "generate" | "refine" | "complete") => void;
   isGenerating: boolean;
 }
 
@@ -265,29 +262,32 @@ const DetailsStep: React.FC<DetailsStepProps> = ({
   isGenerating,
 }) => {
   // --- NEW: Helper variable to disable menu items appropriately ---
-  const hasDescription = formData.description.trim() !== '';
+  const hasDescription = formData.description.trim() !== "";
 
   // --- NEW: State to track if user is typing ---
   const [isTyping, setIsTyping] = React.useState(false);
-  const [typingTimeout, setTypingTimeout] = React.useState<NodeJS.Timeout | null>(null);
+  const [typingTimeout, setTypingTimeout] =
+    React.useState<NodeJS.Timeout | null>(null);
 
   // --- NEW: Function to handle typing detection ---
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleDescriptionChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
     handleChange(e);
-    
+
     // Clear existing timeout
     if (typingTimeout) {
       clearTimeout(typingTimeout);
     }
-    
+
     // Set typing to true
     setIsTyping(true);
-    
+
     // Set timeout to stop bouncing after user stops typing
     const newTimeout = setTimeout(() => {
       setIsTyping(false);
     }, 1500); // Stop bouncing 1.5 seconds after user stops typing
-    
+
     setTypingTimeout(newTimeout);
   };
 
@@ -295,7 +295,7 @@ const DetailsStep: React.FC<DetailsStepProps> = ({
     <div>
       <div className={styles.formSection}>
         <h3 className={styles.sectionTitle}>Event Details</h3>
-        
+
         {/* Title */}
         <div className={styles.formGroup}>
           <label htmlFor="title" className={styles.label}>
@@ -319,7 +319,7 @@ const DetailsStep: React.FC<DetailsStepProps> = ({
             <label htmlFor="description" className={styles.label}>
               Description <span className={styles.required}>*</span>
             </label>
-            
+
             <Menu shadow="md" width={200}>
               <Menu.Target>
                 <Button
@@ -329,8 +329,16 @@ const DetailsStep: React.FC<DetailsStepProps> = ({
                   size="xs"
                   loading={isGenerating}
                   disabled={!formData.title}
-                  title={!formData.title ? "Please enter an event title first" : "AI writing assistant"}
-                  className={isTyping && formData.description.trim() ? styles.bouncing : ''}
+                  title={
+                    !formData.title
+                      ? "Please enter an event title first"
+                      : "AI writing assistant"
+                  }
+                  className={
+                    isTyping && formData.description.trim()
+                      ? styles.bouncing
+                      : ""
+                  }
                 >
                   AI Assist
                 </Button>
@@ -340,27 +348,26 @@ const DetailsStep: React.FC<DetailsStepProps> = ({
                 <Menu.Label>AI Actions</Menu.Label>
                 <Menu.Item
                   leftSection={<VscWand size={14} />}
-                  onClick={() => onAiAction('generate')}
+                  onClick={() => onAiAction("generate")}
                 >
                   Generate from Title
                 </Menu.Item>
                 <Menu.Item
                   leftSection={<VscEdit size={14} />}
                   disabled={!hasDescription || isGenerating}
-                  onClick={() => onAiAction('refine')}
+                  onClick={() => onAiAction("refine")}
                 >
                   Refine Existing Text
                 </Menu.Item>
                 <Menu.Item
                   leftSection={<VscSparkle size={14} />}
                   disabled={!hasDescription || isGenerating}
-                  onClick={() => onAiAction('complete')}
+                  onClick={() => onAiAction("complete")}
                 >
                   Complete My Thought
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
-
           </div>
           <textarea
             id="description"
@@ -377,7 +384,7 @@ const DetailsStep: React.FC<DetailsStepProps> = ({
 
       <div className={styles.formSection}>
         <h3 className={styles.sectionTitle}>Location & Schedule</h3>
-        
+
         {/* Location */}
         <div className={styles.formGroup}>
           <label className={styles.label}>

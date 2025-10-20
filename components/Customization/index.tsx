@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -408,6 +406,8 @@ const Customization: React.FC = () => {
                     formData={formData}
                     handleChange={handleChange}
                     handleLocationChange={handleLocationChange}
+                    onAiAction={() => {}} // Placeholder for AI functionality
+                    isGenerating={false} // Placeholder for AI generation state
                   />
                 </Tabs.Panel>
 
