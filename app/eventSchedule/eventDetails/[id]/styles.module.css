@@ -186,7 +186,7 @@
 
 .ticketButton {
   background-color: #F5B645;
-  color: #ffffff;
+  color: #151515;
   font-weight: 600;
   padding: 0 24px;
   height: 56px;
@@ -200,7 +200,7 @@
 
 .ticketButton:hover {
   background-color: #E6A53A;
-  color: #ffffff;
+  color: #151515;
 }
 
 .bookmarkButton {

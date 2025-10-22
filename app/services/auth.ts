@@ -222,7 +222,7 @@
 // export async function getUserProfile(): Promise<UserData> {
 //   const BASE_URL =
 //     process.env.NEXT_PUBLIC_API_URL ||
-//     "https://keupass-48c2ae65f897.herokuapp.com/api";
+//     "https://api.kuepass.com/api";
 //   return authenticatedRequest<UserData>(`${BASE_URL}/user/`, "GET");
 // }
 
@@ -438,9 +438,10 @@ export async function clearAuth(): Promise<void> {
   removeUserData();
 
   try {
-    const BASE_URL =
+    const BASE_URL = (
       process.env.NEXT_PUBLIC_API_URL ||
-      "https://keupass-48c2ae65f897.herokuapp.com/api";
+      "https://keupass-48c2ae65f897.herokuapp.com/api"
+    ).replace(/\/$/, "");
 
     await fetch(`${BASE_URL}/logout/`, {
       method: "POST",
@@ -582,8 +583,9 @@ export async function authenticatedRequest<T>(
  * Fetch user profile
  */
 export async function getUserProfile(): Promise<UserData> {
-  const BASE_URL =
+  const BASE_URL = (
     process.env.NEXT_PUBLIC_API_URL ||
-    "https://keupass-48c2ae65f897.herokuapp.com/api";
+    "https://keupass-48c2ae65f897.herokuapp.com/api"
+  ).replace(/\/$/, "");
   return authenticatedRequest<UserData>(`${BASE_URL}/users/me/`, "GET"); // Corrected endpoint
 }

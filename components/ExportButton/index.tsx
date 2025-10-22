@@ -2,9 +2,10 @@ import { useState } from "react";
 import styles from "./styles.module.css";
 import { authenticatedRequest } from "../../app/services/auth";
 
-const API_BASE_URL =
+const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api";
+  "https://keupass-48c2ae65f897.herokuapp.com/api"
+).replace(/\/$/, "");
 
 interface ExportButtonProps {
   eventId: string;

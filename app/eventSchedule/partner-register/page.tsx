@@ -98,9 +98,10 @@ interface AttendeeRequestPayload {
   }>;
 }
 
-const API_BASE_URL =
+const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api";
+  "https://keupass-48c2ae65f897.herokuapp.com/api"
+).replace(/\/$/, "");
 
 export default function PartnerRegisterEvent() {
   const searchParams = useSearchParams();
@@ -536,7 +537,6 @@ export default function PartnerRegisterEvent() {
                 className={styles.headerBadge}
               >
                 Event Registration
-                
               </Badge>
               <Button
                 variant="light"

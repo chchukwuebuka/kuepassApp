@@ -128,9 +128,10 @@ interface PaymentInitializationApiResponse {
   error_code?: string;
 }
 
-const API_BASE_URL =
+const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api";
+  "https://keupass-48c2ae65f897.herokuapp.com/api"
+).replace(/\/$/, "");
 
 export default function RegisterEvent() {
   const searchParams = useSearchParams();
@@ -174,6 +175,16 @@ export default function RegisterEvent() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Auto-select first ticket with quantity 1 when tickets are loaded
+  useEffect(() => {
+    if (tickets.length > 0 && Object.keys(selectedTickets).length === 0) {
+      const firstTicket = tickets[0];
+      if (firstTicket) {
+        setSelectedTickets({ [firstTicket.id]: 1 });
+      }
+    }
+  }, [tickets, selectedTickets]);
 
   // const fees = 500.0; // Commented out - not needed for now
 
@@ -1076,7 +1087,7 @@ export default function RegisterEvent() {
                                   size="sm"
                                   className={styles.ticketDescription}
                                 >
-                                  Admits one
+                                  Admits {selectedTickets[ticket.id] || 0}
                                 </Text>
                                 <Text
                                   size="sm"

@@ -1,5 +1,3 @@
-
-
 // UserTable.tsx (Updated)
 "use client";
 

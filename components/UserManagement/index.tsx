@@ -12,9 +12,10 @@ import { Text } from "@mantine/core";
 import TicketModal from "../Ticket/ticketModal";
 import { authenticatedRequest } from "../../app/services/auth";
 
-const API_BASE_URL =
+const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api";
+  "https://keupass-48c2ae65f897.herokuapp.com/api"
+).replace(/\/$/, "");
 
 interface TicketDashboardProps {
   eventId: string;

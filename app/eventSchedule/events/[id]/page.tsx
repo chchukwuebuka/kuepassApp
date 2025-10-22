@@ -1,107 +1,126 @@
+"use client";
 
-
-"use client"
-
-import { useEffect, useState, useRef } from "react"
-import { useParams } from "next/navigation"
-import { Container, Button, Text, Group, Stack, Image, Flex, Loader, Center, Paper, Title } from "@mantine/core"
-import styles from "./styles.module.css"
-import CustomFooter from "@/components/Footer"
-import Link from "next/link"
-import EventSection from "@/components/TrendingEvents"
-import { authenticatedRequest } from "@/app/services/auth"
-import { MapPin, Share2 } from 'lucide-react'
+import { useEffect, useState, useRef } from "react";
+import { useParams } from "next/navigation";
+import {
+  Container,
+  Button,
+  Text,
+  Group,
+  Stack,
+  Image,
+  Flex,
+  Loader,
+  Center,
+  Paper,
+  Title,
+} from "@mantine/core";
+import styles from "./styles.module.css";
+import CustomFooter from "@/components/Footer";
+import Link from "next/link";
+import EventSection from "@/components/TrendingEvents";
+import { authenticatedRequest } from "@/app/services/auth";
+import { MapPin, Share2 } from "lucide-react";
 
 interface Customization {
-  id: string
-  banner_url: string
-  font: string
-  card_color: string
-  event: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
+  id: string;
+  banner_url: string;
+  font: string;
+  card_color: string;
+  event: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 interface EventData {
-  id: string
-  title: string
-  description: string
-  start_date: string
-  end_date: string
-  location: string
-  customization?: Customization
+  id: string;
+  title: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  location: string;
+  customization?: Customization;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://keupass-48c2ae65f897.herokuapp.com/api"
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "https://keupass-48c2ae65f897.herokuapp.com/api"
+).replace(/\/$/, "");
 
 export default function EventPage() {
-  const { id } = useParams<{ id: string }>()
-  const [event, setEvent] = useState<EventData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setErrorMessage] = useState<string | null>(null)
-  const headerRef = useRef<HTMLDivElement>(null)
-  const [copied, setCopied] = useState(false)
+  const { id } = useParams<{ id: string }>();
+  const [event, setEvent] = useState<EventData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setErrorMessage] = useState<string | null>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!id) return
-    setIsLoading(true)
-    authenticatedRequest<{ data: EventData }>(`${API_BASE_URL}/events/${id}/`, "GET")
+    if (!id) return;
+    setIsLoading(true);
+    authenticatedRequest<{ data: EventData }>(
+      `${API_BASE_URL}/events/${id}/`,
+      "GET"
+    )
       .then((res) => setEvent(res.data))
       .catch((err) => {
-        console.error("Fetch error:", err)
-        setErrorMessage(err.message || "Failed to load event")
+        console.error("Fetch error:", err);
+        setErrorMessage(err.message || "Failed to load event");
       })
-      .finally(() => setIsLoading(false))
-  }, [id])
+      .finally(() => setIsLoading(false));
+  }, [id]);
 
   // Apply card background color
   useEffect(() => {
     if (event && headerRef.current) {
-      const cardColor = event.customization?.card_color || "#e7dbd8"
+      const cardColor = event.customization?.card_color || "#e7dbd8";
       const hexToRgba = (hex: string, alpha = 0.8) => {
-        const r = parseInt(hex.slice(1, 3), 16)
-        const g = parseInt(hex.slice(3, 5), 16)
-        const b = parseInt(hex.slice(5, 7), 16)
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`
-      }
-      headerRef.current.style.setProperty("--card-bg-color", hexToRgba(cardColor))
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      };
+      headerRef.current.style.setProperty(
+        "--card-bg-color",
+        hexToRgba(cardColor)
+      );
     }
-  }, [event])
+  }, [event]);
 
   // Format dates
   const formatDateOnly = (dateString: string) => {
-    const date = new Date(dateString)
+    const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
-    })
-  }
+    });
+  };
 
   // Share event link
   const handleShareLink = async () => {
-    const url = window.location.href
+    const url = window.location.href;
     if (navigator.share) {
       try {
         await navigator.share({
           title: event?.title || "Awesome Event",
           text: `Join me at "${event?.title}"!`,
           url,
-        })
-        return
+        });
+        return;
       } catch (err) {
-        console.warn("Share API error, falling back to copy:", err)
+        console.warn("Share API error, falling back to copy:", err);
       }
     }
     try {
-      await navigator.clipboard.writeText(url)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error("Copy failed:", err)
+      console.error("Copy failed:", err);
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -109,7 +128,7 @@ export default function EventPage() {
         <Loader size="lg" className={styles.loader} />
         <Text className={styles.loadingText}>Loading event details...</Text>
       </div>
-    )
+    );
   }
 
   if (error || !event) {
@@ -124,19 +143,23 @@ export default function EventPage() {
           </Link>
         </Paper>
       </Center>
-    )
+    );
   }
 
-  const banner = event.customization?.banner_url || "/images/placeholder.jpg"
-  const formattedStart = formatDateOnly(event.start_date)
-  const formattedEnd = formatDateOnly(event.end_date)
+  const banner = event.customization?.banner_url || "/images/placeholder.jpg";
+  const formattedStart = formatDateOnly(event.start_date);
+  const formattedEnd = formatDateOnly(event.end_date);
 
   return (
     <Stack spacing={0} className={styles.pageWrapper}>
       <Container fluid className={styles.container}>
         {/* Header Section */}
         <div className={styles.header}>
-          <Image src={banner} alt={event.title} className={styles.bannerImage} />
+          <Image
+            src={banner}
+            alt={event.title}
+            className={styles.bannerImage}
+          />
           <div ref={headerRef} className={styles.headerContent}>
             <Text className={styles.eventTitle}>{event.title}</Text>
             <Flex className={styles.eventtime}>
@@ -144,7 +167,10 @@ export default function EventPage() {
               <Text className={styles.eventdate}>{formattedEnd}</Text>
             </Flex>
             <Group className={styles.eventBTN}>
-              <Link href={`/eventSchedule/registerEvent?eventId=${id}`} style={{ textDecoration: "none" }}>
+              <Link
+                href={`/eventSchedule/registerEvent?eventId=${id}`}
+                style={{ textDecoration: "none" }}
+              >
                 <Button className={styles.registerButton}>Register</Button>
               </Link>
               <Button
@@ -193,5 +219,5 @@ export default function EventPage() {
         <CustomFooter />
       </div>
     </Stack>
-  )
+  );
 }

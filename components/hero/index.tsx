@@ -7,9 +7,10 @@ import NextImage from "next/image";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API_BASE_URL =
+const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api";
+  "https://keupass-48c2ae65f897.herokuapp.com/api"
+).replace(/\/$/, "");
 
 function HeroSection() {
   // State to toggle between words

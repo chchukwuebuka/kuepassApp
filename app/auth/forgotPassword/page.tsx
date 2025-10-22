@@ -39,6 +39,7 @@ const ForgotPassword = () => {
       const apiUrl =
         process.env.NEXT_PUBLIC_API_URL ||
         "https://keupass-48c2ae65f897.herokuapp.com/api";
+
       console.log("Sending request to:", `${apiUrl}/password-reset/`);
       console.log("Request body:", JSON.stringify({ email: values.email }));
 
