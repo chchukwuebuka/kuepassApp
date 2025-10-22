@@ -4,8 +4,19 @@ import React from "react";
 import styled from "styled-components";
 import { Container } from "@mantine/core";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const LevelUpEventSection: React.FC = () => {
+  const router = useRouter();
+
+  const handleContactUs = () => {
+    router.push("/connect");
+  };
+
+  const handleHostEvent = () => {
+    router.push("/eventSchedule/createEventForm");
+  };
+
   return (
     <SectionWrapper>
       <Container size="lg" px="md">
@@ -27,8 +38,10 @@ const LevelUpEventSection: React.FC = () => {
             </Description>
 
             <ActionButtons>
-              <ContactButton>Contact Us</ContactButton>
-              <HostEventLink>
+              <ContactButton onClick={handleContactUs}>
+                Contact Us
+              </ContactButton>
+              <HostEventLink onClick={handleHostEvent}>
                 Host an event <ArrowIcon>→</ArrowIcon>
               </HostEventLink>
             </ActionButtons>
@@ -104,7 +117,7 @@ const TextContent = styled.div`
   padding-left: 1rem;
   padding: 50px;
   border-radius: 16px;
-  background-color: #F9F9F9;
+  background-color: #f9f9f9;
 
   @media (max-width: 768px) {
     padding-left: 0;
@@ -134,7 +147,7 @@ const Title = styled.h2`
 const Description = styled.p`
   font-size: 20px;
   font-weight: 500;
-  color: #6F6F6F;
+  color: #6f6f6f;
   margin: 0 0 2rem 0;
   line-height: 1.6;
 

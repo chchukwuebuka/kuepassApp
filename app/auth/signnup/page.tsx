@@ -73,9 +73,10 @@ const SignUp = () => {
    */
   async function handleGoogleLogin(accessToken: string) {
     try {
-      const apiUrl =
+      const apiUrl = (
         process.env.NEXT_PUBLIC_API_URL ||
-        "https://keupass-48c2ae65f897.herokuapp.com/api";
+        "https://keupass-48c2ae65f897.herokuapp.com/api"
+      ).replace(/\/$/, "");
 
       // Use the working Google login endpoint
       const response = await fetch(`${apiUrl}/google-login/`, {
@@ -184,9 +185,10 @@ const SignUp = () => {
   // Handle auth code flow for Google OAuth
   const handleGoogleAuthCode = async (code: string) => {
     try {
-      const apiUrl =
+      const apiUrl = (
         process.env.NEXT_PUBLIC_API_URL ||
-        "https://keupass-48c2ae65f897.herokuapp.com/api";
+        "https://keupass-48c2ae65f897.herokuapp.com/api"
+      ).replace(/\/$/, "");
 
       // Exchange auth code for tokens
       const response = await fetch(`${apiUrl}/google-auth-code/`, {
@@ -257,9 +259,10 @@ const SignUp = () => {
           const formData = new FormData();
           formData.append("file", imgFile);
 
-          const apiUrl =
+          const apiUrl = (
             process.env.NEXT_PUBLIC_API_URL ||
-            "https://keupass-48c2ae65f897.herokuapp.com/api";
+            "https://keupass-48c2ae65f897.herokuapp.com/api"
+          ).replace(/\/$/, "");
 
           const imageResponse = await fetch(`${apiUrl}/upload/image`, {
             method: "POST",

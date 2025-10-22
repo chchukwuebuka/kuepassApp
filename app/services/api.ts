@@ -1,7 +1,8 @@
 // Get API URL from environment variables
-const BASE_URL =
+const BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api";
+  "https://keupass-48c2ae65f897.herokuapp.com/api"
+).replace(/\/$/, "");
 
 // Import types from separate file
 import {

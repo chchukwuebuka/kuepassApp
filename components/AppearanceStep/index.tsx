@@ -1,5 +1,3 @@
-
-
 "use strict";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -32,9 +30,10 @@ interface AppearanceStepProps {
   showCountdown?: boolean;
 }
 
-const API_BASE_URL =
+const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api";
+  "https://keupass-48c2ae65f897.herokuapp.com/api"
+).replace(/\/$/, "");
 
 const AppearanceStep: React.FC<AppearanceStepProps> = ({
   formData,

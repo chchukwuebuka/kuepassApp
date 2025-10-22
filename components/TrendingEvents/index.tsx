@@ -15,9 +15,10 @@ import EventCard, { EventCardProps } from "./cardsPromps";
 import { authenticatedRequest } from "@/app/services/auth";
 import { useLoadingState } from "@/store/loadingHook";
 
-const API_BASE_URL =
+const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api";
+  "https://keupass-48c2ae65f897.herokuapp.com/api"
+).replace(/\/$/, "");
 
 interface FetchedEventData {
   id: string;

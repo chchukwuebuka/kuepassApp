@@ -461,7 +461,6 @@
 
 // export default TicketModal;
 
-
 "use client";
 
 import React, { useState } from "react";
@@ -479,7 +478,7 @@ import {
   Switch,
   Collapse,
 } from "@mantine/core";
-import { IconInfoCircle } from '@tabler/icons-react';
+import { IconInfoCircle } from "@tabler/icons-react";
 import styles from "./ticketModal.module.css";
 import { Ticket } from "../../store/types";
 import { authenticatedRequest } from "../../app/services/auth";
@@ -505,7 +504,7 @@ interface TicketModalProps {
   };
 }
 
-const   TicketModal: React.FC<TicketModalProps> = ({
+const TicketModal: React.FC<TicketModalProps> = ({
   isModalOpen,
   closeModal,
   addTicket,
@@ -531,7 +530,7 @@ const   TicketModal: React.FC<TicketModalProps> = ({
     price_range: string | { min: number; max: number }; // Allow object or string
     reasoning: string;
   } | null>(null);
-  const [suggestionError, setSuggestionError] = useState('');
+  const [suggestionError, setSuggestionError] = useState("");
 
   const handleTicketChange = (
     field: keyof typeof initialTicketState,
@@ -564,12 +563,14 @@ const   TicketModal: React.FC<TicketModalProps> = ({
 
   const handleSuggestPrice = async () => {
     if (!eventDetails.title) {
-      setSuggestionError("Please go back to Step 1 and enter an event title first.");
+      setSuggestionError(
+        "Please go back to Step 1 and enter an event title first."
+      );
       return;
     }
     setIsSuggesting(true);
     setSuggestion(null);
-    setSuggestionError('');
+    setSuggestionError("");
     try {
       const response = await authenticatedRequest<any>(
         `https://keupass-48c2ae65f897.herokuapp.com/api/suggest-ticket-price/`,
@@ -601,21 +602,26 @@ const   TicketModal: React.FC<TicketModalProps> = ({
       return;
     }
     if (newTicket.enable_dynamic_pricing) {
-        if (!newTicket.min_price || !newTicket.max_price) {
-            alert("Please set a minimum and maximum price for dynamic pricing.");
-            setIsLoading(false);
-            return;
-        }
-        if (newTicket.min_price >= newTicket.max_price) {
-            alert("Minimum price must be less than the maximum price.");
-            setIsLoading(false);
-            return;
-        }
-        if (newTicket.price < newTicket.min_price || newTicket.price > newTicket.max_price) {
-            alert("The initial price must be between the minimum and maximum price limits.");
-            setIsLoading(false);
-            return;
-        }
+      if (!newTicket.min_price || !newTicket.max_price) {
+        alert("Please set a minimum and maximum price for dynamic pricing.");
+        setIsLoading(false);
+        return;
+      }
+      if (newTicket.min_price >= newTicket.max_price) {
+        alert("Minimum price must be less than the maximum price.");
+        setIsLoading(false);
+        return;
+      }
+      if (
+        newTicket.price < newTicket.min_price ||
+        newTicket.price > newTicket.max_price
+      ) {
+        alert(
+          "The initial price must be between the minimum and maximum price limits."
+        );
+        setIsLoading(false);
+        return;
+      }
     }
 
     const ticketToAdd = {
@@ -623,13 +629,13 @@ const   TicketModal: React.FC<TicketModalProps> = ({
       quantity: isUnlimited ? "Unlimited" : Number(newTicket.quantity),
     };
     addTicket(ticketToAdd);
-    
+
     // Reset state and close modal
     setNewTicket(initialTicketState);
     setIsUnlimited(false);
     setIsLoading(false);
     setSuggestion(null);
-    setSuggestionError('');
+    setSuggestionError("");
     closeModal();
   };
 
@@ -659,25 +665,37 @@ const   TicketModal: React.FC<TicketModalProps> = ({
     setNewTicket(initialTicketState);
     setIsUnlimited(false);
     setSuggestion(null);
-    setSuggestionError('');
+    setSuggestionError("");
     closeModal();
   };
 
-  const formatPriceRange = (range: string | { min: number; max: number }): string => {
-    if (typeof range === 'string') {
-        return range;
+  const formatPriceRange = (
+    range: string | { min: number; max: number }
+  ): string => {
+    if (typeof range === "string") {
+      return range;
     }
-    if (typeof range === 'object' && range.min !== undefined && range.max !== undefined) {
-        return `${priceFormatter(String(range.min))} - ${priceFormatter(String(range.max))}`;
+    if (
+      typeof range === "object" &&
+      range.min !== undefined &&
+      range.max !== undefined
+    ) {
+      return `${priceFormatter(String(range.min))} - ${priceFormatter(
+        String(range.max)
+      )}`;
     }
-    return 'N/A';
+    return "N/A";
   };
 
   return (
     <Modal
       opened={isModalOpen}
       onClose={isLoading ? () => {} : handleCancel}
-      title={<Text fw={700} size="xl">Create New Ticket</Text>}
+      title={
+        <Text fw={700} size="xl">
+          Create New Ticket
+        </Text>
+      }
       centered
       size="lg"
       className={styles.modalContent}
@@ -693,7 +711,9 @@ const   TicketModal: React.FC<TicketModalProps> = ({
               label="Ticket Name"
               placeholder="e.g., General Admission, VIP Pass"
               value={newTicket.name}
-              onChange={(e) => handleTicketChange("name", e.currentTarget.value)}
+              onChange={(e) =>
+                handleTicketChange("name", e.currentTarget.value)
+              }
               required
               maxLength={255}
               className={styles.textInput}
@@ -723,7 +743,12 @@ const   TicketModal: React.FC<TicketModalProps> = ({
                   label="Price"
                   placeholder="Enter ticket price"
                   value={newTicket.price}
-                  onChange={(value) => handleTicketChange("price", typeof value === "number" ? value : 0)}
+                  onChange={(value) =>
+                    handleTicketChange(
+                      "price",
+                      typeof value === "number" ? value : 0
+                    )
+                  }
                   required
                   min={0.01}
                   step={0.01}
@@ -733,38 +758,51 @@ const   TicketModal: React.FC<TicketModalProps> = ({
                   className={styles.numberInput}
                 />
                 <Button
-                    type="button"
-                    variant="light"
-                    onClick={handleSuggestPrice}
-                    loading={isSuggesting}
-                    leftIcon={<span>✨</span>}
-                    className={styles.unlimitedButton}
+                  type="button"
+                  variant="light"
+                  onClick={handleSuggestPrice}
+                  loading={isSuggesting}
+                  leftIcon={<span>✨</span>}
+                  className={styles.unlimitedButton}
                 >
-                    Suggest Price
+                  Suggest Price
                 </Button>
               </Flex>
-              
-              {suggestionError && <Alert color="red" mt="md">{suggestionError}</Alert>}
-    
+
+              {suggestionError && (
+                <Alert color="red" mt="md">
+                  {suggestionError}
+                </Alert>
+              )}
+
               {suggestion && (
-                  <Alert icon={<IconInfoCircle size={16} />} title="AI Suggestion" color="green" mt="md">
-                      <Text size="sm">{suggestion.reasoning}</Text>
-                      <Text size="sm" mt="xs">
-                        <strong>Recommended Range:</strong> {formatPriceRange(suggestion.price_range)}
-                      </Text>
-                      <Text fw={700} mt="xs">
-                        Our suggestion is {priceFormatter(suggestion.suggested_price.toString())}
-                      </Text>
-                      <Button
-                          variant="outline"
-                          size="xs"
-                          mt="sm"
-                          onClick={() => handleTicketChange('price', suggestion.suggested_price)}
-                          className={styles.unlimitedButton}
-                      >
-                          Use This Price
-                      </Button>
-                  </Alert>
+                <Alert
+                  icon={<IconInfoCircle size={16} />}
+                  title="AI Suggestion"
+                  color="green"
+                  mt="md"
+                >
+                  <Text size="sm">{suggestion.reasoning}</Text>
+                  <Text size="sm" mt="xs">
+                    <strong>Recommended Range:</strong>{" "}
+                    {formatPriceRange(suggestion.price_range)}
+                  </Text>
+                  <Text fw={700} mt="xs">
+                    Our suggestion is{" "}
+                    {priceFormatter(suggestion.suggested_price.toString())}
+                  </Text>
+                  <Button
+                    variant="outline"
+                    size="xs"
+                    mt="sm"
+                    onClick={() =>
+                      handleTicketChange("price", suggestion.suggested_price)
+                    }
+                    className={styles.unlimitedButton}
+                  >
+                    Use This Price
+                  </Button>
+                </Alert>
               )}
 
               {newTicket.price > 0 && (
@@ -775,44 +813,49 @@ const   TicketModal: React.FC<TicketModalProps> = ({
             </div>
           )}
 
-          {newTicket.type === 'Paid' && (
+          {newTicket.type === "Paid" && (
             <div className={styles.formSection}>
-                <Text className={styles.sectionTitle}>Advanced Settings</Text>
-                <Switch
-                    checked={newTicket.enable_dynamic_pricing}
-                    onChange={(event) => handleTicketChange('enable_dynamic_pricing', event.currentTarget.checked)}
-                    label="Enable AI Dynamic Pricing"
-                    description="Automatically adjust ticket price based on sales velocity to maximize revenue."
-                />
-                <Collapse in={newTicket.enable_dynamic_pricing}>
-                    <Flex >
-                        <NumberInput
-                            style={{ flex: 1 }}
-                            label="Minimum Price"
-                            description="Lowest price allowed."
-                            placeholder="e.g., 5000"
-                            value={newTicket.min_price}
-                            onChange={(value) => handleTicketChange('min_price', value)}
-                            parser={priceParser}
-                            formatter={priceFormatter}
-                            required={newTicket.enable_dynamic_pricing}
-                        />
-                        <NumberInput
-                            style={{ flex: 1 }}
-                            label="Maximum Price"
-                            description="Highest price allowed."
-                            placeholder="e.g., 20000"
-                            value={newTicket.max_price}
-                            onChange={(value) => handleTicketChange('max_price', value)}
-                            parser={priceParser}
-                            formatter={priceFormatter}
-                            required={newTicket.enable_dynamic_pricing}
-                        />
-                    </Flex>
-                </Collapse>
+              <Text className={styles.sectionTitle}>Advanced Settings</Text>
+              <Switch
+                checked={newTicket.enable_dynamic_pricing}
+                onChange={(event) =>
+                  handleTicketChange(
+                    "enable_dynamic_pricing",
+                    event.currentTarget.checked
+                  )
+                }
+                label="Enable AI Dynamic Pricing"
+                description="Automatically adjust ticket price based on sales velocity to maximize revenue."
+              />
+              <Collapse in={newTicket.enable_dynamic_pricing}>
+                <Flex>
+                  <NumberInput
+                    style={{ flex: 1 }}
+                    label="Minimum Price"
+                    description="Lowest price allowed."
+                    placeholder="e.g., 5000"
+                    value={newTicket.min_price}
+                    onChange={(value) => handleTicketChange("min_price", value)}
+                    parser={priceParser}
+                    formatter={priceFormatter}
+                    required={newTicket.enable_dynamic_pricing}
+                  />
+                  <NumberInput
+                    style={{ flex: 1 }}
+                    label="Maximum Price"
+                    description="Highest price allowed."
+                    placeholder="e.g., 20000"
+                    value={newTicket.max_price}
+                    onChange={(value) => handleTicketChange("max_price", value)}
+                    parser={priceParser}
+                    formatter={priceFormatter}
+                    required={newTicket.enable_dynamic_pricing}
+                  />
+                </Flex>
+              </Collapse>
             </div>
           )}
-          
+
           {newTicket.type !== "Invite" && (
             <div className={styles.formSection}>
               <Text className={styles.sectionTitle}>Availability</Text>
@@ -821,8 +864,15 @@ const   TicketModal: React.FC<TicketModalProps> = ({
                   style={{ flexGrow: 1 }}
                   label="Quantity"
                   placeholder="Enter number of tickets"
-                  value={isUnlimited ? undefined : (newTicket.quantity as number)}
-                  onChange={(value) => handleTicketChange("quantity", typeof value === "number" ? value : 0)}
+                  value={
+                    isUnlimited ? undefined : (newTicket.quantity as number)
+                  }
+                  onChange={(value) =>
+                    handleTicketChange(
+                      "quantity",
+                      typeof value === "number" ? value : 0
+                    )
+                  }
                   required={!isUnlimited}
                   min={1}
                   disabled={isUnlimited}
@@ -847,7 +897,9 @@ const   TicketModal: React.FC<TicketModalProps> = ({
                 label="Invite Email"
                 placeholder="Enter email address for invitation"
                 value={newTicket.inviteEmail || ""}
-                onChange={(e) => handleTicketChange("inviteEmail", e.currentTarget.value)}
+                onChange={(e) =>
+                  handleTicketChange("inviteEmail", e.currentTarget.value)
+                }
                 required
                 type="email"
                 className={styles.textInput}
