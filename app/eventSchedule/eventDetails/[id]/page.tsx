@@ -791,7 +791,7 @@ export default function EventDetails() {
                         size="lg"
                         onClick={handleRegisterNowClick}
                       >
-                        Get Access Card @ {formatPrice(event?.price)}
+                        Get Access Card - {formatPrice(event?.price)}
                       </Button>
                       <Menu shadow="md" width={200}>
                         <Menu.Target>
