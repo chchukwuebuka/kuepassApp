@@ -129,7 +129,7 @@ interface PaymentInitializationApiResponse {
 }
 
 const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
   "https://keupass-48c2ae65f897.herokuapp.com/api"
 ).replace(/\/$/, "");
 
@@ -356,7 +356,7 @@ export default function RegisterEvent() {
     }
   };
 
-  const handleContinueFromContact = () => {
+  const handleContinueFromContact = async () => {
     // Validate contact forms
     for (let i = 0; i < contactForms.length; i++) {
       const form = contactForms[i];
@@ -407,7 +407,79 @@ export default function RegisterEvent() {
     const totalAmount = calculateTotal();
     if (totalAmount <= 0) {
       // Free event - proceed directly to registration
-      handlePurchase();
+      setPaymentLoading(true);
+      setError(null);
+      try {
+        await withLoading(async () => {
+          // Create attendee records for all contact forms
+          for (let i = 0; i < contactForms.length; i++) {
+            const form = contactForms[i];
+
+            // Prepare attendee payload
+            const attendeePayload: AttendeeRequestPayload = {
+              event: eventId!,
+              ticket: form.ticketId,
+              user: 0, // Guest user
+              email: form.email,
+              name: `${form.firstName} ${form.lastName}`,
+              first_name: form.firstName,
+              last_name: form.lastName,
+              phone_number: form.phoneNumber.trim(),
+              payment_status: "completed", // Free tickets are automatically completed
+              responses: form.questionAnswers.map((answer) => ({
+                question: answer.questionId,
+                text_response:
+                  typeof answer.value === "string" ? answer.value : undefined,
+                selected_options: Array.isArray(answer.value)
+                  ? answer.value.map((val) => ({ option: val }))
+                  : undefined,
+              })),
+            };
+
+            console.log(`Creating attendee ${i + 1}:`, attendeePayload);
+
+            // Create attendee record
+            const attendeeResponse = await fetch(`${API_BASE_URL}/attendees/`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify(attendeePayload),
+            });
+
+            if (!attendeeResponse.ok) {
+              const errorData = await attendeeResponse.json();
+              throw new Error(
+                `Failed to register attendee ${i + 1}: ${
+                  errorData?.message || "Unknown error"
+                }`
+              );
+            }
+
+            const attendeeData = await attendeeResponse.json();
+            console.log(
+              `Attendee ${i + 1} created successfully:`,
+              attendeeData
+            );
+
+            // Store the first attendee ID for QR code generation
+            if (i === 0) {
+              setRegisteredAttendeeId(
+                attendeeData.id || attendeeData.attendee_id
+              );
+            }
+          }
+
+          // Show QR code modal instead of success modal
+          setShowQRModal(true);
+          setPaymentLoading(false);
+        });
+      } catch (err: any) {
+        alert(err.message || "An error occurred during registration.");
+        console.error("Error in handleContinueFromContact:", err);
+        setPaymentLoading(false);
+      }
     } else {
       // Paid event - go to payment step
       setCurrentStep(4);
@@ -564,6 +636,11 @@ export default function RegisterEvent() {
       return;
     }
 
+    // Only proceed with payment/registration for step 4
+    if (currentStep !== 4) {
+      return;
+    }
+
     setPaymentLoading(true);
     setError(null);
     try {
@@ -643,7 +720,7 @@ export default function RegisterEvent() {
         }
 
         // For paid tickets, validate payment method selection
-        if (currentStep === 4 && !selectedPaymentMethod) {
+        if (!selectedPaymentMethod) {
           alert("Please select a payment method.");
           setPaymentLoading(false);
           return;

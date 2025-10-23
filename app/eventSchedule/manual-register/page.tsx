@@ -98,7 +98,7 @@ interface AttendeeRequestPayload {
 }
 
 const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
   "https://keupass-48c2ae65f897.herokuapp.com/api"
 ).replace(/\/$/, "");
 
@@ -127,16 +127,12 @@ export default function ManualRegisterEvent() {
     lastName: "",
     email: "",
     phoneNumber: "",
-    title: "", // Add title field
-    institution: "", // Add institution field
   });
   const [formErrors, setFormErrors] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phoneNumber: "",
-    title: "", // Add title error field
-    institution: "", // Add institution error field
   });
 
   useEffect(() => {
@@ -155,7 +151,7 @@ export default function ManualRegisterEvent() {
 
   useEffect(() => {
     // Hardcoded event ID
-    const hardcodedEventId = "506";
+    const hardcodedEventId = "513";
     fetchAllData(hardcodedEventId);
   }, []);
 
@@ -240,8 +236,6 @@ export default function ManualRegisterEvent() {
       lastName: "",
       email: "",
       phoneNumber: "",
-      title: "",
-      institution: "",
     };
 
     if (!formData.firstName.trim()) {
@@ -260,11 +254,24 @@ export default function ManualRegisterEvent() {
     } else if (formData.phoneNumber.trim().length < 10) {
       errors.phoneNumber = "Please enter a valid phone number.";
     }
-    if (!formData.title.trim()) {
-      errors.title = "Professional title is required.";
-    }
-    if (!formData.institution.trim()) {
-      errors.institution = "Institution/Organization is required.";
+
+    // Validate required questions
+    for (const question of questions) {
+      if (question.required) {
+        const answer = answers.find((a) => a.questionId === question.id);
+        if (!answer?.value) {
+          alert(`Please answer the required question: ${question.title}`);
+          return false;
+        }
+        if (Array.isArray(answer.value) && answer.value.length === 0) {
+          alert(`Please answer the required question: ${question.title}`);
+          return false;
+        }
+        if (typeof answer.value === "string" && answer.value.trim() === "") {
+          alert(`Please answer the required question: ${question.title}`);
+          return false;
+        }
+      }
     }
 
     setFormErrors(errors);
@@ -298,8 +305,8 @@ export default function ManualRegisterEvent() {
 
     try {
       // Hardcoded values
-      const hardcodedEventId = "506";
-      const hardcodedTicketId = "077fddd1-058f-4c5d-9cd5-711303993372";
+      const hardcodedEventId = "513";
+      const hardcodedTicketId = "ab9dba6a-dff9-40c7-9223-cd109395a4dc";
 
       // Format phone number - react-phone-input-2 returns the number without the + sign
       const formattedPhone = formData.phoneNumber.trim().startsWith("+")
@@ -316,12 +323,18 @@ export default function ManualRegisterEvent() {
         name: fullName,
         email: formData.email.trim(),
         phone_number: formattedPhone,
-        title: formData.title.trim(), // Add title
-        institution: formData.institution.trim(), // Add institution
         event: hardcodedEventId,
         ticket_id: hardcodedTicketId,
         payment_status: "bypassed", // Mark payment as bypassed for manually added attendees
         registration_source: "manual_entry", // Track how they were added
+        responses: answers.map((answer) => ({
+          question: answer.questionId,
+          text_response:
+            typeof answer.value === "string" ? answer.value : undefined,
+          selected_options: Array.isArray(answer.value)
+            ? answer.value.map((val) => ({ option: val }))
+            : undefined,
+        })),
       };
 
       console.log("🔍 Request details:");
@@ -393,16 +406,12 @@ export default function ManualRegisterEvent() {
       lastName: "",
       email: "",
       phoneNumber: "",
-      title: "", // Add title reset
-      institution: "", // Add institution reset
     });
     setFormErrors({
       firstName: "",
       lastName: "",
       email: "",
       phoneNumber: "",
-      title: "", // Add title error reset
-      institution: "", // Add institution error reset
     });
     setAnswers([]);
   };
@@ -644,245 +653,187 @@ export default function ManualRegisterEvent() {
                     </Text>
                   )}
                 </div>
-
-                <div className={styles.questionItem}>
-                  <label className={styles.questionLabel}>
-                    Employment Status <span className={styles.required}>*</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g.,  Employed, Self Employed, Student etc."
-                    value={formData.title}
-                    onChange={(e) =>
-                      handleInputChange("title", e.currentTarget.value)
-                    }
-                    className={styles.input}
-                    disabled={paymentLoading}
-                  />
-                  {formErrors.title && (
-                    <Text size="xs" color="red" mt={5}>
-                      {formErrors.title}
-                    </Text>
-                  )}
-                </div>
-
-                <div className={styles.questionItem}>
-                  <label className={styles.questionLabel}>
-                    Business Name <span className={styles.required}>*</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g.,  Type Your Company Name"
-                    value={formData.institution}
-                    onChange={(e) =>
-                      handleInputChange("institution", e.currentTarget.value)
-                    }
-                    className={styles.input}
-                    disabled={paymentLoading}
-                  />
-                  {formErrors.institution && (
-                    <Text size="xs" color="red" mt={5}>
-                      {formErrors.institution}
-                    </Text>
-                  )}
-                </div>
               </div>
 
               <Divider my="xl" />
-              {/* <div className={styles.sectionHeader}>
-                <Group gap="sm">
-                  <ThemeIcon variant="light" color="green">
-                    <IconTicket size={20} />
-                  </ThemeIcon>
-                  <Text fw={600} size="lg">
-                    Registration Details
-                  </Text>
-                </Group>
-              </div>
-              <div className={styles.ticketInfo}>
-                <Card className={styles.selectedTicketCard}>
+
+              {/* Custom Questions Section */}
+              {questions.length > 0 && (
+                <div className={styles.sectionHeader}>
                   <Group gap="sm">
                     <ThemeIcon variant="light" color="green">
                       <IconTicket size={20} />
                     </ThemeIcon>
-                    <div>
-                      <Text fw={600} size="lg">
-                        {event?.title || "Loading event..."}
-                      </Text>
-
-                      <Text size="sm" c="dimmed">
-                        You will be registered for this event
-                      </Text>
-                    </div>
+                    <Text fw={600} size="lg">
+                      Additional Information
+                    </Text>
                   </Group>
-                </Card>
-              </div> */}
+                  <Text size="sm" c="dimmed">
+                    Please provide the following details ({questions.length}{" "}
+                    questions)
+                  </Text>
+                </div>
+              )}
+
+              <Stack gap="md">
+                {questions.map((q) => {
+                  const currentAnswer = answers.find(
+                    (a) => a.questionId === q.id
+                  );
+                  const hasValidOptions =
+                    q.options &&
+                    Array.isArray(q.options) &&
+                    q.options.length > 0;
+
+                  return (
+                    <div key={q.id} className={styles.questionItem}>
+                      <label
+                        htmlFor={`question-${q.id}`}
+                        className={styles.questionLabel}
+                      >
+                        {q.title || "Unnamed Question"}
+                        {q.required && (
+                          <span className={styles.required}>*</span>
+                        )}
+                      </label>
+
+                      {q.type === "textarea" ? (
+                        <Textarea
+                          id={`question-${q.id}`}
+                          placeholder={q.placeholder || "Your answer here..."}
+                          value={(currentAnswer?.value as string) || ""}
+                          onChange={(e) =>
+                            updateAnswer(q.id, e.currentTarget.value)
+                          }
+                          required={q.required}
+                          className={styles.questionInput}
+                          minRows={3}
+                          disabled={paymentLoading}
+                        />
+                      ) : q.type === "text" || q.type === "email" ? (
+                        <input
+                          id={`question-${q.id}`}
+                          type={q.type === "email" ? "email" : "text"}
+                          placeholder={q.placeholder || "Your answer here..."}
+                          value={(currentAnswer?.value as string) || ""}
+                          onChange={(e) =>
+                            updateAnswer(q.id, e.currentTarget.value)
+                          }
+                          required={q.required}
+                          className={styles.input}
+                          disabled={paymentLoading}
+                        />
+                      ) : q.type === "select" ? (
+                        hasValidOptions ? (
+                          <Select
+                            id={`question-${q.id}`}
+                            placeholder={q.placeholder || "Select an option..."}
+                            data={q.options!.map((opt) => ({
+                              value: opt.id,
+                              label: opt.text,
+                            }))}
+                            value={(currentAnswer?.value as string) || null}
+                            onChange={(selectedValue) =>
+                              updateAnswer(q.id, selectedValue || "")
+                            }
+                            required={q.required}
+                            disabled={paymentLoading}
+                            className={styles.input}
+                            searchable
+                            nothingFoundMessage="No options"
+                          />
+                        ) : (
+                          <Text c="dimmed" size="sm" mt="xs">
+                            No options available for this question.
+                          </Text>
+                        )
+                      ) : q.type === "checkbox" ? (
+                        hasValidOptions ? (
+                          <Checkbox.Group
+                            id={`question-${q.id}`}
+                            value={(currentAnswer?.value as string[]) || []}
+                            onChange={(selectedValues) =>
+                              updateAnswer(q.id, selectedValues)
+                            }
+                            required={q.required}
+                            className={styles.customCheckbox}
+                          >
+                            <Stack mt="xs" gap="xs">
+                              {q.options!.map((opt) => (
+                                <Checkbox
+                                  key={opt.id}
+                                  value={opt.id}
+                                  label={opt.text}
+                                  disabled={paymentLoading}
+                                  className={styles.customCheckbox}
+                                  styles={{
+                                    input: {
+                                      backgroundColor: "#15302B",
+                                      borderColor: "#15302B",
+                                      "&:checked": {
+                                        backgroundColor: "#15302B !important",
+                                        borderColor: "#15302B !important",
+                                      },
+                                      "&[data-checked]": {
+                                        backgroundColor: "#15302B !important",
+                                        borderColor: "#15302B !important",
+                                      },
+                                    },
+                                    icon: {
+                                      color: "white !important",
+                                    },
+                                  }}
+                                />
+                              ))}
+                            </Stack>
+                          </Checkbox.Group>
+                        ) : (
+                          <Text c="dimmed" size="sm" mt="xs">
+                            No options available for this question.
+                          </Text>
+                        )
+                      ) : q.type === "radio" ? (
+                        hasValidOptions ? (
+                          <Radio.Group
+                            id={`question-${q.id}`}
+                            value={(currentAnswer?.value as string) || ""}
+                            onChange={(selectedValue) =>
+                              updateAnswer(q.id, selectedValue)
+                            }
+                            required={q.required}
+                          >
+                            <Stack mt="xs" gap="xs">
+                              {q.options!.map((opt) => (
+                                <Radio
+                                  key={opt.id}
+                                  value={opt.id}
+                                  label={opt.text}
+                                  disabled={paymentLoading}
+                                />
+                              ))}
+                            </Stack>
+                          </Radio.Group>
+                        ) : (
+                          <Text c="dimmed" size="sm" mt="xs">
+                            No options available for this question.
+                          </Text>
+                        )
+                      ) : (
+                        <TextInput
+                          placeholder={`Unsupported question type: ${q.type}`}
+                          disabled
+                          className={styles.input}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </Stack>
             </Paper>
           </div>
 
           <div className={styles.summarySection}>
             <Paper className={styles.summaryBox}>
-              {questions.length > 0 && selectedTicket && (
-                <>
-                  <Divider my="lg" />
-                  <div className={styles.questionsSection}>
-                    <div className={styles.sectionHeader}>
-                      <Text fw={600} size="lg">
-                        Additional Information
-                      </Text>
-                      <Text size="sm" c="dimmed">
-                        Please provide the following details
-                      </Text>
-                    </div>
-                    <Stack gap="md">
-                      {questions.map((q) => {
-                        const currentAnswer = answers.find(
-                          (a) => a.questionId === q.id
-                        );
-                        const hasValidOptions =
-                          q.options &&
-                          Array.isArray(q.options) &&
-                          q.options.length > 0;
-
-                        return (
-                          <div key={q.id} className={styles.questionItem}>
-                            <label
-                              htmlFor={`question-${q.id}`}
-                              className={styles.questionLabel}
-                            >
-                              {q.title || "Unnamed Question"}
-                              {q.required && (
-                                <span className={styles.required}>*</span>
-                              )}
-                            </label>
-
-                            {q.type === "textarea" ? (
-                              <Textarea
-                                id={`question-${q.id}`}
-                                placeholder={
-                                  q.placeholder || "Your answer here..."
-                                }
-                                value={(currentAnswer?.value as string) || ""}
-                                onChange={(e) =>
-                                  updateAnswer(q.id, e.currentTarget.value)
-                                }
-                                required={q.required}
-                                className={styles.questionInput}
-                                minRows={3}
-                                disabled={paymentLoading}
-                              />
-                            ) : q.type === "text" || q.type === "email" ? (
-                              <input
-                                id={`question-${q.id}`}
-                                type={q.type === "email" ? "email" : "text"}
-                                placeholder={
-                                  q.placeholder || "Your answer here..."
-                                }
-                                value={(currentAnswer?.value as string) || ""}
-                                onChange={(e) =>
-                                  updateAnswer(q.id, e.currentTarget.value)
-                                }
-                                required={q.required}
-                                className={styles.input}
-                                disabled={paymentLoading}
-                              />
-                            ) : q.type === "select" ? (
-                              hasValidOptions ? (
-                                <Select
-                                  id={`question-${q.id}`}
-                                  placeholder={
-                                    q.placeholder || "Select an option..."
-                                  }
-                                  data={q.options!.map((opt) => ({
-                                    value: opt.id,
-                                    label: opt.text,
-                                  }))}
-                                  value={
-                                    (currentAnswer?.value as string) || null
-                                  }
-                                  onChange={(selectedValue) =>
-                                    updateAnswer(q.id, selectedValue || "")
-                                  }
-                                  required={q.required}
-                                  disabled={paymentLoading}
-                                  className={styles.input}
-                                  searchable
-                                  nothingFoundMessage="No options"
-                                />
-                              ) : (
-                                <Text c="dimmed" size="sm" mt="xs">
-                                  No options available for this question.
-                                </Text>
-                              )
-                            ) : q.type === "checkbox" ? (
-                              hasValidOptions ? (
-                                <Checkbox.Group
-                                  id={`question-${q.id}`}
-                                  value={
-                                    (currentAnswer?.value as string[]) || []
-                                  }
-                                  onChange={(selectedValues) =>
-                                    updateAnswer(q.id, selectedValues)
-                                  }
-                                  required={q.required}
-                                >
-                                  <Stack mt="xs" gap="xs">
-                                    {q.options!.map((opt) => (
-                                      <Checkbox
-                                        key={opt.id}
-                                        value={opt.id}
-                                        label={opt.text}
-                                        disabled={paymentLoading}
-                                      />
-                                    ))}
-                                  </Stack>
-                                </Checkbox.Group>
-                              ) : (
-                                <Text c="dimmed" size="sm" mt="xs">
-                                  No options available for this question.
-                                </Text>
-                              )
-                            ) : q.type === "radio" ? (
-                              hasValidOptions ? (
-                                <Radio.Group
-                                  id={`question-${q.id}`}
-                                  value={(currentAnswer?.value as string) || ""}
-                                  onChange={(selectedValue) =>
-                                    updateAnswer(q.id, selectedValue)
-                                  }
-                                  required={q.required}
-                                >
-                                  <Stack mt="xs" gap="xs">
-                                    {q.options!.map((opt) => (
-                                      <Radio
-                                        key={opt.id}
-                                        value={opt.id}
-                                        label={opt.text}
-                                        disabled={paymentLoading}
-                                      />
-                                    ))}
-                                  </Stack>
-                                </Radio.Group>
-                              ) : (
-                                <Text c="dimmed" size="sm" mt="xs">
-                                  No options available for this question.
-                                </Text>
-                              )
-                            ) : (
-                              <TextInput
-                                placeholder={`Unsupported question type: ${q.type}`}
-                                disabled
-                                className={styles.input}
-                              />
-                            )}
-                          </div>
-                        );
-                      })}
-                    </Stack>
-                  </div>
-                </>
-              )}
-
               {/* Order Summary */}
               <div className={styles.summaryHeader}>
                 {/* <Group gap="sm">
@@ -912,9 +863,18 @@ export default function ManualRegisterEvent() {
                   !formData.lastName ||
                   !formData.email ||
                   !formData.phoneNumber ||
-                  !formData.title || // Add title check
-                  !formData.institution || // Add institution check
                   Object.values(formErrors).some((error) => error !== "") ||
+                  // Check required questions
+                  questions.some((q) => {
+                    if (!q.required) return false;
+                    const answer = answers.find((a) => a.questionId === q.id);
+                    if (!answer?.value) return true;
+                    if (Array.isArray(answer.value))
+                      return answer.value.length === 0;
+                    if (typeof answer.value === "string")
+                      return answer.value.trim() === "";
+                    return true;
+                  }) ||
                   paymentLoading ||
                   !event ||
                   !isMounted

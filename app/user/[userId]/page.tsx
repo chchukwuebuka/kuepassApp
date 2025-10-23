@@ -27,8 +27,9 @@ interface UserProfile {
   responses?: Array<{
     id: string;
     question: string;
-    text_response: string;
-    selected_options: string[];
+    text_response?: string;
+    selected_options?: Array<{ option: string }>;
+    question_text?: string; // The actual question text
   }>;
   is_validated?: boolean;
   validated_at?: string;
@@ -41,9 +42,10 @@ interface UserProfile {
   status?: string;
 }
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api";
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://keupass-48c2ae65f897.herokuapp.com/api"
+).replace(/\/$/, "");
 
 export default function UserProfilePage() {
   const params = useParams<{ userId: string }>();
@@ -148,6 +150,47 @@ export default function UserProfilePage() {
     });
   };
 
+  const renderResponse = (response: any) => {
+    // Handle text responses
+    if (response.text_response) {
+      return (
+        <div className={styles.responseItem}>
+          <Text className={styles.responseLabel}>
+            {response.question_text || `Question ${response.question}`}
+          </Text>
+          <Text className={styles.responseValue}>{response.text_response}</Text>
+        </div>
+      );
+    }
+
+    // Handle selected options (for select, checkbox, radio)
+    if (response.selected_options && response.selected_options.length > 0) {
+      const optionsText = response.selected_options
+        .map((option: any) => option.option)
+        .join(", ");
+      return (
+        <div className={styles.responseItem}>
+          <Text className={styles.responseLabel}>
+            {response.question_text || `Question ${response.question}`}
+          </Text>
+          <Text className={styles.responseValue}>{optionsText}</Text>
+        </div>
+      );
+    }
+
+    // Fallback for empty responses
+    return (
+      <div className={styles.responseItem}>
+        <Text className={styles.responseLabel}>
+          {response.question_text || `Question ${response.question}`}
+        </Text>
+        <Text className={styles.responseValue} c="dimmed">
+          No response provided
+        </Text>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <Container size="md" className={styles.container}>
@@ -202,7 +245,7 @@ export default function UserProfilePage() {
 
         <div className={styles.headerContent}>
           <Text className={styles.conferenceTitle}>
-          LIMCAF 2025 GRAND FINALE EXHIBITION AND AWARD NIGHT OCT 25TH
+            LIMCAF 2025 GRAND FINALE EXHIBITION AND AWARD NIGHT OCT 25TH
           </Text>
 
           <div className={styles.logoContainer}>
@@ -245,11 +288,27 @@ export default function UserProfilePage() {
           </div>
 
           <div className={styles.infoRow}>
-            <Text className={styles.label}>INSTITUTION</Text>
+            <Text className={styles.label}>AFFILIATED</Text>
             <Text className={styles.value}>
               {userProfile.institution || "Not specified"}
             </Text>
           </div>
+
+          {/* Registration Responses Section */}
+          {userProfile.responses && userProfile.responses.length > 0 && (
+            <div className={styles.responsesSection}>
+              <Text className={styles.sectionTitle}>
+                REGISTRATION RESPONSES
+              </Text>
+              <div className={styles.responsesContainer}>
+                {userProfile.responses.map((response, index) => (
+                  <div key={response.id || index}>
+                    {renderResponse(response)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
