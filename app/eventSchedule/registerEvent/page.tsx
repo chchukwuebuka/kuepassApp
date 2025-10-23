@@ -356,6 +356,64 @@ export default function RegisterEvent() {
     }
   };
 
+  const handleContinueFromContact = () => {
+    // Validate contact forms
+    for (let i = 0; i < contactForms.length; i++) {
+      const form = contactForms[i];
+      if (
+        !form.firstName.trim() ||
+        !form.lastName.trim() ||
+        !form.email.trim() ||
+        !form.phoneNumber.trim()
+      ) {
+        alert("Please fill in all required fields correctly.");
+        return;
+      }
+
+      // Validate phone number format (E.164 format)
+      const phoneRegex = /^\+[1-9]\d{1,14}$/;
+      if (!phoneRegex.test(form.phoneNumber.trim())) {
+        alert(
+          `Please enter a valid phone number in international format (e.g., +2348012345678) for Ticket ${
+            i + 1
+          }.`
+        );
+        return;
+      }
+
+      // Validate required questions
+      for (const question of questions) {
+        if (question.required) {
+          const answer = form.questionAnswers.find(
+            (a) => a.questionId === question.id
+          );
+          if (!answer?.value) {
+            alert(`Please answer the required question: ${question.title}`);
+            return;
+          }
+          if (Array.isArray(answer.value) && answer.value.length === 0) {
+            alert(`Please answer the required question: ${question.title}`);
+            return;
+          }
+          if (typeof answer.value === "string" && answer.value.trim() === "") {
+            alert(`Please answer the required question: ${question.title}`);
+            return;
+          }
+        }
+      }
+    }
+
+    // Check if it's a free event
+    const totalAmount = calculateTotal();
+    if (totalAmount <= 0) {
+      // Free event - proceed directly to registration
+      handlePurchase();
+    } else {
+      // Paid event - go to payment step
+      setCurrentStep(4);
+    }
+  };
+
   const handleGoBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
@@ -502,57 +560,7 @@ export default function RegisterEvent() {
     }
 
     if (currentStep === 3) {
-      // Validate contact forms and proceed to payment
-      for (let i = 0; i < contactForms.length; i++) {
-        const form = contactForms[i];
-        if (
-          !form.firstName.trim() ||
-          !form.lastName.trim() ||
-          !form.email.trim() ||
-          !form.phoneNumber.trim()
-        ) {
-          alert("Please fill in all required fields correctly.");
-          return;
-        }
-
-        // Validate phone number format (E.164 format)
-        const phoneRegex = /^\+[1-9]\d{1,14}$/;
-        if (!phoneRegex.test(form.phoneNumber.trim())) {
-          alert(
-            `Please enter a valid phone number in international format (e.g., +2348012345678) for Ticket ${
-              i + 1
-            }.`
-          );
-          return;
-        }
-
-        // Validate required questions
-        for (const question of questions) {
-          if (question.required) {
-            const answer = form.questionAnswers.find(
-              (a) => a.questionId === question.id
-            );
-            if (!answer?.value) {
-              alert(`Please answer the required question: ${question.title}`);
-              return;
-            }
-            if (Array.isArray(answer.value) && answer.value.length === 0) {
-              alert(`Please answer the required question: ${question.title}`);
-              return;
-            }
-            if (
-              typeof answer.value === "string" &&
-              answer.value.trim() === ""
-            ) {
-              alert(`Please answer the required question: ${question.title}`);
-              return;
-            }
-          }
-        }
-      }
-
-      // All validations passed, proceed to payment
-      setCurrentStep(4);
+      handleContinueFromContact();
       return;
     }
 
@@ -953,17 +961,21 @@ export default function RegisterEvent() {
                     </div>
                     <Text size="sm">Contact</Text>
                   </div>
-                  <div className={styles.progressLine}></div>
-                  <div
-                    className={`${styles.progressStep} ${
-                      currentStep >= 4 ? styles.active : ""
-                    }`}
-                  >
-                    <div className={styles.stepCircle}>
-                      {currentStep > 4 ? "✓" : "3"}
-                    </div>
-                    <Text size="sm">Payment</Text>
-                  </div>
+                  {calculateTotal() > 0 && (
+                    <>
+                      <div className={styles.progressLine}></div>
+                      <div
+                        className={`${styles.progressStep} ${
+                          currentStep >= 4 ? styles.active : ""
+                        }`}
+                      >
+                        <div className={styles.stepCircle}>
+                          {currentStep > 4 ? "✓" : "3"}
+                        </div>
+                        <Text size="sm">Payment</Text>
+                      </div>
+                    </>
+                  )}
                 </div>
                 {currentStep > 1 && (
                   <Button
@@ -1697,19 +1709,15 @@ export default function RegisterEvent() {
                   calculateTotal() <= 0 ? (
                     "Register for free"
                   ) : (
-                    "Continue"
+                    "Continue to Payment"
                   )
                 ) : currentStep === 4 ? (
                   selectedPaymentMethod ? (
-                    calculateTotal() <= 0 ? (
-                      "Register for free"
-                    ) : selectedPaymentMethod === "cash" ? (
+                    selectedPaymentMethod === "cash" ? (
                       "Register with Cash Payment"
                     ) : (
                       "Order ticket"
                     )
-                  ) : calculateTotal() <= 0 ? (
-                    "Register for free"
                   ) : (
                     "Select a payment method"
                   )
