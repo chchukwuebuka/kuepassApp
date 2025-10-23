@@ -287,12 +287,12 @@ export default function UserProfilePage() {
             </Text>
           </div>
 
-          <div className={styles.infoRow}>
+          {/* <div className={styles.infoRow}>
             <Text className={styles.label}>AFFILIATED</Text>
             <Text className={styles.value}>
               {userProfile.institution || "Not specified"}
             </Text>
-          </div>
+          </div> */}
 
           {/* Registration Responses Section */}
           {userProfile.responses && userProfile.responses.length > 0 && (
