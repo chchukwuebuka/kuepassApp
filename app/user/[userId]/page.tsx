@@ -202,13 +202,13 @@ export default function UserProfilePage() {
 
         <div className={styles.headerContent}>
           <Text className={styles.conferenceTitle}>
-            8TH ANNUAL SCIENTIFIC CONFERENCE AND AGM
+          LIMCAF 2025 GRAND FINALE EXHIBITION AND AWARD NIGHT OCT 25TH
           </Text>
 
           <div className={styles.logoContainer}>
             <div className={styles.logoBox}>
               <Image
-                src="/images/arcon.png"
+                src="/images/life.png"
                 alt="ARCON Logo"
                 width={200}
                 height={100}
@@ -269,7 +269,7 @@ export default function UserProfilePage() {
 
       {/* Footer */}
       <div className={styles.footer}>
-        <Text className={styles.footerText}>@ 2025 ARCON</Text>
+        <Text className={styles.footerText}>@ 2025 LIMCAF</Text>
       </div>
     </div>
   );
