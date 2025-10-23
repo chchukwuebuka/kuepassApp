@@ -161,6 +161,54 @@
   margin: 0;
 }
 
+/* Registration Responses Styles */
+.responsesSection {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #e0e0e0;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  color: #7f8c8d;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.responsesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.responseItem {
+  text-align: left;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #025a3a;
+}
+
+.responseLabel {
+  font-size: 0.9rem;
+  color: #025a3a;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.responseValue {
+  font-size: 1rem;
+  color: #2c3e50;
+  line-height: 1.5;
+  margin: 0;
+  word-wrap: break-word;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .header {
@@ -215,6 +263,23 @@
     padding: 10px 20px;
     font-size: 0.9rem;
   }
+  
+  .responsesSection {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+  }
+  
+  .responseItem {
+    padding: 0.75rem;
+  }
+  
+  .responseLabel {
+    font-size: 0.8rem;
+  }
+  
+  .responseValue {
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -247,5 +312,22 @@
   .homeButton {
     padding: 8px 16px;
     font-size: 0.8rem;
+  }
+  
+  .responsesSection {
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+  
+  .responseItem {
+    padding: 0.5rem;
+  }
+  
+  .responseLabel {
+    font-size: 0.75rem;
+  }
+  
+  .responseValue {
+    font-size: 0.85rem;
   }
 }
