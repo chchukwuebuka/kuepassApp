@@ -35,6 +35,8 @@ import {
   AlertTriangle,
   MoreVertical,
   Bookmark,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import styles from "./styles.module.css";
 import CountdownTimer from "@/components/CountdownTimer";
@@ -215,6 +217,7 @@ export default function EventDetails() {
     lng: number;
   } | null>(null);
   const [mapUrl, setMapUrl] = useState<string>("");
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   // Set auth check as complete immediately since we allow guest access
   useEffect(() => {
@@ -465,6 +468,25 @@ export default function EventDetails() {
     }
 
     return truncated + "...";
+  };
+
+  const truncateDescriptionByWords = (
+    description: string,
+    maxWords: number = 65
+  ): { text: string; shouldShowButton: boolean } => {
+    if (!description)
+      return { text: "No description available.", shouldShowButton: false };
+
+    const words = description.split(" ");
+    if (words.length <= maxWords) {
+      return { text: description, shouldShowButton: false };
+    }
+
+    const truncatedWords = words.slice(0, maxWords);
+    return {
+      text: truncatedWords.join(" ") + "...",
+      shouldShowButton: true,
+    };
   };
 
   const handleShareLink = async () => {
@@ -943,10 +965,63 @@ export default function EventDetails() {
                 <Title order={2} className={styles.sectionTitle}>
                   Description
                 </Title>
-                <Text className={styles.aboutText}>
-                  {event?.description || "No description available."}
-                </Text>
-                {/* <Text className={styles.readMoreLink}>Read more...</Text> */}
+                <div className={styles.aboutText}>
+                  {(() => {
+                    const description =
+                      event?.description || "No description available.";
+                    const { shouldShowButton } = truncateDescriptionByWords(
+                      description,
+                      65
+                    );
+
+                    if (!shouldShowButton || isDescriptionExpanded) {
+                      return (
+                        <>
+                          <span>{description}</span>
+                          {shouldShowButton && (
+                            <Button
+                              variant="subtle"
+                              size="sm"
+                              onClick={() => setIsDescriptionExpanded(false)}
+                              style={{
+                                marginLeft: "8px",
+                                padding: "2px 6px",
+                                backgroundColor: "transparent",
+                                color: "#15302B",
+                              }}
+                            >
+                              <ChevronUp size={24} />
+                            </Button>
+                          )}
+                        </>
+                      );
+                    }
+
+                    const { text } = truncateDescriptionByWords(
+                      description,
+                      65
+                    );
+                    return (
+                      <>
+                        <span>{text.replace("...", "")}</span>
+                        <Button
+                          variant="subtle"
+                          size="sm"
+                          onClick={() => setIsDescriptionExpanded(true)}
+                          style={{
+                            marginLeft: "4px",
+                            padding: "2px 6px",
+                            backgroundColor: "transparent",
+                            color: "#15302B",
+                          }}
+                        >
+                          ...
+                          <ChevronDown size={24} />
+                        </Button>
+                      </>
+                    );
+                  })()}
+                </div>
               </div>
 
               {/* Countdown Section */}
