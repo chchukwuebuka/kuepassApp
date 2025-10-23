@@ -56,13 +56,58 @@ export async function GET(
     const userData = await response.json();
 
     // Handle the new response format from backend
+    let attendeeData;
     if (userData.success && userData.data) {
       // New format with success/data wrapper
-      return NextResponse.json(userData.data, { status: 200 });
+      attendeeData = userData.data;
     } else {
       // Legacy format - return as is
-      return NextResponse.json(userData, { status: 200 });
+      attendeeData = userData;
     }
+
+    // If there are responses, fetch question details to get question text
+    if (attendeeData.responses && attendeeData.responses.length > 0) {
+      try {
+        // Fetch questions for this event
+        const questionsResponse = await fetch(
+          `${API_BASE_URL}/event-forms/${attendeeData.event}/questions/`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+          }
+        );
+
+        if (questionsResponse.ok) {
+          const questionsData = await questionsResponse.json();
+
+          // Create a map of question ID to question text
+          const questionMap = new Map();
+          if (Array.isArray(questionsData)) {
+            questionsData.forEach((question: any) => {
+              questionMap.set(question.id, question.title);
+            });
+          }
+
+          // Enrich responses with question text
+          attendeeData.responses = attendeeData.responses.map(
+            (response: any) => ({
+              ...response,
+              question_text:
+                questionMap.get(response.question) ||
+                `Question ${response.question}`,
+            })
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching question details:", error);
+        // Continue without question text enrichment
+      }
+    }
+
+    return NextResponse.json(attendeeData, { status: 200 });
   } catch (error) {
     console.error("API route error:", error);
     return NextResponse.json(
