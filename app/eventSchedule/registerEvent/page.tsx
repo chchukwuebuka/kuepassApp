@@ -1006,12 +1006,17 @@ export default function RegisterEvent() {
                   WAT
                 </Text>
               </div>
-              <Button
-                variant="subtle"
-                leftSection={<IconX size={26} />}
-                onClick={() => router.back()}
-                className={styles.backButton}
-              ></Button>
+              {currentStep > 1 && (
+                  <Button
+                    variant="subtle"
+                    leftSection={<IconX size={16} />}
+                    onClick={handleGoBack}
+                    className={styles.backButton}
+                    size="sm"
+                  >
+                    Back
+                  </Button>
+                )}
             </div>
 
             <div className={styles.progressSection}>
@@ -1054,17 +1059,7 @@ export default function RegisterEvent() {
                     </>
                   )}
                 </div>
-                {currentStep > 1 && (
-                  <Button
-                    variant="subtle"
-                    leftSection={<IconX size={16} />}
-                    onClick={handleGoBack}
-                    className={styles.backButton}
-                    size="sm"
-                  >
-                    Back
-                  </Button>
-                )}
+                
               </div>
             </div>
             {/* Ticket Selection Section */}
@@ -1077,16 +1072,6 @@ export default function RegisterEvent() {
                   Select the number of tickets you want to purchase
                 </Text>
                 {/* Debug info */}
-                <div
-                  style={{
-                    fontSize: "12px",
-                    color: "#666",
-                    marginBottom: "10px",
-                  }}
-                >
-                  Debug: tickets.length = {tickets.length}, loading ={" "}
-                  {loading.toString()}
-                </div>
                 {tickets.length === 0 && !loading && (
                   <div className={styles.noSelection}>
                     <Text c="red" fw={500}>
