@@ -151,7 +151,7 @@ export default function ManualRegisterEvent() {
 
   useEffect(() => {
     // Hardcoded event ID
-    const hardcodedEventId = "513";
+    const hardcodedEventId = "504";
     fetchAllData(hardcodedEventId);
   }, []);
 
@@ -305,8 +305,8 @@ export default function ManualRegisterEvent() {
 
     try {
       // Hardcoded values
-      const hardcodedEventId = "513";
-      const hardcodedTicketId = "ab9dba6a-dff9-40c7-9223-cd109395a4dc";
+      const hardcodedEventId = "504";
+      const hardcodedTicketId = "a91cb755-0e07-4bc0-b426-e34fed6f44b4";
 
       // Format phone number - react-phone-input-2 returns the number without the + sign
       const formattedPhone = formData.phoneNumber.trim().startsWith("+")

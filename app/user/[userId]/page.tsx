@@ -245,7 +245,7 @@ export default function UserProfilePage() {
 
         <div className={styles.headerContent}>
           <Text className={styles.conferenceTitle}>
-            LIMCAF 2025 GRAND FINALE EXHIBITION AND AWARD NIGHT OCT 25TH
+          Register For Small chops festival Season 2 - The Igbo Heritage
           </Text>
 
           <div className={styles.logoContainer}>
@@ -328,7 +328,7 @@ export default function UserProfilePage() {
 
       {/* Footer */}
       <div className={styles.footer}>
-        <Text className={styles.footerText}>@ 2025 LIMCAF</Text>
+        <Text className={styles.footerText}>@ 2025 GOLDEN AGE</Text>
       </div>
     </div>
   );
