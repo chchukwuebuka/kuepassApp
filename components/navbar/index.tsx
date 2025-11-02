@@ -87,7 +87,6 @@ const Navbar: React.FC = () => {
       icon: <IconHome size={18} stroke={1.5} />,
     },
     {
-      // href: "/#trending-events-section",
       href: "/eventSchedule/exploreEvent",
       label: "Discover Events ",
       icon: <IconCalendarEvent size={18} stroke={1.5} />,
@@ -98,7 +97,7 @@ const Navbar: React.FC = () => {
       icon: <IconHelpCircle size={18} stroke={1.5} />,
     },
     {
-      href: "/#why-kuepass-section",
+      href: "/services",
       label: "Services",
       icon: <IconHelpCircle size={18} stroke={1.5} />,
     },
