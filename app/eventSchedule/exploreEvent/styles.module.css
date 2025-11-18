@@ -127,19 +127,20 @@
 }
 
 .getTicketsBtn {
-  background-color: #f97316;
+  background-color: #F5B645;
   border: none;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  color: white;
+  border-radius: 70px;
+  height: 47px;
+  font-weight: 700;
+  color: #151515;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .getTicketsBtn:hover {
-  background-color: #ea580c;
+  background-color: #F5B645;
   transform: translateY(-1px);
+  color: #151515;
 }
 
 .paginationDots {
