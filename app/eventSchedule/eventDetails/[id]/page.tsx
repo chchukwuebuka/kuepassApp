@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import {
   Container,
   Button,
@@ -98,9 +99,9 @@ interface CurrentUser {
   email: string;
 }
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api";
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.kuepass.com/api/"
+).replace(/\/$/, "");
 
 const getAuthToken = () => {
   if (typeof window !== "undefined") {
@@ -296,6 +297,8 @@ export default function EventDetails() {
 
       let attendeeDataArray: AttendeeData[] = [];
       if (Array.isArray(res)) attendeeDataArray = res;
+      else if (res?.results && Array.isArray(res.results))
+        attendeeDataArray = res.results; // Handle paginated response
       else if (res?.success && Array.isArray(res.data))
         attendeeDataArray = res.data;
 
@@ -625,12 +628,6 @@ export default function EventDetails() {
     document.body.removeChild(link);
   };
 
-  const handleRegisterNowClick = () => {
-    if (!id) return;
-    // Allow registration without authentication
-    router.push(`/eventSchedule/registerEvent?eventId=${id}`);
-  };
-
   const handleManualRegisterClick = () => {
     router.push("/eventSchedule/manual-register");
   };
@@ -639,6 +636,11 @@ export default function EventDetails() {
   const userIsRegisteredAndValidated = useMemo(() => {
     return event ? checkUserRegistration(currentUser, attendees) : false;
   }, [event, currentUser, attendees]);
+  useEffect(() => {
+    if (id) {
+      router.prefetch(`/eventSchedule/registerEvent?eventId=${id}`);
+    }
+  }, [id, router]);
 
   let finalBannerUrl = "/images/placeholder.jpg";
   if (event) {
@@ -811,7 +813,11 @@ export default function EventDetails() {
                       <Button
                         className={styles.ticketButton}
                         size="lg"
-                        onClick={handleRegisterNowClick}
+                        component={Link}
+                        href={`/eventSchedule/registerEvent?eventId=${
+                          id ?? ""
+                        }`}
+                        prefetch={true}
                       >
                         Get Access Card - {formatPrice(event?.price)}
                       </Button>
@@ -947,7 +953,7 @@ export default function EventDetails() {
                 </div>
                 <div className={styles.detailItem}>
                   <div className={styles.detailIcon}>
-                    <Text size={20} style={{ fontWeight: "bold" }}>
+                    <Text style={{ fontWeight: "bold", fontSize: "20px" }}>
                       ₦
                     </Text>
                   </div>
@@ -1104,10 +1110,10 @@ export default function EventDetails() {
                 </Title>
                 <div className={styles.socialIcons}>
                   <div className={styles.socialIcon}>
-                    <Text size={24}>𝕏</Text>
+                    <Text style={{ fontSize: "24px" }}>𝕏</Text>
                   </div>
                   <div className={styles.socialIcon}>
-                    <Text size={24}>📷</Text>
+                    <Text style={{ fontSize: "24px" }}>📷</Text>
                   </div>
                 </div>
               </div>
@@ -1126,7 +1132,9 @@ export default function EventDetails() {
               </Text>
               <Button
                 className={styles.getTicketButton}
-                onClick={handleRegisterNowClick}
+                component={Link}
+                href={`/eventSchedule/registerEvent?eventId=${id ?? ""}`}
+                prefetch={true}
                 fullWidth
               >
                 Get Access Card

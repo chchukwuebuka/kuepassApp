@@ -116,7 +116,7 @@
 //         price_range: string;
 //         reasoning: string;
 //       }>(
-//         `https://keupass-48c2ae65f897.herokuapp.com/api/suggest-ticket-price/`,
+//         `https://api.kuepass.com/api//suggest-ticket-price/`,
 //         "POST",
 //         {
 //           title: eventDetails.title,
@@ -573,7 +573,7 @@ const TicketModal: React.FC<TicketModalProps> = ({
     setSuggestionError("");
     try {
       const response = await authenticatedRequest<any>(
-        `https://keupass-48c2ae65f897.herokuapp.com/api/suggest-ticket-price/`,
+        `https://api.kuepass.com/api//suggest-ticket-price/`,
         "POST",
         {
           title: eventDetails.title,

@@ -119,7 +119,7 @@ const EdithProfilePage: React.FC = () => {
 
       const apiUrl =
         process.env.NEXT_PUBLIC_API_URL ||
-        "https://keupass-48c2ae65f897.herokuapp.com/api";
+        "https://api.kuepass.com/api/";
       const response = await fetch(`${apiUrl}/token/refresh/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -179,7 +179,7 @@ const EdithProfilePage: React.FC = () => {
             const token = getAuthToken();
             const apiUrl =
               process.env.NEXT_PUBLIC_API_URL ||
-              "https://keupass-48c2ae65f897.herokuapp.com/api";
+              "https://api.kuepass.com/api/";
 
             const imageResponse = await fetch(`${apiUrl}/upload/image`, {
               method: "POST",
@@ -223,7 +223,7 @@ const EdithProfilePage: React.FC = () => {
 
       const apiUrl =
         process.env.NEXT_PUBLIC_API_URL ||
-        "https://keupass-48c2ae65f897.herokuapp.com/api";
+        "https://api.kuepass.com/api/";
       const updateProfileUrl = `${apiUrl}/users/update_profile/`;
 
       const response = await fetch(updateProfileUrl, {

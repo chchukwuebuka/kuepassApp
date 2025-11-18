@@ -14,7 +14,7 @@ Payment successful for reference: 1tlp1n1gkr, event: 505
 Setting showQRModal to true
 QRCodePopup: Fetching QR code with params: { attendeeId: undefined, email: undefined, eventId: "505" }
 QRCodePopup: Starting fetchQRCode
-QRCodePopup: Fetching from URL: https://keupass-48c2ae65f897.herokuapp.com/api/attendee-qr-code/?event_id=505
+QRCodePopup: Fetching from URL: https://api.kuepass.com/api//attendee-qr-code/?event_id=505
 QRCodePopup: Response status: [status code]
 ```
 
@@ -51,7 +51,7 @@ https://kuepass.com/payment-success?reference=1tlp1n1gkr&eventId=505&email=test@
 #### Fix 3: Check API Endpoint
 Test the QR code API directly:
 ```
-https://keupass-48c2ae65f897.herokuapp.com/api/attendee-qr-code/?event_id=505&email=test@example.com
+https://api.kuepass.com/api//attendee-qr-code/?event_id=505&email=test@example.com
 ```
 
 ### 4. Expected Behavior

@@ -42,7 +42,7 @@ This request does not comply with Google's "Use secure browsers" policy
 Make sure your `.env.local` file has:
 ```
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id_here
-NEXT_PUBLIC_API_URL=https://keupass-48c2ae65f897.herokuapp.com/api
+NEXT_PUBLIC_API_URL=https://api.kuepass.com/api/
 ```
 
 ### 4. How It Works Now

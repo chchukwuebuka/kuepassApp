@@ -129,8 +129,7 @@ interface PaymentInitializationApiResponse {
 }
 
 const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api"
+  process.env.NEXT_PUBLIC_API_URL || "https://api.kuepass.com/api/"
 ).replace(/\/$/, "");
 
 export default function RegisterEvent() {
@@ -1007,16 +1006,16 @@ export default function RegisterEvent() {
                 </Text>
               </div>
               {currentStep > 1 && (
-                  <Button
-                    variant="subtle"
-                    leftSection={<IconX size={16} />}
-                    onClick={handleGoBack}
-                    className={styles.backButton}
-                    size="sm"
-                  >
-                    Back
-                  </Button>
-                )}
+                <Button
+                  variant="subtle"
+                  leftSection={<IconX size={16} />}
+                  onClick={handleGoBack}
+                  className={styles.backButton}
+                  size="sm"
+                >
+                  Back
+                </Button>
+              )}
             </div>
 
             <div className={styles.progressSection}>
@@ -1059,7 +1058,6 @@ export default function RegisterEvent() {
                     </>
                   )}
                 </div>
-                
               </div>
             </div>
             {/* Ticket Selection Section */}

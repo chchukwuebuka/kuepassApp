@@ -75,7 +75,7 @@ const SignUp = () => {
     try {
       const apiUrl = (
         process.env.NEXT_PUBLIC_API_URL ||
-        "https://keupass-48c2ae65f897.herokuapp.com/api"
+        "https://api.kuepass.com/api/"
       ).replace(/\/$/, "");
 
       // Use the working Google login endpoint
@@ -187,7 +187,7 @@ const SignUp = () => {
     try {
       const apiUrl = (
         process.env.NEXT_PUBLIC_API_URL ||
-        "https://keupass-48c2ae65f897.herokuapp.com/api"
+        "https://api.kuepass.com/api/"
       ).replace(/\/$/, "");
 
       // Exchange auth code for tokens
@@ -261,7 +261,7 @@ const SignUp = () => {
 
           const apiUrl = (
             process.env.NEXT_PUBLIC_API_URL ||
-            "https://keupass-48c2ae65f897.herokuapp.com/api"
+            "https://api.kuepass.com/api/"
           ).replace(/\/$/, "");
 
           const imageResponse = await fetch(`${apiUrl}/upload/image`, {

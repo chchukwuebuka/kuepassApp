@@ -5,8 +5,7 @@ import { showLoading, hideLoading } from "../store/loadingSlice";
 // Create a new axios instance with your base URL
 const api = axios.create({
   baseURL: (
-    process.env.NEXT_PUBLIC_API_URL ||
-    "https://keupass-48c2ae65f897.herokuapp.com/api"
+    process.env.NEXT_PUBLIC_API_URL || "https://api.kuepass.com/api/"
   ).replace(/\/$/, ""),
   headers: {
     "Content-Type": "application/json",
