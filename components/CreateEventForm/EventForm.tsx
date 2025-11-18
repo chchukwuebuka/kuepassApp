@@ -30,9 +30,9 @@ const isValidHex = (color: string): boolean => {
   return /^#[0-9A-Fa-f]{6}$/i.test(color);
 };
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api";
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.kuepass.com/api/"
+).replace(/\/$/, "");
 const DEFAULT_BANNER_URL = "/images/placeholder-banner.png";
 const FORM_STORAGE_KEY = "kuepassCreateEventFormDraft";
 
@@ -306,7 +306,7 @@ export default function CreateEventForm() {
     setIsGenerating(true);
     try {
       const response = await authenticatedRequest<{ description: string }>(
-        "https://keupass-48c2ae65f897.herokuapp.com/api/generate-description/",
+        `${API_BASE_URL}/generate-description/`,
         "POST",
         {
           title: formData.title,

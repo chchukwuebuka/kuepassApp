@@ -45,7 +45,7 @@ interface EventData {
 
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api"
+  "https://api.kuepass.com/api/"
 ).replace(/\/$/, "");
 
 export default function EventPage() {

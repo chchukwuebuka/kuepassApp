@@ -114,7 +114,7 @@ The system uses CSS modules with:
 
 Make sure to set:
 ```
-NEXT_PUBLIC_API_BASE_URL=https://keupass-48c2ae65f897.herokuapp.com/api
+NEXT_PUBLIC_API_BASE_URL=https://api.kuepass.com/api/
 ```
 
 ## Future Enhancements

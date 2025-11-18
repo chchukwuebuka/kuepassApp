@@ -124,7 +124,7 @@
 //   try {
 //     const BASE_URL =
 //       process.env.NEXT_PUBLIC_API_URL ||
-//       "https://keupass-48c2ae65f897.herokuapp.com/api";
+//       "https://api.kuepass.com/api/";
 
 //     await fetch(`${BASE_URL}/logout/`, {
 //       method: "POST",
@@ -440,7 +440,7 @@ export async function clearAuth(): Promise<void> {
   try {
     const BASE_URL = (
       process.env.NEXT_PUBLIC_API_URL ||
-      "https://keupass-48c2ae65f897.herokuapp.com/api"
+      "https://api.kuepass.com/api/"
     ).replace(/\/$/, "");
 
     await fetch(`${BASE_URL}/logout/`, {
@@ -585,7 +585,7 @@ export async function authenticatedRequest<T>(
 export async function getUserProfile(): Promise<UserData> {
   const BASE_URL = (
     process.env.NEXT_PUBLIC_API_URL ||
-    "https://keupass-48c2ae65f897.herokuapp.com/api"
+    "https://api.kuepass.com/api/"
   ).replace(/\/$/, "");
   return authenticatedRequest<UserData>(`${BASE_URL}/users/me/`, "GET"); // Corrected endpoint
 }

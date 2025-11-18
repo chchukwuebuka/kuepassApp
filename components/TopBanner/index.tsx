@@ -30,9 +30,9 @@ interface TopBannerProps {
   event: EventData;
 }
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api";
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.kuepass.com/api/"
+).replace(/\/$/, "");
 
 const TopBanner: React.FC<TopBannerProps> = ({ event }) => {
   const [copied, setCopied] = useState(false);
@@ -167,15 +167,6 @@ const TopBanner: React.FC<TopBannerProps> = ({ event }) => {
         </div>
 
         <Group className={styles.eventBTN}>
-          {/* <Tooltip label="Register for this event" withArrow>
-            <Link
-              href={`/eventSchedule/registerEvent?eventId=${event.id}`}
-              style={{ textDecoration: "none" }}
-            >
-              <button className={styles.registerButton}>Register</button>
-            </Link>
-          </Tooltip> */}
-
           <Tooltip label={copied ? "Copied!" : "Share this event"} withArrow>
             <Button
               variant="outline"

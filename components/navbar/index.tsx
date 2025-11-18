@@ -34,7 +34,11 @@ import { useDisclosure } from "@mantine/hooks";
 import styles from "./styles.module.css";
 import { clearAuth } from "@/app/services/auth";
 
-const Navbar: React.FC = () => {
+interface NavbarProps {
+  alwaysDark?: boolean;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const pathname = usePathname();
@@ -44,8 +48,9 @@ const Navbar: React.FC = () => {
   const isLogged = useSelector((state: RootState) => state.user.isLogged);
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
 
-  // Check if we're on the dashboard page
+  // Check if we're on the dashboard or services page
   const isOnDashboard = pathname?.startsWith("/dashboard");
+  const isOnServices = pathname?.startsWith("/services");
 
   // Handle scroll effect
   useEffect(() => {
@@ -82,11 +87,6 @@ const Navbar: React.FC = () => {
 
   const navLinks = [
     {
-      href: "/",
-      label: "How it works",
-      icon: <IconHome size={18} stroke={1.5} />,
-    },
-    {
       href: "/eventSchedule/exploreEvent",
       label: "Discover Events ",
       icon: <IconCalendarEvent size={18} stroke={1.5} />,
@@ -110,12 +110,16 @@ const Navbar: React.FC = () => {
       <header
         className={`${styles.navFlexEnhanced} ${
           isScrolled ? styles.scrolled : ""
-        } ${isOnDashboard ? styles.dashboardNav : ""}`}
+        } ${isOnDashboard || isOnServices ? styles.dashboardNav : ""}`}
       >
         <div className={styles.navContainer}>
           <Link href="/">
             <Image
-              src={isScrolled ? "/images/Kuepass.svg" : "/images/Kuepass1.png"}
+              src={
+                alwaysDark || isOnServices || isScrolled
+                  ? "/images/Kuepass.svg"
+                  : "/images/Kuepass1.png"
+              }
               alt="Kuepass"
               width={120}
               height={40}
@@ -125,7 +129,12 @@ const Navbar: React.FC = () => {
 
           <nav className={styles.navLinkEnhanced}>
             {navLinks.map((link) => (
-              <Link key={link.label} href={link.href} className={styles.link}>
+              <Link
+                key={link.label}
+                href={link.href}
+                className={styles.link}
+                style={alwaysDark ? { color: "#000" } : undefined}
+              >
                 {link.label}
               </Link>
             ))}
@@ -207,7 +216,11 @@ const Navbar: React.FC = () => {
         size="75%"
         title={
           <Image
-            src={isScrolled ? "/images/Kuepass.svg" : "/images/Kuepass1.png"}
+            src={
+              alwaysDark || isOnServices || isScrolled
+                ? "/images/Kuepass.svg"
+                : "/images/Kuepass1.png"
+            }
             alt="Kuepass"
             width={120}
             height={40}
@@ -226,7 +239,9 @@ const Navbar: React.FC = () => {
               >
                 <Group>
                   {link.icon}
-                  <Text>{link.label}</Text>
+                  <Text style={alwaysDark ? { color: "#000" } : undefined}>
+                    {link.label}
+                  </Text>
                 </Group>
               </UnstyledButton>
             ))}

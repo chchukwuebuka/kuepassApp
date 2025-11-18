@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import Link from "next/link";
 import {
   Image,
@@ -27,12 +27,10 @@ import {
 import Navbar from "@/components/navbar";
 import styles from "./styles.module.css";
 import { getAuthToken, isAuthenticated } from "@/app/services/auth";
-import { useLoadingState } from "@/store/loadingHook";
 import Footer from "@/components/Footer";
 
 const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api"
+  process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.kuepass.com/api/"
 ).replace(/\/$/, "");
 
 interface EventData {
@@ -80,6 +78,7 @@ interface MappedEvent {
   category: "Upcoming" | "Ongoing" | "Ended";
   image: string;
   date: string;
+  start_date: string; // Raw start date from backend for formatting
   address: string;
   name: string;
   ownership: "Created" | "Registered" | "None";
@@ -88,6 +87,69 @@ interface MappedEvent {
 
 type CategoryFilter = "All" | MappedEvent["category"];
 type OwnershipFilter = "All" | "Created" | "Registered";
+
+// Move EventCardDisplay outside component and memoize it for better performance
+const EventCardDisplay: React.FC<{ eventData: MappedEvent }> = memo(
+  ({ eventData }) => {
+    const [imageSrc, setImageSrc] = useState(eventData.image);
+    const handleImageError = () => setImageSrc("/images/placeholder.jpg");
+
+    useEffect(() => {
+      setImageSrc(eventData.image);
+    }, [eventData.image]);
+
+    return (
+      <div className={styles.eventCard}>
+        <div className={styles.eventImageContainer}>
+          <Image
+            src={imageSrc}
+            alt={eventData.title}
+            className={styles.eventImage}
+            onError={handleImageError}
+            fallbackSrc="/images/placeholder.jpg"
+            loading="lazy"
+          />
+        </div>
+        <div className={styles.eventContent}>
+          <div style={{ borderBottom: "1px solid #E6E6E6" }}>
+            <h3 className={styles.eventTitle}>{eventData.title}</h3>
+          </div>
+          <div className={styles.eventDetails}>
+            <div className={styles.eventDetail}>
+              <Image
+                src="/images/location.png"
+                alt="Location"
+                width="30"
+                height="30"
+                style={{ width: "30px", height: "30px", objectFit: "contain" }}
+                loading="lazy"
+              />
+              <span>{eventData.address}</span>
+            </div>
+            <div className={styles.eventDetail}>
+              <Image
+                src="/images/Edate.png"
+                alt="Date"
+                width="30"
+                height="30"
+                style={{ width: "30px", height: "30px", objectFit: "contain" }}
+                loading="lazy"
+              />
+              <span>{eventData.date}</span>
+            </div>
+          </div>
+          <div className={styles.eventType}>
+            {eventData.price === "Free" || eventData.price === "0.00000000"
+              ? "Free"
+              : "Paid"}
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
+EventCardDisplay.displayName = "EventCardDisplay";
 
 const ExploreEvents: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -100,9 +162,8 @@ const ExploreEvents: React.FC = () => {
     useState<OwnershipFilter>("All");
   const [events, setEvents] = useState<MappedEvent[]>([]);
   const [featuredEvent, setFeaturedEvent] = useState<MappedEvent | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { withLoading } = useLoadingState();
 
   const formatDateRange = (start: string, end: string): string => {
     const s = new Date(start),
@@ -132,6 +193,32 @@ const ExploreEvents: React.FC = () => {
     return "Ended";
   };
 
+  const formatShortDate = (dateString: string): string => {
+    if (!dateString) return "TBD";
+
+    try {
+      const date = new Date(dateString);
+
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        console.warn("Invalid date string:", dateString);
+        return "TBD";
+      }
+
+      // Use Intl.DateTimeFormat for better control over formatting
+      const monthFormatter = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+      });
+      const month = monthFormatter.format(date).toUpperCase();
+      const day = date.getDate();
+
+      return `${month} ${day}`;
+    } catch (error) {
+      console.warn("Error formatting date:", dateString, error);
+      return "TBD";
+    }
+  };
+
   const onOwnershipChange = (newFilter: OwnershipFilter) => {
     setOwnershipFilter(newFilter);
     setCategoryFilter("All");
@@ -143,165 +230,159 @@ const ExploreEvents: React.FC = () => {
       setError(null);
 
       try {
-        await withLoading(async () => {
-          // 1) Fetch events publicly (no auth token needed)
-          const eventsRes = await fetch(`${API_BASE_URL}/events/`);
-          if (!eventsRes.ok) {
-            throw new Error(`Failed to fetch events: ${eventsRes.status}`);
-          }
-          const eventsJson = await eventsRes.json();
-          const allEvents: EventData[] = eventsJson.data || [];
+        // Fetch all data in parallel from the start for maximum performance
+        const token = getAuthToken();
 
-          // Debug: Check if events have collaborator data
-          console.log("Events data from API:", allEvents);
-          allEvents.forEach((event) => {
-            console.log(
-              `Event "${event.title}" - Has collaborators:`,
-              !!event.collaborators,
-              "Collaborators:",
-              event.collaborators
-            );
-          });
-
-          // 2) Check if we have a token; if so, fetch user data and attendees in parallel
-          const token = getAuthToken();
-          let userId: number | null = null;
-          let userEmail: string | null = null;
-          let allAttendees: AttendeeData[] = [];
-
-          console.log("Auth token exists:", !!token);
-          console.log("Is authenticated:", isAuthenticated());
-
-          if (token) {
-            try {
-              // 2a & 2b) Fetch user data and attendees in parallel for faster loading
-              const [userRes, attendeeRes] = await Promise.all([
-                fetch(`${API_BASE_URL}/users/me/`, {
-                  headers: { Authorization: `Bearer ${token}` },
-                }),
-                fetch(`${API_BASE_URL}/attendees/`, {
-                  headers: { Authorization: `Bearer ${token}` },
-                }),
-              ]);
-
-              console.log("User API response status:", userRes.status);
-              console.log("Attendees API response status:", attendeeRes.status);
-
-              // Process user response
-              if (userRes.ok) {
-                const userJson: ApiUserResponse = await userRes.json();
-                console.log("User API response:", userJson);
-                if (userJson.success && userJson.data.id) {
-                  userId = userJson.data.id;
-                  userEmail = userJson.data.email;
-                  console.log("User ID:", userId, "User Email:", userEmail);
-                }
-              } else {
-                console.error(
-                  "User API failed:",
-                  userRes.status,
-                  await userRes.text()
-                );
-                // If authentication fails, clear the token and redirect to login
-                if (userRes.status === 401 || userRes.status === 404) {
-                  console.log("Authentication failed, clearing token");
-                  localStorage.removeItem("auth_token");
-                  // You might want to redirect to login here
-                  // window.location.href = '/auth/signin';
-                }
-              }
-
-              // Process attendees response
-              if (attendeeRes.ok) {
-                const attendeeJson = await attendeeRes.json();
-                allAttendees = attendeeJson.data || [];
-              } else {
-                console.error(
-                  "Attendees API failed:",
-                  attendeeRes.status,
-                  await attendeeRes.text()
-                );
-              }
-            } catch (error) {
-              console.error("Error fetching user data:", error);
+        // Prepare fetch requests
+        const fetchPromises: Promise<any>[] = [
+          // Always fetch events
+          fetch(`${API_BASE_URL}/events/`).then(async (res) => {
+            if (!res.ok) {
+              throw new Error(`Failed to fetch events: ${res.status}`);
             }
-          }
+            return res.json();
+          }),
+        ];
 
-          // Build a set of event IDs the user has registered for
-          const registeredEventIds = new Set<string>();
-          if (userId !== null) {
-            allAttendees
-              .filter((a) => a.user === userId)
-              .forEach((a) => registeredEventIds.add(a.event));
-          }
-
-          console.log("User ID:", userId);
-          console.log("Registered event IDs:", Array.from(registeredEventIds));
-
-          // Map events into the shape the UI needs
-          const mappedEvents: MappedEvent[] = allEvents.map((e) => {
-            const bannerImage =
-              e.customization?.banner_url || "/images/placeholder.jpg";
-
-            let ownershipStatus: MappedEvent["ownership"] = "None";
-
-            // Check if user is the creator
-            if (userId !== null && e.creator && e.creator.id === userId) {
-              ownershipStatus = "Created";
-              console.log(
-                `Event "${e.title}" is owned by current user (ID: ${userId})`
-              );
-            }
-            // Check if user is a collaborator (by email)
-            else if (
-              userEmail &&
-              e.collaborators &&
-              e.collaborators.some((collab) => collab.email === userEmail)
-            ) {
-              ownershipStatus = "Created"; // Treat collaborators the same as creators for dashboard access
-              console.log(
-                `Event "${e.title}" - user is a collaborator (email: ${userEmail})`
-              );
-            }
-            // Check if user is registered for the event
-            else if (userId !== null && registeredEventIds.has(e.id)) {
-              ownershipStatus = "Registered";
-            }
-
-            // Debug: Show all events and their creators/collaborators
-            console.log(
-              `Event "${e.title}" - Creator ID: ${
-                e.creator?.id
-              }, Current User ID: ${userId}, User Email: ${userEmail}, Collaborators: ${
-                e.collaborators?.map((c) => c.email).join(", ") || "None"
-              }, Ownership: ${ownershipStatus}`
-            );
-
-            return {
-              id: e.id,
-              title: e.title,
-              category: getEventCategory(e.start_date, e.end_date),
-              image: bannerImage,
-              date: formatDateRange(e.start_date, e.end_date),
-              address: e.address || e.location || "Location not specified",
-              name: e.creator?.username || "Unknown Host",
-              ownership: ownershipStatus,
-              price: e.price || "Free",
-            };
-          });
-
-          setEvents(mappedEvents);
-
-          // Set the first upcoming event as featured
-          const upcomingEvent = mappedEvents.find(
-            (e) => e.category === "Upcoming"
+        // Conditionally add authenticated requests
+        if (token) {
+          fetchPromises.push(
+            fetch(`${API_BASE_URL}/users/me/`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }).then((res) => (res.ok ? res.json() : null)),
+            fetch(`${API_BASE_URL}/attendees/`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }).then((res) => (res.ok ? res.json() : null))
           );
-          if (upcomingEvent) {
-            setFeaturedEvent(upcomingEvent);
+        } else {
+          // Add nulls to maintain array structure
+          fetchPromises.push(Promise.resolve(null), Promise.resolve(null));
+        }
+
+        // Fetch all data in parallel
+        const [eventsJson, userJson, attendeeJson] = await Promise.all(
+          fetchPromises
+        );
+
+        // Process events response (fast path - show events immediately)
+        let rawEvents: any[] = [];
+        if (Array.isArray(eventsJson)) {
+          rawEvents = eventsJson;
+        } else if (Array.isArray(eventsJson?.data)) {
+          rawEvents = eventsJson.data;
+        } else if (Array.isArray(eventsJson?.results)) {
+          rawEvents = eventsJson.results;
+        }
+
+        // Filter and map events efficiently
+        const allEvents: EventData[] = rawEvents
+          .filter((e: any) => {
+            // Only include events that are active (or is_active is undefined/null, which we treat as active)
+            const isActive = e.is_active !== false;
+            const hasRequiredFields = e.id != null && e.title;
+            return isActive && hasRequiredFields;
+          })
+          .map((e: any) => ({
+            id: String(e.id),
+            title: e.title,
+            start_date: e.start_date,
+            end_date: e.end_date,
+            address: e.address,
+            location: e.location,
+            creator: e.creator,
+            customization: e.customization,
+            description: e.description,
+            price: e.price,
+            collaborators: e.collaborators,
+          }));
+
+        // Process user data
+        let userId: number | null = null;
+        let userEmail: string | null = null;
+
+        if (userJson?.success && userJson.data?.id) {
+          userId = userJson.data.id;
+          userEmail = userJson.data.email;
+        } else if (userJson && (!userJson.success || !userJson.data)) {
+          // If authentication fails, clear the token
+          if (token) {
+            localStorage.removeItem("auth_token");
           }
+        }
+
+        // Process attendees response
+        let allAttendees: AttendeeData[] = [];
+        if (attendeeJson) {
+          if (Array.isArray(attendeeJson)) {
+            allAttendees = attendeeJson;
+          } else if (
+            attendeeJson?.results &&
+            Array.isArray(attendeeJson.results)
+          ) {
+            allAttendees = attendeeJson.results;
+          } else if (attendeeJson?.data && Array.isArray(attendeeJson.data)) {
+            allAttendees = attendeeJson.data;
+          }
+        }
+
+        // Build a set of event IDs the user has registered for
+        const registeredEventIds = new Set<string>();
+        if (userId !== null) {
+          allAttendees
+            .filter((a) => a.user === userId)
+            .forEach((a) => registeredEventIds.add(a.event));
+        }
+
+        // Map events into the shape the UI needs with ownership (single pass)
+        const mappedEvents: MappedEvent[] = allEvents.map((e) => {
+          const bannerImage =
+            e.customization?.banner_url || "/images/placeholder.jpg";
+
+          let ownershipStatus: MappedEvent["ownership"] = "None";
+
+          // Check if user is the creator
+          if (userId !== null && e.creator && e.creator.id === userId) {
+            ownershipStatus = "Created";
+          }
+          // Check if user is a collaborator (by email)
+          else if (
+            userEmail &&
+            e.collaborators &&
+            e.collaborators.some((collab) => collab.email === userEmail)
+          ) {
+            ownershipStatus = "Created";
+          }
+          // Check if user is registered for the event
+          else if (userId !== null && registeredEventIds.has(e.id)) {
+            ownershipStatus = "Registered";
+          }
+
+          return {
+            id: e.id,
+            title: e.title,
+            category: getEventCategory(e.start_date, e.end_date),
+            image: bannerImage,
+            date: formatDateRange(e.start_date, e.end_date),
+            start_date: e.start_date || "",
+            address: e.address || e.location || "Location not specified",
+            name: e.creator?.username || "Unknown Host",
+            ownership: ownershipStatus,
+            price: e.price || "Free",
+          };
         });
+
+        // Set events once (no double rendering)
+        setEvents(mappedEvents);
+
+        // Set the first upcoming event as featured
+        const upcomingEvent = mappedEvents.find(
+          (e) => e.category === "Upcoming"
+        );
+        if (upcomingEvent) {
+          setFeaturedEvent(upcomingEvent);
+        }
       } catch (err: any) {
-        console.error("[ExploreEvents] Error:", err);
+        console.error("Error loading events:", err);
         setError(
           err.message || "Failed to load events. Please try again later."
         );
@@ -314,17 +395,43 @@ const ExploreEvents: React.FC = () => {
     fetchAllEventsAndUserData();
   }, []);
 
-  const filteredEvents = events.filter((ev) => {
-    const searchMatch =
-      ev.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ev.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ev.address.toLowerCase().includes(searchQuery.toLowerCase());
-    const categoryMatch =
-      categoryFilter === "All" || ev.category === categoryFilter;
-    const ownershipMatch =
-      ownershipFilter === "All" || ev.ownership === ownershipFilter;
-    return searchMatch && categoryMatch && ownershipMatch;
-  });
+  const filteredEvents = useMemo(() => {
+    const filtered = events.filter((ev) => {
+      const searchMatch =
+        ev.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ev.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ev.address.toLowerCase().includes(searchQuery.toLowerCase());
+      const categoryMatch =
+        categoryFilter === "All" || ev.category === categoryFilter;
+      const ownershipMatch =
+        ownershipFilter === "All" || ev.ownership === ownershipFilter;
+      return searchMatch && categoryMatch && ownershipMatch;
+    });
+
+    // Debug: Check if event 513 is in filtered results
+    const event513Filtered = filtered.find((e) => e.id === "513");
+    if (event513Filtered) {
+      console.log("Event 513 is in filteredEvents:", event513Filtered);
+    } else {
+      const event513InEvents = events.find((e) => e.id === "513");
+      if (event513InEvents) {
+        console.log(
+          "Event 513 is in events but filtered out. Event:",
+          event513InEvents
+        );
+        console.log(
+          "Filters - searchQuery:",
+          searchQuery,
+          "categoryFilter:",
+          categoryFilter,
+          "ownershipFilter:",
+          ownershipFilter
+        );
+      }
+    }
+
+    return filtered;
+  }, [events, searchQuery, categoryFilter, ownershipFilter]);
 
   const FilterDropdown: React.FC<{
     icon: React.ReactNode;
@@ -354,67 +461,10 @@ const ExploreEvents: React.FC = () => {
     />
   );
 
-  const EventCardDisplay: React.FC<{ eventData: MappedEvent }> = ({
-    eventData,
-  }) => {
-    const [imageSrc, setImageSrc] = useState(eventData.image);
-    const handleImageError = () => setImageSrc("/images/placeholder.jpg");
-
-    useEffect(() => {
-      setImageSrc(eventData.image);
-    }, [eventData.image]);
-
-    return (
-      <div className={styles.eventCard}>
-        <div className={styles.eventImageContainer}>
-          <Image
-            src={imageSrc}
-            alt={eventData.title}
-            className={styles.eventImage}
-            onError={handleImageError}
-            fallbackSrc="/images/placeholder.jpg"
-          />
-        </div>
-        <div className={styles.eventContent}>
-          <div style={{ borderBottom: "1px solid #E6E6E6" }}>
-            <h3 className={styles.eventTitle}>{eventData.title}</h3>
-          </div>
-          <div className={styles.eventDetails}>
-            <div className={styles.eventDetail}>
-              <Image
-                src="/images/location.png"
-                alt="Location"
-                width="30"
-                height="30"
-                style={{ width: "30px", height: "30x", objectFit: "contain" }}
-              />
-              <span>{eventData.address}</span>
-            </div>
-            <div className={styles.eventDetail}>
-              <Image
-                src="/images/Edate.png"
-                alt="Location"
-                width="30"
-                height="30"
-                style={{ width: "30px", height: "30x", objectFit: "contain" }}
-              />
-              <span>{eventData.date}</span>
-            </div>
-          </div>
-          <div className={styles.eventType}>
-            {eventData.price === "Free" || eventData.price === "0.00000000"
-              ? "Free"
-              : "Paid"}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className={styles.pageContainer}>
       <Stack className={styles.navStack}>
-        <Navbar />
+        <Navbar alwaysDark />
       </Stack>
 
       {/* Search Bar */}
@@ -466,8 +516,14 @@ const ExploreEvents: React.FC = () => {
               <h3 className={styles.featuredEventTitle}>
                 {featuredEvent.title}
               </h3>
-              <p className={styles.featuredEventDate}>SEP 25</p>
-              <Button className={styles.getTicketsBtn}>
+              <p className={styles.featuredEventDate}>
+                {featuredEvent.date || "TBD"}
+              </p>
+              <Button
+                component={Link}
+                href={`/eventSchedule/eventDetails/${featuredEvent.id}`}
+                className={styles.getTicketsBtn}
+              >
                 Get your tickets now
               </Button>
             </div>
@@ -580,20 +636,6 @@ const ExploreEvents: React.FC = () => {
                     : `/eventSchedule/eventDetails/${eventItem.id}`
                 }
                 className={styles.eventLink}
-                onClick={() => {
-                  console.log(
-                    `Clicking on event "${eventItem.title}" with ownership: ${eventItem.ownership}`
-                  );
-                  if (eventItem.ownership === "Created") {
-                    console.log(
-                      `Redirecting to dashboard with eventId: ${eventItem.id}`
-                    );
-                  } else {
-                    console.log(
-                      `Redirecting to event details: ${eventItem.id}`
-                    );
-                  }
-                }}
               >
                 <EventCardDisplay eventData={eventItem} />
               </Link>

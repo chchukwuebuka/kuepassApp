@@ -129,16 +129,28 @@ const SignIn: React.FC = () => {
     setGoogleLoading(true);
     setError(null);
     try {
-      const apiUrl =
+      const API_BASE_URL = (
+        process.env.NEXT_PUBLIC_API_BASE_URL ||
         process.env.NEXT_PUBLIC_API_URL ||
-        "https://keupass-48c2ae65f897.herokuapp.com/api";
-      const response = await fetch(`${apiUrl}/google-login/`, {
+        "https://api.kuepass.com/api/"
+      ).replace(/\/$/, "");
+
+      const response = await fetch(`${API_BASE_URL}/google-login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ access_token: googleAccessToken }),
       });
 
-      const backendAuthResponse: AuthResponse = await response.json();
+      // Try to parse JSON; if it fails, surface a clear error
+      const text = await response.text();
+      let backendAuthResponse: AuthResponse;
+      try {
+        backendAuthResponse = JSON.parse(text);
+      } catch {
+        throw new Error(
+          `Unexpected response from server (status ${response.status}).`
+        );
+      }
       console.log("Google login backend response:", backendAuthResponse);
 
       if (!response.ok) {
@@ -480,7 +492,7 @@ export default SignIn;
 //     setGoogleLoading(true);
 //     setError(null);
 //     try {
-//       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://keupass-48c2ae65f897.herokuapp.com/api";
+//       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.kuepass.com/api/";
 
 //       const backendAuthResponse: AuthResponse = await authenticatedRequest(
 //         `${apiUrl}/google-login/`,

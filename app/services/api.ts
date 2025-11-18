@@ -1,7 +1,7 @@
 // Get API URL from environment variables
 const BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api"
+  "https://api.kuepass.com/api/"
 ).replace(/\/$/, "");
 
 // Import types from separate file
@@ -286,7 +286,7 @@ export async function getUserProfile(): Promise<UserData> {
 
 // const BASE_URL =
 //   process.env.NEXT_PUBLIC_API_URL ||
-//   "https://keupass-48c2ae65f897.herokuapp.com/api";
+//   "https://api.kuepass.com/api/";
 
 // // Re-defining types here as they were in your original file
 // // You might consider moving these to a central types file
