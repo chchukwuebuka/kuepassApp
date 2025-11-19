@@ -39,7 +39,6 @@ import {
 } from "@tabler/icons-react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-
 // --- INTERFACES ---
 interface EventData {
   id: string;
@@ -153,6 +152,7 @@ export default function ManualRegisterEvent() {
     email: "",
     phoneNumber: "",
   });
+  const [selectedCountryCode, setSelectedCountryCode] = useState("+234"); // Store country code separately
   const [formErrors, setFormErrors] = useState({
     firstName: "",
     lastName: "",
@@ -254,10 +254,31 @@ export default function ManualRegisterEvent() {
     }
   }
 
-  const handlePhoneChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, phoneNumber: value }));
+  const handlePhoneChange = (value: string, countryData: any) => {
+    // Track country code from countryData
+    if (countryData?.dialCode) {
+      const code = `+${countryData.dialCode}`;
+      setSelectedCountryCode(code);
+    }
 
-    if (!value || value.length < 10) {
+    // value from react-phone-input-2 includes the country code prefix (e.g., "2348101234567")
+    // Extract only the local number by removing the country code digits
+    const dialCode =
+      countryData?.dialCode || selectedCountryCode.replace("+", "") || "234";
+    let localNumber = value;
+
+    // Remove country code prefix if it exists at the start
+    const dialCodeStr = String(dialCode);
+    if (value.startsWith(dialCodeStr)) {
+      localNumber = value.substring(dialCodeStr.length);
+    }
+
+    // Store only the local number (without country code) in formData
+    setFormData((prev) => ({ ...prev, phoneNumber: localNumber }));
+
+    // Validate phone number (check local number length)
+    const digitsOnly = localNumber.replace(/\D/g, "");
+    if (!localNumber || digitsOnly.length < 7) {
       setFormErrors((prev) => ({
         ...prev,
         phoneNumber: "Please enter a valid phone number.",
@@ -410,10 +431,9 @@ export default function ManualRegisterEvent() {
     setError(null);
 
     try {
-      // Format phone number - react-phone-input-2 returns the number without the + sign
-      const formattedPhone = formData.phoneNumber.trim().startsWith("+")
-        ? formData.phoneNumber.trim()
-        : `+${formData.phoneNumber.trim()}`;
+      // Format phone number - combine country code with local number
+      const localNumber = formData.phoneNumber.replace(/\D/g, ""); // Remove any non-digits from local number
+      const formattedPhone = `${selectedCountryCode}${localNumber}`;
 
       const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
 
@@ -527,6 +547,7 @@ export default function ManualRegisterEvent() {
       email: "",
       phoneNumber: "",
     });
+    setSelectedCountryCode("+234"); // Reset to default
     setFormErrors({
       firstName: "",
       lastName: "",
@@ -769,26 +790,33 @@ export default function ManualRegisterEvent() {
                   <label className={styles.questionLabel}>
                     Phone Number <span className={styles.required}>*</span>
                   </label>
-                  <PhoneInput
-                    country={"ng"}
-                    value={formData.phoneNumber}
-                    onChange={handlePhoneChange}
-                    inputClass={styles.phoneInput}
-                    buttonClass={styles.phoneButton}
-                    containerClass={styles.phoneContainer}
-                    inputProps={{
-                      required: true,
-                      disabled: paymentLoading,
-                      placeholder: "810 123 4567",
-                    }}
-                    specialLabel=""
-                    enableSearch={true}
-                    searchPlaceholder="Search country..."
-                    searchNotFound="No country found"
-                    preferredCountries={["ng", "us", "gb", "ca"]}
-                    disableCountryCode={false}
-                    countryCodeEditable={false}
-                  />
+                  <div className={styles.phoneInputWrapper}>
+                    <PhoneInput
+                      country={"ng"}
+                      value={
+                        selectedCountryCode.replace("+", "") +
+                        formData.phoneNumber
+                      }
+                      onChange={handlePhoneChange}
+                      inputClass={styles.phoneInput}
+                      buttonClass={styles.phoneButton}
+                      containerClass={styles.phoneContainer}
+                      inputProps={{
+                        required: true,
+                        disabled: paymentLoading,
+                        placeholder: "810 123 4567",
+                      }}
+                      specialLabel=""
+                      enableSearch={true}
+                      searchPlaceholder="Search country..."
+                      searchNotFound="No country found"
+                      preferredCountries={["ng", "us", "gb", "ca"]}
+                      disableCountryCode={false}
+                      countryCodeEditable={false}
+                      autoFormat={false}
+                      prefix=""
+                    />
+                  </div>
                   {formErrors.phoneNumber && (
                     <Text size="xs" color="red" mt={5}>
                       {formErrors.phoneNumber}
