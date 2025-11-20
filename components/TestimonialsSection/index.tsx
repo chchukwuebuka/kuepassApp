@@ -125,7 +125,7 @@ const TestimonialsSection: React.FC = () => {
     },
     {
       id: 2,
-      name: "Ezinne Bennerd",
+      name: "Ezinne Bernard",
       username: "@morganspeed",
       quote:
         "Just minted my first track here 🔥 love how smooth the process was!",
