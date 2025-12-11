@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   TextInput,
   PasswordInput,
@@ -60,10 +60,12 @@ const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [imgSrc, setImgSrc] = useState<string>("/images/avatar.png");
-  const [imgFile, setImgFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState<boolean>(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [passwordRequirements, setPasswordRequirements] = useState({
+    hasNumber: false,
+    hasUppercase: false,
+    hasLowercase: false,
+    hasSpecialChar: false,
+  });
 
   const dispatch = useDispatch();
 
@@ -74,8 +76,7 @@ const SignUp = () => {
   async function handleGoogleLogin(accessToken: string) {
     try {
       const apiUrl = (
-        process.env.NEXT_PUBLIC_API_URL ||
-        "https://api.kuepass.com/api/"
+        process.env.NEXT_PUBLIC_API_URL || "https://api.kuepass.com/api/"
       ).replace(/\/$/, "");
 
       // Use the working Google login endpoint
@@ -186,8 +187,7 @@ const SignUp = () => {
   const handleGoogleAuthCode = async (code: string) => {
     try {
       const apiUrl = (
-        process.env.NEXT_PUBLIC_API_URL ||
-        "https://api.kuepass.com/api/"
+        process.env.NEXT_PUBLIC_API_URL || "https://api.kuepass.com/api/"
       ).replace(/\/$/, "");
 
       // Exchange auth code for tokens
@@ -227,73 +227,37 @@ const SignUp = () => {
     }
   }, []);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        setImgSrc(e.target.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
-    setImgFile(file);
-  };
-
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
+  // Check password requirements as user types
+  useEffect(() => {
+    const password = form.values.password;
+    if (password) {
+      setPasswordRequirements({
+        hasNumber: /\d/.test(password),
+        hasUppercase: /[A-Z]/.test(password),
+        hasLowercase: /[a-z]/.test(password),
+        hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+      });
+    } else {
+      setPasswordRequirements({
+        hasNumber: false,
+        hasUppercase: false,
+        hasLowercase: false,
+        hasSpecialChar: false,
+      });
+    }
+  }, [form.values.password]);
 
   const handleSubmit = async (values: typeof form.values) => {
     setLoading(true);
     setError(null);
 
     try {
-      let profileImageUrl = "";
-
-      // Upload profile image if selected
-      if (imgFile) {
-        setUploading(true);
-        try {
-          const formData = new FormData();
-          formData.append("file", imgFile);
-
-          const apiUrl = (
-            process.env.NEXT_PUBLIC_API_URL ||
-            "https://api.kuepass.com/api/"
-          ).replace(/\/$/, "");
-
-          const imageResponse = await fetch(`${apiUrl}/upload/image`, {
-            method: "POST",
-            body: formData,
-          });
-
-          if (imageResponse.ok) {
-            const imageData = await imageResponse.json();
-            profileImageUrl = imageData.url;
-          } else {
-            console.error(
-              "Failed to upload image:",
-              await imageResponse.text()
-            );
-            // Continue with signup even if image upload fails
-          }
-        } catch (error) {
-          console.error("Error uploading image:", error);
-          // Continue with signup even if image upload fails
-        } finally {
-          setUploading(false);
-        }
-      }
-
       // Call the API service to register the user
       const response = await signUp({
         username: values.username,
         email: values.email,
         password: values.password,
         phone_number: values.number,
-        profile_url: profileImageUrl || undefined,
       });
 
       if (response.success) {
@@ -313,8 +277,6 @@ const SignUp = () => {
               ...user,
               // Use username from form input
               username: values.username,
-              // Handle profile picture with both possible field names
-              profile_url: profileImageUrl || user.profile_url,
             };
           }
         }
@@ -327,7 +289,6 @@ const SignUp = () => {
               ...response.user,
               // Use username from form input
               username: values.username,
-              profile_url: profileImageUrl,
             };
           }
         }
@@ -393,15 +354,8 @@ const SignUp = () => {
     <div className={styles.pageContainer}>
       {/* Left Column with Image - hidden on mobile */}
       <div className={styles.leftColumn}>
-        <div className={styles.overlay}></div>
-        <div className={styles.welcomeTextOverlay}>
-          <Title className={styles.welcomeTitle}>Join Our Community</Title>
-          <Text className={styles.welcomeSubtitle}>
-            Discover amazing events around you
-          </Text>
-        </div>
         <Image
-          src="/images/clubDance.png"
+          src="/images/signimage.png"
           alt="Sign up background"
           fill
           className={styles.image}
@@ -455,32 +409,6 @@ const SignUp = () => {
             />
 
             <form onSubmit={form.onSubmit(handleSubmit)}>
-              <div className={styles.profileImageUpload}>
-                <div className={styles.profileImageContainer}>
-                  <Image
-                    src={imgSrc}
-                    alt="Profile"
-                    width={80}
-                    height={80}
-                    className={styles.profileImage}
-                  />
-                  <button
-                    type="button"
-                    className={styles.uploadImageButton}
-                    onClick={triggerFileInput}
-                  >
-                    {uploading ? "Uploading..." : "Choose Photo"}
-                  </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    style={{ display: "none" }}
-                  />
-                </div>
-              </div>
-
               <TextInput
                 label="Username"
                 placeholder="Enter your username"
@@ -530,23 +458,71 @@ const SignUp = () => {
                 }}
               />
 
-              <PasswordInput
-                label="Password"
-                placeholder="Create a strong password"
-                leftSection={
-                  <IconLock size={18} className={styles.inputIcon} />
-                }
-                {...form.getInputProps("password")}
-                className={styles.input}
-                classNames={{
-                  input: styles.inputField,
-                  label: styles.inputLabel,
-                  error: styles.inputError,
-                  innerInput: styles.passwordInput,
-                  wrapper: styles.inputWrapper,
-                }}
-                description="Must be at least 8 characters"
-              />
+              <div className={styles.passwordContainer}>
+                <PasswordInput
+                  label="Password"
+                  placeholder="Create a strong password"
+                  leftSection={
+                    <IconLock size={18} className={styles.inputIcon} />
+                  }
+                  {...form.getInputProps("password")}
+                  className={styles.input}
+                  classNames={{
+                    input: styles.inputField,
+                    label: styles.inputLabel,
+                    error: styles.inputError,
+                    innerInput: styles.passwordInput,
+                    wrapper: styles.inputWrapper,
+                  }}
+                  description="Must be at least 8 characters"
+                />
+                {form.values.password && (
+                  <div className={styles.passwordRequirements}>
+                    <div
+                      className={`${styles.requirementItem} ${
+                        passwordRequirements.hasNumber
+                          ? styles.requirementMet
+                          : styles.requirementUnmet
+                      }`}
+                    >
+                      <IconCheck size={16} className={styles.requirementIcon} />
+                      <span className={styles.requirementText}>Number</span>
+                    </div>
+                    <div
+                      className={`${styles.requirementItem} ${
+                        passwordRequirements.hasUppercase
+                          ? styles.requirementMet
+                          : styles.requirementUnmet
+                      }`}
+                    >
+                      <IconCheck size={16} className={styles.requirementIcon} />
+                      <span className={styles.requirementText}>uppercase</span>
+                    </div>
+                    <div
+                      className={`${styles.requirementItem} ${
+                        passwordRequirements.hasLowercase
+                          ? styles.requirementMet
+                          : styles.requirementUnmet
+                      }`}
+                    >
+                      <IconCheck size={16} className={styles.requirementIcon} />
+                      <span className={styles.requirementText}>lowercase</span>
+                    </div>
+                    <div
+                      className={`${styles.requirementItem} ${
+                        passwordRequirements.hasSpecialChar
+                          ? styles.requirementMet
+                          : styles.requirementUnmet
+                      }`}
+                    >
+                      <IconCheck size={16} className={styles.requirementIcon} />
+                      <span className={styles.requirementText}>
+                        Special character
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <div className={styles.termsContainer}>
                 <Text size="sm" className={styles.termsText}>

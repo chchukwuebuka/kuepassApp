@@ -15,6 +15,9 @@ import {
   IconHome,
   IconCalendarEvent,
   IconHelpCircle,
+  IconEye,
+  IconSquare,
+  IconDotsVertical,
 } from "@tabler/icons-react";
 import {
   Avatar,
@@ -113,99 +116,200 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
         } ${isOnDashboard || isOnServices ? styles.dashboardNav : ""}`}
       >
         <div className={styles.navContainer}>
-          <Link href="/">
-            <Image
-              src={
-                alwaysDark || isOnServices || isScrolled
-                  ? "/images/Kuepass.svg"
-                  : "/images/Kuepass1.png"
-              }
-              alt="Kuepass"
-              width={120}
-              height={40}
-              className={styles.kuepass}
-            />
-          </Link>
+          {isOnDashboard ? (
+            <>
+              {/* Dashboard Navbar Layout */}
+              <div className={styles.dashboardNavLeft}>
+                <Link href="/" className={styles.dashboardLogoContainer}>
+                  <Image
+                    src="/images/Kuepass.svg"
+                    alt="Kuepass"
+                    width={120}
+                    height={40}
+                    className={styles.kuepass}
+                  />
+                </Link>
+              </div>
 
-          <nav className={styles.navLinkEnhanced}>
-            {navLinks.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className={styles.link}
-                style={alwaysDark ? { color: "#000" } : undefined}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-
-          <div className={styles.groupBTN}>
-            {!isLogged ? (
-              <>
-                <Button
-                  variant="outline"
-                  className={styles.navBTNEnhanced}
-                  onClick={handleLogin}
-                >
-                  Login
-                </Button>
-                <Button
-                  className={styles.navBTN1Enhanced}
-                  onClick={handleSignup}
-                >
-                  Sign up
-                </Button>
-              </>
-            ) : (
-              <Group>
-                <Menu
-                  position="bottom-end"
-                  shadow="md"
-                  width={200}
-                  styles={{ dropdown: { marginRight: "10px" } }}
-                >
+              <div className={styles.dashboardNavCenter}>
+                <div className={styles.dashboardNavSeparator}></div>
+                <button className={styles.dashboardViewEventButton}>
+                  <IconEye
+                    size={18}
+                    stroke={2}
+                    className={styles.viewEventIcon}
+                  />
+                  <span>View your event</span>
+                </button>
+                <Menu position="bottom-end" shadow="md" width={200}>
                   <Menu.Target>
-                    <UnstyledButton
-                      className={styles.avatarButtonEnhanced}
-                      style={{ marginRight: "5px" }}
+                    <button className={styles.dashboardMoreButton}>
+                      <span>More</span>
+                      <IconChevronDown size={18} stroke={1.5} />
+                    </button>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <Menu.Item
+                      component={Link}
+                      href="/eventSchedule/exploreEvent"
                     >
-                      <div className={styles.userProfileContainer}>
+                      Discover Events
+                    </Menu.Item>
+                    <Menu.Item component={Link} href="/about">
+                      About Us
+                    </Menu.Item>
+                    <Menu.Item component={Link} href="/services">
+                      Services
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+              </div>
+
+              <div className={styles.dashboardNavRight}>
+                {isLogged ? (
+                  <Menu position="bottom-end" shadow="md" width={200}>
+                    <Menu.Target>
+                      <UnstyledButton className={styles.dashboardUserButton}>
                         <Avatar
                           src={avatarSrc}
                           alt={userInfo?.username || "User Avatar"}
                           radius="xl"
-                          className={styles.userAvatar}
+                          size="sm"
+                          className={styles.dashboardUserAvatar}
                         />
-                        <div className={styles.userNameContainer}>
-                          <Text className={styles.userName} truncate>
-                            {userInfo?.username || "User"}
-                          </Text>
-                        </div>
+                        <Text className={styles.dashboardUserName} truncate>
+                          {userInfo?.username || "User"}
+                        </Text>
                         <IconChevronDown size={16} stroke={1.5} />
-                      </div>
-                    </UnstyledButton>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    <Menu.Item component={Link} href="/profile/profile">
-                      Profile
-                    </Menu.Item>
-                    <Menu.Divider />
-                    <Menu.Item onClick={handleLogout} color="red">
-                      Logout
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
-              </Group>
-            )}
+                      </UnstyledButton>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <Menu.Item component={Link} href="/profile/profile">
+                        Profile
+                      </Menu.Item>
+                      <Menu.Divider />
+                      <Menu.Item onClick={handleLogout} color="red">
+                        Logout
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+                ) : (
+                  <Group>
+                    <Button
+                      variant="outline"
+                      className={styles.navBTNEnhanced}
+                      onClick={handleLogin}
+                    >
+                      Login
+                    </Button>
+                    <Button
+                      className={styles.navBTN1Enhanced}
+                      onClick={handleSignup}
+                    >
+                      Sign up
+                    </Button>
+                  </Group>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Regular Navbar Layout */}
+              <Link href="/">
+                <Image
+                  src={
+                    alwaysDark || isOnServices || isScrolled
+                      ? "/images/Kuepass.svg"
+                      : "/images/Kuepass1.png"
+                  }
+                  alt="Kuepass"
+                  width={120}
+                  height={40}
+                  className={styles.kuepass}
+                />
+              </Link>
 
-            <Burger
-              opened={opened}
-              onClick={open}
-              className={styles.mobileMenuButton}
-              size="sm"
-            />
-          </div>
+              <nav className={styles.navLinkEnhanced}>
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.label}
+                    href={link.href}
+                    className={styles.link}
+                    style={alwaysDark ? { color: "#000" } : undefined}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
+
+              <div className={styles.groupBTN}>
+                {!isLogged ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      className={styles.navBTNEnhanced}
+                      onClick={handleLogin}
+                    >
+                      Login
+                    </Button>
+                    <Button
+                      className={styles.navBTN1Enhanced}
+                      onClick={handleSignup}
+                    >
+                      Sign up
+                    </Button>
+                  </>
+                ) : (
+                  <Group>
+                    <Menu
+                      position="bottom-end"
+                      shadow="md"
+                      width={200}
+                      styles={{ dropdown: { marginRight: "10px" } }}
+                    >
+                      <Menu.Target>
+                        <UnstyledButton
+                          className={styles.avatarButtonEnhanced}
+                          style={{ marginRight: "5px" }}
+                        >
+                          <div className={styles.userProfileContainer}>
+                            <Avatar
+                              src={avatarSrc}
+                              alt={userInfo?.username || "User Avatar"}
+                              radius="xl"
+                              className={styles.userAvatar}
+                            />
+                            <div className={styles.userNameContainer}>
+                              <Text className={styles.userName} truncate>
+                                {userInfo?.username || "User"}
+                              </Text>
+                            </div>
+                            <IconChevronDown size={16} stroke={1.5} />
+                          </div>
+                        </UnstyledButton>
+                      </Menu.Target>
+                      <Menu.Dropdown>
+                        <Menu.Item component={Link} href="/profile/profile">
+                          Profile
+                        </Menu.Item>
+                        <Menu.Divider />
+                        <Menu.Item onClick={handleLogout} color="red">
+                          Logout
+                        </Menu.Item>
+                      </Menu.Dropdown>
+                    </Menu>
+                  </Group>
+                )}
+
+                <Burger
+                  opened={opened}
+                  onClick={open}
+                  className={styles.mobileMenuButton}
+                  size="sm"
+                />
+              </div>
+            </>
+          )}
         </div>
       </header>
 
@@ -217,7 +321,9 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
         title={
           <Image
             src={
-              alwaysDark || isOnServices || isScrolled
+              isOnDashboard
+                ? "/images/Kuepass.svg"
+                : alwaysDark || isOnServices || isScrolled
                 ? "/images/Kuepass.svg"
                 : "/images/Kuepass1.png"
             }

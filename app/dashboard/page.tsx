@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Roboto } from "next/font/google";
 import styles from "./styles.module.css";
-import Sidebar from "@/components/Sidebar";
+import Sidebar, { type PageKey } from "@/components/Sidebar";
 import TopBanner from "@/components/TopBanner";
 import StatsCard from "@/components/StatsCard";
 import UserTable from "@/components/UserTable";
@@ -55,10 +55,16 @@ const SalesAnalyticsPage = dynamic(
     ),
   }
 );
+const CreateEventPage = dynamic(() => import("@/components/CreateEventPage"), {
+  loading: () => (
+    <Center>
+      <Loader />
+    </Center>
+  ),
+});
 
 const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://api.kuepass.com/api/"
+  process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.kuepass.com/api/"
 ).replace(/\/$/, "");
 
 interface Customization {
@@ -91,17 +97,6 @@ interface AttendeeData {
   validated_at: string | null;
 }
 
-type PageKey =
-  | "overview"
-  | "customization"
-  | "userManagement"
-  | "salesAnalytics"
-  | "finance"
-  | "Generate Promotion Kit"
-  | "store"
-  | "support"
-  | "logout";
-
 const roboto = Roboto({
   subsets: ["latin"],
   weight: ["100", "300", "400", "500", "700", "900"],
@@ -110,13 +105,16 @@ const roboto = Roboto({
 export default function Dashboard() {
   const searchParams = useSearchParams();
   const eventId = searchParams.get("eventId");
+  const mode = searchParams.get("mode");
   const [event, setEvent] = useState<EventData | null>(null);
   const [registeredUsers, setRegisteredUsers] = useState<number>(0);
   const [validatedUsers, setValidatedUsers] = useState<number>(0);
   const [totalBalance, setTotalBalance] = useState<string>("₦0");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [activePage, setActivePage] = useState<PageKey>("overview");
+  const [activePage, setActivePage] = useState<PageKey>(
+    mode === "createEvent" ? "createEvent" : "overview"
+  );
 
   useEffect(() => {
     if (!eventId) {
@@ -251,6 +249,7 @@ export default function Dashboard() {
         <p>Support content goes here.</p>
       </>
     ),
+    createEvent: <CreateEventPage />,
     logout: (
       <>
         <h1>Log Out</h1>

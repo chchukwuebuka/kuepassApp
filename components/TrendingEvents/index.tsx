@@ -27,7 +27,7 @@ interface FetchedEventData {
   end_date: string;
   location: string;
   address: string;
-  customization?: { banner_url?: string };
+  customization?: { banner_url?: string | string[] };
   creator?: { username?: string };
 }
 
@@ -73,12 +73,32 @@ export const EventSection: React.FC<EventSectionProps> = ({
 
           const now = new Date();
           const mappedEvents: EventCardProps[] = fetchedEventsData.map(
-            (event) => ({
-              eventId: event.id,
-              image:
-                event.customization?.banner_url ||
-                "/images/default-event-banner.jpg",
-              title: event.title,
+            (event) => {
+              // Handle banner_url as either array or string
+              let bannerImage = "/images/default-event-banner.jpg";
+              const bannerUrl = event.customization?.banner_url;
+              if (bannerUrl) {
+                if (Array.isArray(bannerUrl) && bannerUrl.length > 0) {
+                  // If it's an array, use the first valid URL
+                  const firstUrl = bannerUrl.find(
+                    (url: any) =>
+                      typeof url === "string" &&
+                      url.trim() !== "" &&
+                      (url.startsWith("http://") || url.startsWith("https://"))
+                  );
+                  if (firstUrl) {
+                    bannerImage = firstUrl;
+                  }
+                } else if (typeof bannerUrl === "string" && bannerUrl.trim() !== "") {
+                  // If it's a string, use it directly
+                  bannerImage = bannerUrl;
+                }
+              }
+
+              return {
+                eventId: event.id,
+                image: bannerImage,
+                title: event.title,
               date: new Date(event.start_date).toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
@@ -98,7 +118,8 @@ export const EventSection: React.FC<EventSectionProps> = ({
                   ? "Past"
                   : "Ongoing",
               isFeatured: false,
-            })
+              };
+            }
           );
 
           setEvents(mappedEvents);

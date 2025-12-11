@@ -21,6 +21,7 @@ export type PageKey =
   | "Generate Promotion Kit"
   | "store"
   | "support"
+  | "createEvent"
   | "logout";
 
 interface SidebarProps {
@@ -35,7 +36,7 @@ const menuItems: {
   isBottom?: boolean;
   disabled?: boolean;
 }[] = [
-  { key: "overview", icon: <FaHome />, label: "Overview" },
+  { key: "overview", icon: <FaHome />, label: "Dashboard" },
   {
     key: "customization",
     icon: <FaUsers />,
@@ -70,39 +71,52 @@ const Sidebar = ({ activePage, onNavClick }: SidebarProps) => {
   const topItems = menuItems.filter((item) => !item.isBottom);
   const bottomItems = menuItems.filter((item) => item.isBottom);
 
+  // Disable "overview" (Dashboard) when creating an event
+  const getItemDisabled = (item: (typeof menuItems)[0]) => {
+    if (item.disabled) return true;
+    // if (item.key === "overview" && activePage === "createEvent") return true;
+    return false;
+  };
+
   return (
     <nav className={styles.sidebar} aria-label="Sidebar Navigation">
       <ul className={styles.menu}>
-        {topItems.map((item) => (
-          <li
-            key={item.key}
-            className={`${activePage === item.key ? styles.active : ""} ${
-              item.disabled ? styles.disabled : ""
-            }`}
-            onClick={() => !item.disabled && onNavClick(item.key)}
-          >
-            <span className={styles.link}>
-              {item.icon} {/* ✅ Ensure icon is rendered */}
-              <span className={styles.label}>{item.label}</span>
-            </span>
-          </li>
-        ))}
+        {topItems.map((item) => {
+          const isDisabled = getItemDisabled(item);
+          return (
+            <li
+              key={item.key}
+              className={`${activePage === item.key ? styles.active : ""} ${
+                isDisabled ? styles.disabled : ""
+              }`}
+              onClick={() => !isDisabled && onNavClick(item.key)}
+            >
+              <span className={styles.link}>
+                {item.icon} {/* ✅ Ensure icon is rendered */}
+                <span className={styles.label}>{item.label}</span>
+              </span>
+            </li>
+          );
+        })}
       </ul>
       <ul className={styles.bottomMenu}>
-        {bottomItems.map((item) => (
-          <li
-            key={item.key}
-            className={`${activePage === item.key ? styles.active : ""} ${
-              item.label === "Log Out" ? styles.logout : ""
-            } ${item.disabled ? styles.disabled : ""}`}
-            onClick={() => !item.disabled && onNavClick(item.key)}
-          >
-            <span className={styles.link}>
-              {item.icon} {/* ✅ Ensure icon is rendered */}
-              <span className={styles.label}>{item.label}</span>
-            </span>
-          </li>
-        ))}
+        {bottomItems.map((item) => {
+          const isDisabled = getItemDisabled(item);
+          return (
+            <li
+              key={item.key}
+              className={`${activePage === item.key ? styles.active : ""} ${
+                item.label === "Log Out" ? styles.logout : ""
+              } ${isDisabled ? styles.disabled : ""}`}
+              onClick={() => !isDisabled && onNavClick(item.key)}
+            >
+              <span className={styles.link}>
+                {item.icon} {/* ✅ Ensure icon is rendered */}
+                <span className={styles.label}>{item.label}</span>
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );

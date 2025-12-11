@@ -81,6 +81,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import "./globals.css";
 import styles from "./page.module.css";
 import GlobalLoading from "@/components/loader/globalLoading";
+import { AnalyticsProvider } from "@/components/GoogleAnalytics/AnalyticsProvider";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -137,6 +138,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={roboto.className}>
+        <AnalyticsProvider />
         <ReduxProvider theme={theme}>
           <GlobalLoading />
           <ErrorBoundary>

@@ -8,8 +8,7 @@ import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 
 const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://api.kuepass.com/api/"
+  process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.kuepass.com/api/"
 ).replace(/\/$/, "");
 
 function HeroSection() {
@@ -19,7 +18,7 @@ function HeroSection() {
     id: string;
     title: string;
     start_date: string;
-    banner_url?: string;
+    banner_url?: string | string[];
     price?: string;
     tickets?: Array<{
       id: string;
@@ -166,12 +165,22 @@ function HeroSection() {
           } catch (ticketError) {
             console.error("Hero: Failed to fetch tickets:", ticketError);
             // Still set the event without tickets
+            // Handle banner_url as either array or string
+            let bannerUrl: string | string[] | undefined = undefined;
+            const customizationBannerUrl = eventData.customization?.banner_url;
+            const eventBannerUrl = eventData.banner_url;
+
+            if (customizationBannerUrl) {
+              bannerUrl = customizationBannerUrl;
+            } else if (eventBannerUrl) {
+              bannerUrl = eventBannerUrl;
+            }
+
             setLatestEvent({
               id: eventData.id,
               title: eventData.title,
               start_date: eventData.start_date,
-              banner_url:
-                eventData.customization?.banner_url || eventData.banner_url,
+              banner_url: bannerUrl,
               price: eventData.price,
               tickets: [],
             });
@@ -227,7 +236,7 @@ function HeroSection() {
             </SubtitleText>
 
             <ButtonGroup>
-              <Link href="/eventSchedule/createEventForm">
+              <Link href="/dashboard?mode=createEvent">
                 <PrimaryButton>Host an Event</PrimaryButton>
               </Link>
             </ButtonGroup>
@@ -236,7 +245,32 @@ function HeroSection() {
           <EventCard>
             <EventCardImage>
               <Image
-                src={latestEvent?.banner_url || "/images/banner.png"}
+                src={(() => {
+                  const bannerUrl = latestEvent?.banner_url;
+                  if (!bannerUrl) return "/images/banner.png";
+
+                  // If it's an array, use the first valid HTTP/HTTPS URL
+                  if (Array.isArray(bannerUrl) && bannerUrl.length > 0) {
+                    const firstUrl = bannerUrl.find(
+                      (url: any) =>
+                        typeof url === "string" &&
+                        url.trim() !== "" &&
+                        (url.startsWith("http://") ||
+                          url.startsWith("https://"))
+                    );
+                    return firstUrl || "/images/banner.png";
+                  }
+
+                  // If it's a string, use it directly
+                  if (
+                    typeof bannerUrl === "string" &&
+                    bannerUrl.trim() !== ""
+                  ) {
+                    return bannerUrl;
+                  }
+
+                  return "/images/banner.png";
+                })()}
                 alt={latestEvent?.title || "Event thumbnail"}
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
