@@ -1,6 +1,9 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 import {
   Container,
   Title,
@@ -17,6 +20,7 @@ import {
   Card,
   Badge,
   Anchor,
+  Loader,
 } from "@mantine/core";
 import Link from "next/link";
 import {
@@ -29,7 +33,7 @@ import {
   IconMapPin,
 } from "@tabler/icons-react";
 
-export default function EventUnavailablePage() {
+function EventUnavailablePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const eventTitle = searchParams.get("title");
@@ -286,5 +290,19 @@ export default function EventUnavailablePage() {
         </Paper>
       </Container>
     </Box>
+  );
+}
+
+export default function EventUnavailablePage() {
+  return (
+    <Suspense
+      fallback={
+        <Center style={{ height: "100vh" }}>
+          <Loader size="xl" />
+        </Center>
+      }
+    >
+      <EventUnavailablePageContent />
+    </Suspense>
   );
 }

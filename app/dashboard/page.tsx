@@ -1,41 +1,46 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 import { Roboto } from "next/font/google";
 import styles from "./styles.module.css";
-import Sidebar from "@/components/Sidebar";
+import Sidebar, { type PageKey } from "@/components/Sidebar";
 import TopBanner from "@/components/TopBanner";
 import StatsCard from "@/components/StatsCard";
 import UserTable from "@/components/UserTable";
 import { Stack, Loader, Center, Text } from "@mantine/core";
 import { authenticatedRequest } from "@/app/services/auth";
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 
 // Lazy load heavy components
-const Customization = dynamic(() => import("@/components/Customization"), {
+const Customization = nextDynamic(() => import("@/components/Customization"), {
   loading: () => (
     <Center>
       <Loader />
     </Center>
   ),
 });
-const TicketDashboard = dynamic(() => import("@/components/UserManagement"), {
+const TicketDashboard = nextDynamic(
+  () => import("@/components/UserManagement"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
+const Finance = nextDynamic(() => import("@/components/Finance"), {
   loading: () => (
     <Center>
       <Loader />
     </Center>
   ),
 });
-const Finance = dynamic(() => import("@/components/Finance"), {
-  loading: () => (
-    <Center>
-      <Loader />
-    </Center>
-  ),
-});
-const YourPromotionKitComponent = dynamic(
+const YourPromotionKitComponent = nextDynamic(
   () => import("@/components/Generate"),
   {
     loading: () => (
@@ -45,8 +50,18 @@ const YourPromotionKitComponent = dynamic(
     ),
   }
 );
-const SalesAnalyticsPage = dynamic(
+const SalesAnalyticsPage = nextDynamic(
   () => import("@/components/SalesAnalytics"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
+const CreateEventPage = nextDynamic(
+  () => import("@/components/CreateEventPage"),
   {
     loading: () => (
       <Center>
@@ -57,8 +72,7 @@ const SalesAnalyticsPage = dynamic(
 );
 
 const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://api.kuepass.com/api/"
+  process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.kuepass.com/api/"
 ).replace(/\/$/, "");
 
 interface Customization {
@@ -91,32 +105,24 @@ interface AttendeeData {
   validated_at: string | null;
 }
 
-type PageKey =
-  | "overview"
-  | "customization"
-  | "userManagement"
-  | "salesAnalytics"
-  | "finance"
-  | "Generate Promotion Kit"
-  | "store"
-  | "support"
-  | "logout";
-
 const roboto = Roboto({
   subsets: ["latin"],
   weight: ["100", "300", "400", "500", "700", "900"],
 });
 
-export default function Dashboard() {
+function DashboardContent() {
   const searchParams = useSearchParams();
   const eventId = searchParams.get("eventId");
+  const mode = searchParams.get("mode");
   const [event, setEvent] = useState<EventData | null>(null);
   const [registeredUsers, setRegisteredUsers] = useState<number>(0);
   const [validatedUsers, setValidatedUsers] = useState<number>(0);
   const [totalBalance, setTotalBalance] = useState<string>("₦0");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [activePage, setActivePage] = useState<PageKey>("overview");
+  const [activePage, setActivePage] = useState<PageKey>(
+    mode === "createEvent" ? "createEvent" : "overview"
+  );
 
   useEffect(() => {
     if (!eventId) {
@@ -251,6 +257,7 @@ export default function Dashboard() {
         <p>Support content goes here.</p>
       </>
     ),
+    createEvent: <CreateEventPage />,
     logout: (
       <>
         <h1>Log Out</h1>
@@ -268,5 +275,21 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense
+      fallback={
+        <div className={styles.dashboardLayout}>
+          <Center style={{ height: "100vh" }}>
+            <Loader size="xl" />
+          </Center>
+        </div>
+      }
+    >
+      <DashboardContent />
+    </Suspense>
   );
 }

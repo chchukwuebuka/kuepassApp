@@ -40,6 +40,11 @@
 }
 
 /* Dashboard-specific styles - black text */
+.dashboardNav {
+  background-color: transparent;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 .dashboardNav .link {
   color: #000000 !important;
 }
@@ -534,3 +539,119 @@
 /* * {
   transition: width 0.3s ease, height 0.3s ease, font-size 0.3s ease, padding 0.3s ease;
 } */
+
+/* Dashboard Navbar Styles */
+.dashboardNavLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dashboardLogoContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.dashboardLogoIcon {
+  color: #000;
+  flex-shrink: 0;
+}
+
+.dashboardNavCenter {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.dashboardNavSeparator {
+  width: 1px;
+  height: 24px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #3b82f6 0,
+    #3b82f6 2px,
+    transparent 2px,
+    transparent 6px
+  );
+  border: none;
+  margin: 0 0.5rem;
+}
+
+.dashboardViewEventButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: #034230;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.dashboardViewEventButton:hover {
+  color: #034230;
+}
+
+.viewEventIcon {
+  color: #034230;
+  flex-shrink: 0;
+}
+
+.dashboardMoreButton {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  color: #034230;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.dashboardMoreButton:hover {
+  color: #034230;
+}
+
+.dashboardNavRight {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dashboardUserButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dashboardUserButton:hover {
+  background-color: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+.dashboardUserAvatar {
+  flex-shrink: 0;
+}
+
+.dashboardUserName {
+  color: #000;
+  font-size: 0.95rem;
+  font-weight: 500;
+  max-width: 120px;
+}

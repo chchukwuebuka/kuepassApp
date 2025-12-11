@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+
+export const dynamic = 'force-dynamic';
 import Image from "next/image";
 import {
   Container,
@@ -47,7 +49,7 @@ const API_BASE_URL = (
   "https://api.kuepass.com/api/"
 ).replace(/\/$/, "");
 
-export default function UserProfilePage() {
+function UserProfilePageContent() {
   const params = useParams<{ userId: string }>();
   const searchParams = useSearchParams();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -331,5 +333,19 @@ export default function UserProfilePage() {
         <Text className={styles.footerText}>@ 2025 GOLDEN AGE</Text>
       </div>
     </div>
+  );
+}
+
+export default function UserProfilePage() {
+  return (
+    <Suspense
+      fallback={
+        <Center style={{ height: "100vh" }}>
+          <Loader size="xl" />
+        </Center>
+      }
+    >
+      <UserProfilePageContent />
+    </Suspense>
   );
 }

@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+
+export const dynamic = 'force-dynamic';
 import { Center, Loader, Text, Stack } from "@mantine/core";
 
-export default function QRRedirectPage() {
+function QRRedirectPageContent() {
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId");
 
@@ -29,5 +31,24 @@ export default function QRRedirectPage() {
         </Text>
       </Stack>
     </Center>
+  );
+}
+
+export default function QRRedirectPage() {
+  return (
+    <Suspense
+      fallback={
+        <Center style={{ height: "100vh" }}>
+          <Stack align="center">
+            <Loader size="xl" />
+            <Text size="lg" c="dimmed">
+              Loading...
+            </Text>
+          </Stack>
+        </Center>
+      }
+    >
+      <QRRedirectPageContent />
+    </Suspense>
   );
 }

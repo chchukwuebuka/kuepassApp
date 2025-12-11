@@ -1,0 +1,451 @@
+/* Modal Overlay */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modalContent {
+  background-color: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.closeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: color 0.2s ease;
+  border-radius: 4px;
+  z-index: 10;
+}
+
+.closeButton:hover {
+  color: #111827;
+  background-color: #f3f4f6;
+}
+
+.modalBody {
+  padding: 1rem;
+}
+
+.modalTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #034230;
+  margin: 0 0 1rem 0;
+
+}
+
+.modalDescription {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  line-height: 1.6;
+  /* margin: 0 0 1.5rem 0; */
+color: #000000;
+width: 80%;
+}
+
+/* Schedule Navigation */
+.scheduleNavigation {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.scheduleTab {
+  background: none;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+  position: relative;
+}
+
+.scheduleTab:hover {
+  color: #025a3a;
+}
+
+.scheduleTabActive {
+  color: #025a3a;
+  border-bottom-color: #025a3a;
+}
+
+.addScheduleButton {
+  background: none;
+  border: none;
+  color: #025a3a;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  transition: color 0.2s ease;
+}
+
+.addScheduleButton:hover {
+  color: #013a25;
+  text-decoration: underline;
+}
+
+/* Form Container */
+.formContainer {
+  background-color: #f5f6fa;
+  border-radius: 12px;
+  padding: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.fieldLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.required {
+  color: #ef4444;
+  margin-left: 0.25rem;
+}
+
+.textInput {
+  width: 100%;
+  padding: 0.55rem 1rem;
+  border: 0.6px solid #D5D5D5;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #111827;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  background-color: white;
+}
+
+.textInput:focus {
+  outline: none;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+.textInput::placeholder {
+  color: #9ca3af;
+}
+
+/* Time Fields */
+.timeFieldsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.timeInput {
+  width: 100%;
+  padding: 0.25rem 1rem;
+  border: 0.6px solid #D5D5D5;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #111827;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  background-color: #F2F2F2;
+}
+
+.timeInput:focus {
+  outline: none;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+/* Action Buttons */
+.actionButtonsRow {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.addHostButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.5rem;
+  background-color: #F2F2F2;
+  color: #151515;
+  border: 0.6px solid #D5D5D5;
+  border-radius: 8px;
+  font-size: 15.1px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addHostButton:hover:not(.buttonActive) {
+  background-color: #F2F2F2;
+}
+
+.addHostButton.buttonActive {
+  background-color: #F5B64533;
+  border-color: #F5B645;
+  color: #151515;
+}
+
+.addDescriptionButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 1.5rem;
+  background-color: white;
+  color: #151515;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addDescriptionButton:hover:not(.buttonActive) {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.addDescriptionButton.buttonActive {
+  background-color: #F5B64533;
+  border-color: #F5B645;
+  color: #151515;
+}
+
+/* Host Input Wrapper */
+.hostInputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.clearButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.clearButton:hover {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+/* Textarea */
+.textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #111827;
+  font-family: inherit;
+  resize: vertical;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  background-color: white;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+.textarea::placeholder {
+  color: #9ca3af;
+}
+
+/* Add Slot Button */
+.addSlotButton {
+  width: 70%;
+  padding: 0.55rem 1.5rem;
+  background-color: #FFFFFF;
+  color: #111827;
+  border: 1px solid #F5B645;
+  border-radius: 36.46px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0 auto 0.5rem auto;
+  display: block;
+}
+
+.addSlotButton:hover {
+  background-color: #FFFFFF;
+  border-color: #F5B645;
+}
+
+/* Slots List */
+.slotsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.slotItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: #d1fae5;
+  border-radius: 12px;
+  position: relative;
+  border-left: 4px solid #10b981;
+  transition: all 0.2s ease;
+}
+
+.slotItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.slotTime {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.slotTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.slotHostBadge {
+  display: inline-block;
+  padding: 0.375rem 0.875rem;
+  background-color: white;
+  color: #111827;
+  border: 1px solid #10b981;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  width: fit-content;
+  margin-top: 0.25rem;
+}
+
+.removeSlotButton {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #6b7280;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.slotItem:hover .removeSlotButton {
+  opacity: 1;
+}
+
+.removeSlotButton:hover {
+  background-color: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+/* Modal Actions */
+.modalActions {
+  display: flex;
+  justify-content: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.saveButton {
+  padding: 0.55rem 10rem;
+  background-color: #F5B645;
+  color: #151515;
+  border: none;
+  border-radius: 63.08px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saveButton:hover {
+  background-color: #ea580c;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modalBody {
+    padding: 1.5rem;
+  }
+
+  .timeFieldsRow {
+    grid-template-columns: 1fr;
+  }
+
+  .actionButtonsRow {
+    flex-direction: column;
+  }
+
+  .addHostButton,
+  .addDescriptionButton {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

@@ -1,257 +1,209 @@
 /* Main container */
 .pageContainer {
   display: flex;
-  /* justify-content: center;
-  align-items: center; */
   height: 100vh;
   overflow: hidden;
-}
-
-.grid {
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
+  background-color: white;
+  padding: 1rem;
+  gap: 30px;
 }
 
 .leftColumn {
-  position: relative;
   width: 50%;
   height: 100%;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+  position: relative;
 }
 
-.overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(2, 90, 58, 0.85), rgba(2, 44, 34, 0.7));
-  z-index: 1;
-}
-
-.welcomeTextOverlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-  text-align: center;
-  width: 80%;
-  color: white;
-}
-
-.welcomeTitle {
-  font-size: 3.5rem;
-  font-weight: 800;
-  margin-bottom: 1rem;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  letter-spacing: -0.5px;
-}
-
-.welcomeSubtitle {
-  font-size: 1.4rem;
-  opacity: 0.9;
-  font-weight: 400;
-  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+.rightColumn {
+  width: 45%;
+  height: 100%;
+  position: relative;
+  background-color: #f8fafc;
 }
 
 .image {
   object-fit: cover;
   object-position: center;
-  z-index: 0;
-  position: absolute;
   width: 100%;
   height: 100%;
-}
+  border-radius: 2rem;
 
-.rightColumn {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #f8fafc;
 }
 
 .formContainer {
   width: 100%;
-  max-width: 450px;
-  padding: 2rem;
-  position: relative;
-}
-
-.headerFlex {
+  max-width: 480px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  margin-bottom: 1.5rem;
-}
-
-.goBackButton {
-  position: relative;
-  /* padding: 10px 16px; */
-  top: 30px;
-  transition: all 0.3s ease;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 1rem;
-  right: 70px;
-  background-color: transparent;
-  color: #000;
-}
-
-.goBackButton:hover {
-  transform: translateY(-3px);
-  background-color: transparent;
-  color: #000;
+  flex-direction: column;
 }
 
 .formHeader {
-  margin-bottom: 0;
-  text-align: center;
+  margin-bottom: 2rem;
 }
 
 .title {
   font-size: 2rem;
-  font-weight: 800;
-  color: #1a1a1a;
-  margin-bottom: 0.75rem;
-  background: linear-gradient(135deg, #025a3a, #038c5a);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: -0.5px;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 0.5rem;
+
+  font-size: 25px;
+
+  line-height: 100%;
+
 }
 
 .subtitle {
   font-size: 1rem;
-  color: #64748b;
-  line-height: 1.5;
+  color: #666;
+  font-weight: 400;
 }
 
 .notification {
   margin-bottom: 1.5rem;
-  /* color: #6b7280;
-  font-size: 16px;
-  font-weight: 400;
-  text-align: center;
-  color: #6b7280;
-  margin-top: 10px; */
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .formWrapper {
-  background-color: white;
-  border-radius: 16px;
-  padding: 1rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  margin-bottom: 3rem;
+  width: 100%;
 }
 
 .input {
-  margin-bottom: 1.5rem;
-}
-
-.inputWrapper {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.inputWrapper:focus-within {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-}
-
-.inputField {
-  height: 50px;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  transition: all 0.3s ease;
-  padding-left: 45px;
-  font-size: 15px;
-  background-color: #f8fafc;
-}
-
-.inputField:focus {
-  border-color: #025a3a;
-  background-color: white;
-  box-shadow: 0 0 0 2px rgba(2, 90, 58, 0.1);
-}
-
-.inputIcon {
-  color: #025a3a;
+  margin-bottom: 1.25rem;
 }
 
 .inputLabel {
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
   font-weight: 600;
-  color: #334155;
-  font-size: 15px;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.inputField {
+  height: 40px;
+  background-color: #f3f4f6;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  padding-left: 1rem;
+  font-size: 1rem;
+  color: #333;
+  transition: all 0.2s ease;
+
+}
+
+.inputField:focus {
+  background-color: white;
+  border-color: #e5e7eb;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
 }
 
 .inputError {
-  font-size: 13px;
-  margin-top: 6px;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
   color: #ef4444;
 }
 
 .passwordContainer {
-  position: relative;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
-.passwordInput {
-  padding-right: 45px;
+.passwordRequirements {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.requirementItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.requirementMet {
+  color: #22c55e;
+}
+
+.requirementUnmet {
+  color: #9ca3af;
+}
+
+.requirementIcon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.requirementMet .requirementIcon {
+  background-color: #22c55e;
+  color: white;
+  stroke-width: 3;
+}
+
+.requirementUnmet .requirementIcon {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  stroke-width: 2;
+}
+
+.requirementText {
+  font-size: 0.875rem;
+  font-weight: 400;
+  white-space: nowrap;
 }
 
 .forgotPasswordContainer {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 8px;
-  margin-top: 8px;
-  position: relative;
-  z-index: 2;
+  margin-top: 0.5rem;
+  text-align: right;
 }
 
-
 .forgotPassword {
-  color: #025a3a;
+  color: #666;
   text-decoration: none;
-  font-size: 14px;
-  transition: all 0.3s ease;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .forgotPassword:hover {
-  color: #013a25;
   text-decoration: underline;
+  color: #333;
 }
 
 .submitButton {
-  height: 50px;
-  background: linear-gradient(135deg, #025a3a, #038c5a);
-  color: white;
-  border-radius: 10px;
+  height: 54px;
+  background-color: #F5B041;
+  /* Golden yellow */
+  color: #111;
+  border-radius: 27px;
+  /* Pill shape or rounded */
   border: none;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  font-size: 16px;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 12px rgba(2, 90, 58, 0.2);
+  font-weight: 700;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  margin-top: 1rem;
   margin-bottom: 1.5rem;
 }
 
 .submitButton:hover {
-  background: linear-gradient(135deg, #013a25, #025a3a);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(2, 90, 58, 0.3);
-}
-
-.submitButton:active {
-  transform: translateY(0);
+  background-color: #f4a120;
+  transform: translateY(-1px);
 }
 
 .divider {
   display: flex;
   align-items: center;
-  margin: 1rem 0 1.5rem;
+  margin: 0 0 1.5rem;
   color: #9ca3af;
 }
 
@@ -259,66 +211,87 @@
 .divider::after {
   content: "";
   flex: 1;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .dividerText {
   padding: 0 1rem;
-  font-size: 14px;
-  color: #64748b;
+  font-size: 0.9rem;
+  color: #6b7280;
   font-weight: 500;
+}
+
+.socialStack {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
 }
 
 .socialButton {
   height: 50px;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  color: #334155;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  color: #333;
   font-weight: 600;
-  transition: all 0.3s ease;
   background-color: white;
-  font-size: 15px;
+  font-size: 0.95rem;
+  flex: 1;
 }
 
 .socialButton:hover {
-  background-color: #f8fafc;
-  border-color: #cbd5e1;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.footerText {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+.footerLink {
+  color: #111;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.footerLink:hover {
+  text-decoration: underline;
 }
 
 .signUpText {
   text-align: center;
-  margin-top: 2rem;
-  font-size: 15px;
-  font-weight: 500;
-  color: #475569;
+  margin-top: 1rem;
+  /* Adjusted spacing */
+  font-size: 0.95rem;
+  color: #666;
+  display: none;
+  /* Hiding this as it might not be in the design or redundant with footer */
+}
+
+/* Re-enabling if needed, but design has footer text */
+.signUpText {
+  display: block;
+  margin-top: 1rem;
 }
 
 .signUpLink {
-  color: #025a3a;
-  text-decoration: none;
-  transition: all 0.3s ease;
+  color: #F5B041;
+  /* Match button color or keep it standard? Design usually has standard link color */
+  color: #111;
   font-weight: 700;
+  text-decoration: none;
 }
 
 .signUpLink:hover {
-  color: #013a25;
   text-decoration: underline;
 }
 
-/* Media queries for responsive design */
-@media (min-width: 768px) {
-  .leftColumn {
-    display: block;
-  }
 
-  .rightColumn {
-    width: 50%;
-  }
-}
-
-@media (max-width: 767px) {
+/* Responsive */
+@media (max-width: 768px) {
   .pageContainer {
     flex-direction: column;
     height: auto;
@@ -326,106 +299,29 @@
   }
 
   .leftColumn {
-    display: none;
+    width: 100%;
+    order: 2;
+    /* Form below image on mobile? Or above? Usually form is main. */
+    order: 1;
+    padding: 1.5rem;
   }
 
   .rightColumn {
     width: 100%;
-    padding: 1rem;
+    height: 200px;
+    /* Small banner on mobile */
+    order: 0;
+    /* Image on top */
+    display: none;
+    /* Or hide image on mobile to focus on form */
   }
 
-  .formContainer {
-    padding: 1rem;
-    max-width: 100%;
-  }
-
-  .formWrapper {
-    padding: 1rem;
-    margin-bottom: 2rem;
+  /* If we want image on right (desktop) to be hidden on mobile or shown as header */
+  .rightColumn {
+    display: none;
   }
 
   .title {
     font-size: 1.75rem;
   }
-
-  .subtitle {
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-  }
-
-  .goBackButton {
-    position: absolute;
-    top: 1rem;
-    left: 1rem;
-    padding: 0.5rem;
-    font-size: 0.9rem;
-    min-width: auto;
-    min-height: auto;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .input {
-    margin-bottom: 1rem;
-  }
-
-  .inputField {
-    height: 45px;
-    font-size: 14px;
-  }
-
-  .submitButton {
-    height: 45px;
-    font-size: 15px;
-  }
-
-  .socialButton {
-    height: 45px;
-    font-size: 14px;
-  }
-
-  .signUpText {
-    font-size: 14px;
-    margin-top: 1.5rem;
-  }
-}
-
-@media (min-width: 1200px) {
-  .formContainer {
-    max-width: 500px;
-  }
-
-  .welcomeTitle {
-    font-size: 4rem;
-  }
-
-  .welcomeSubtitle {
-    font-size: 1.5rem;
-  }
-}
-
-/* Animation for form elements */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.formWrapper {
-  animation: fadeIn 0.5s ease-out;
-}
-
-.mobileFormHeader {
-  margin-bottom: 1.5rem;
-  text-align: center;
-  width: 100%;
-  padding-top: 1rem;
 }

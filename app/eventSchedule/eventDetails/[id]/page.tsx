@@ -1,7 +1,16 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+  Suspense,
+} from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 import {
   Container,
@@ -48,7 +57,7 @@ import { useLoadingState } from "@/store/loadingHook";
 // --- INTERFACE DEFINITIONS ---
 interface Customization {
   id: string;
-  banner_url: string;
+  banner_url: string | string[];
   font?: string;
   card_color: string;
   event?: string;
@@ -190,7 +199,7 @@ const checkUserRegistration = (
   return !!userAttendee; // Check presence only
 };
 
-export default function EventDetails() {
+function EventDetailsContent() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -198,6 +207,9 @@ export default function EventDetails() {
   const { withLoading } = useLoadingState();
 
   const [event, setEvent] = useState<EventData | null>(null);
+  const [customization, setCustomization] = useState<Customization | null>(
+    null
+  );
   const [countdownDate, setCountdownDate] = useState<Date | null>(null);
   const [attendees, setAttendees] = useState<AttendeeData[]>([]);
   const [pageError, setPageError] = useState<string | null>(null);
@@ -358,6 +370,58 @@ export default function EventDetails() {
     };
 
     fetchEvent();
+  }, [id]);
+
+  // Fetch customization separately (same pattern as exploreEvent - customization is included in event object)
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchCustomization = async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/event-customizations/?event=${id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          console.warn("Failed to fetch customization:", response.status);
+          return;
+        }
+
+        const res = await response.json();
+        const customizationList = Array.isArray(res)
+          ? res
+          : res?.data && Array.isArray(res.data)
+          ? res.data
+          : res?.success && Array.isArray(res.data)
+          ? res.data
+          : [];
+
+        if (customizationList.length > 0) {
+          setCustomization(customizationList[0] as Customization);
+          // Merge customization into event object (same as exploreEvent pattern)
+          setEvent((prevEvent) => {
+            if (prevEvent) {
+              return {
+                ...prevEvent,
+                customization: customizationList[0] as Customization,
+              };
+            }
+            return prevEvent;
+          });
+        }
+      } catch (err) {
+        console.warn("Error fetching customization:", err);
+      }
+    };
+
+    fetchCustomization();
   }, [id]);
 
   useEffect(() => {
@@ -642,16 +706,32 @@ export default function EventDetails() {
     }
   }, [id, router]);
 
-  let finalBannerUrl = "/images/placeholder.jpg";
-  if (event) {
-    if (
-      event.customization?.banner_url &&
-      event.customization.banner_url.trim() !== ""
-    )
-      finalBannerUrl = event.customization.banner_url;
-    else if (event.banner_url && event.banner_url.trim() !== "")
-      finalBannerUrl = event.banner_url;
-  }
+  // Handle banner_url as either array or string
+  const finalBannerUrl = useMemo(() => {
+    if (!event || !event.customization?.banner_url) {
+      return "/images/placeholder.jpg";
+    }
+
+    const bannerUrl = event.customization.banner_url;
+
+    // If it's an array, use the first valid HTTP/HTTPS URL
+    if (Array.isArray(bannerUrl)) {
+      const firstUrl = bannerUrl.find(
+        (url: any) =>
+          typeof url === "string" &&
+          url.trim() !== "" &&
+          (url.startsWith("http://") || url.startsWith("https://"))
+      );
+      return firstUrl || "/images/placeholder.jpg";
+    }
+
+    // If it's a string, use it directly
+    if (typeof bannerUrl === "string" && bannerUrl.trim() !== "") {
+      return bannerUrl;
+    }
+
+    return "/images/placeholder.jpg";
+  }, [event]);
 
   // Show error state only if there's an actual error
   if (pageError) {
@@ -1144,5 +1224,19 @@ export default function EventDetails() {
         </div>
       </Container>
     </div>
+  );
+}
+
+export default function EventDetails() {
+  return (
+    <Suspense
+      fallback={
+        <Center style={{ height: "100vh" }}>
+          <Loader size="xl" />
+        </Center>
+      }
+    >
+      <EventDetailsContent />
+    </Suspense>
   );
 }

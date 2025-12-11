@@ -42,7 +42,7 @@ interface EventData {
   location?: string;
   creator?: { id: number; username: string };
   customization?: {
-    banner_url: string;
+    banner_url: string | string[];
   };
   description?: string;
   price?: string;
@@ -335,8 +335,29 @@ const ExploreEvents: React.FC = () => {
 
         // Map events into the shape the UI needs with ownership (single pass)
         const mappedEvents: MappedEvent[] = allEvents.map((e) => {
-          const bannerImage =
-            e.customization?.banner_url || "/images/placeholder.jpg";
+          // Handle banner_url as either array or string
+          let bannerImage: string = "/images/placeholder.jpg";
+          const bannerUrl = e.customization?.banner_url;
+          if (bannerUrl) {
+            if (Array.isArray(bannerUrl) && bannerUrl.length > 0) {
+              // If it's an array, use the first valid HTTP/HTTPS URL
+              const firstUrl = bannerUrl.find(
+                (url: any) =>
+                  typeof url === "string" &&
+                  url.trim() !== "" &&
+                  (url.startsWith("http://") || url.startsWith("https://"))
+              );
+              if (firstUrl && typeof firstUrl === "string") {
+                bannerImage = firstUrl;
+              }
+            } else if (
+              typeof bannerUrl === "string" &&
+              bannerUrl.trim() !== ""
+            ) {
+              // If it's a string, use it directly
+              bannerImage = bannerUrl;
+            }
+          }
 
           let ownershipStatus: MappedEvent["ownership"] = "None";
 

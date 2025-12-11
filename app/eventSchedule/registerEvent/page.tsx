@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 import styles from "./styles.module.css";
 import QRCodePopup from "@/components/QRCodePopup";
 import "react-phone-number-input/style.css";
@@ -132,7 +134,7 @@ const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL || "https://api.kuepass.com/api/"
 ).replace(/\/$/, "");
 
-export default function RegisterEvent() {
+function RegisterEventContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const eventId = searchParams.get("eventId");
@@ -1799,5 +1801,19 @@ export default function RegisterEvent() {
         eventId={event?.id || undefined}
       />
     </div>
+  );
+}
+
+export default function RegisterEvent() {
+  return (
+    <Suspense
+      fallback={
+        <Center style={{ height: "100vh" }}>
+          <Loader size="xl" />
+        </Center>
+      }
+    >
+      <RegisterEventContent />
+    </Suspense>
   );
 }
