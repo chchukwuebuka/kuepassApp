@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Roboto } from "next/font/google";
@@ -102,7 +102,7 @@ const roboto = Roboto({
   weight: ["100", "300", "400", "500", "700", "900"],
 });
 
-export default function Dashboard() {
+function DashboardContent() {
   const searchParams = useSearchParams();
   const eventId = searchParams.get("eventId");
   const mode = searchParams.get("mode");
@@ -267,5 +267,21 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense
+      fallback={
+        <div className={styles.dashboardLayout}>
+          <Center style={{ height: "100vh" }}>
+            <Loader size="xl" />
+          </Center>
+        </div>
+      }
+    >
+      <DashboardContent />
+    </Suspense>
   );
 }
