@@ -3,6 +3,8 @@
 import React, { Suspense } from "react";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 import { Roboto } from "next/font/google";
 import styles from "./styles.module.css";
 import Sidebar, { type PageKey } from "@/components/Sidebar";
@@ -11,31 +13,34 @@ import StatsCard from "@/components/StatsCard";
 import UserTable from "@/components/UserTable";
 import { Stack, Loader, Center, Text } from "@mantine/core";
 import { authenticatedRequest } from "@/app/services/auth";
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 
 // Lazy load heavy components
-const Customization = dynamic(() => import("@/components/Customization"), {
+const Customization = nextDynamic(() => import("@/components/Customization"), {
   loading: () => (
     <Center>
       <Loader />
     </Center>
   ),
 });
-const TicketDashboard = dynamic(() => import("@/components/UserManagement"), {
+const TicketDashboard = nextDynamic(
+  () => import("@/components/UserManagement"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
+const Finance = nextDynamic(() => import("@/components/Finance"), {
   loading: () => (
     <Center>
       <Loader />
     </Center>
   ),
 });
-const Finance = dynamic(() => import("@/components/Finance"), {
-  loading: () => (
-    <Center>
-      <Loader />
-    </Center>
-  ),
-});
-const YourPromotionKitComponent = dynamic(
+const YourPromotionKitComponent = nextDynamic(
   () => import("@/components/Generate"),
   {
     loading: () => (
@@ -45,7 +50,7 @@ const YourPromotionKitComponent = dynamic(
     ),
   }
 );
-const SalesAnalyticsPage = dynamic(
+const SalesAnalyticsPage = nextDynamic(
   () => import("@/components/SalesAnalytics"),
   {
     loading: () => (
@@ -55,13 +60,16 @@ const SalesAnalyticsPage = dynamic(
     ),
   }
 );
-const CreateEventPage = dynamic(() => import("@/components/CreateEventPage"), {
-  loading: () => (
-    <Center>
-      <Loader />
-    </Center>
-  ),
-});
+const CreateEventPage = nextDynamic(
+  () => import("@/components/CreateEventPage"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
 
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.kuepass.com/api/"

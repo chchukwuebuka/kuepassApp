@@ -2,6 +2,8 @@
 
 import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+
+export const dynamic = 'force-dynamic';
 import { Center, Loader, Text, Stack } from "@mantine/core";
 
 function QRRedirectPageContent() {

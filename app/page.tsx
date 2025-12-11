@@ -2,6 +2,8 @@
 
 import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 import { Stack, Loader, Center, Text } from "@mantine/core";
 import HeroSection from "@/components/hero";
 import CustomFooter from "@/components/Footer";

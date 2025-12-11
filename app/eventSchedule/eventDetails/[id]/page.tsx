@@ -1,7 +1,16 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+  Suspense,
+} from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 import {
   Container,
@@ -190,7 +199,7 @@ const checkUserRegistration = (
   return !!userAttendee; // Check presence only
 };
 
-export default function EventDetails() {
+function EventDetailsContent() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1215,5 +1224,19 @@ export default function EventDetails() {
         </div>
       </Container>
     </div>
+  );
+}
+
+export default function EventDetails() {
+  return (
+    <Suspense
+      fallback={
+        <Center style={{ height: "100vh" }}>
+          <Loader size="xl" />
+        </Center>
+      }
+    >
+      <EventDetailsContent />
+    </Suspense>
   );
 }

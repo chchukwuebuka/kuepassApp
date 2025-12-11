@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+
+export const dynamic = 'force-dynamic';
 import Image from "next/image";
 import {
   Container,

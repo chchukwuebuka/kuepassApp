@@ -76,6 +76,7 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import { createTheme } from "@mantine/core";
+import { Suspense } from "react";
 import ReduxProvider from "@/store/provider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import "./globals.css";
@@ -138,7 +139,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={roboto.className}>
-        <AnalyticsProvider />
+        <Suspense fallback={null}>
+          <AnalyticsProvider />
+        </Suspense>
         <ReduxProvider theme={theme}>
           <GlobalLoading />
           <ErrorBoundary>
