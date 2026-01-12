@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-// import Navbar from "@/components/navbar";
+import Navbar from "@/components/navbar";
 import Footer from "@/components/Footer";
 import StatsSection from "@/components/StatsSection";
 import styles from "./styles.module.css";
@@ -13,7 +13,7 @@ import LevelUpEventSection from "@/components/LevelUpEventSection";
 const AboutPage: React.FC = () => {
   return (
     <div className={styles.pageContainer}>
-      {/* <Navbar /> */}
+      <Navbar alwaysDark />
 
       {/* Mission Statement Section */}
       <div className={styles.missionSection}>

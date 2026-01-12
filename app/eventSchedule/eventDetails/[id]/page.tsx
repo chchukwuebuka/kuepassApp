@@ -47,6 +47,12 @@ import {
   Bookmark,
   ChevronDown,
   ChevronUp,
+  Tag,
+  Youtube,
+  Instagram,
+  Twitter,
+  Facebook,
+  Link as LinkIcon,
 } from "lucide-react";
 import styles from "./styles.module.css";
 import CountdownTimer from "@/components/CountdownTimer";
@@ -60,10 +66,33 @@ interface Customization {
   banner_url: string | string[];
   font?: string;
   card_color: string;
+  button_text?: string;
   event?: string;
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;
+}
+
+interface SocialLink {
+  url: string;
+  platform: string;
+}
+
+interface LineUpItem {
+  name: string;
+  role: string;
+  description?: string;
+  image?: string;
+}
+
+interface ItineraryItem {
+  title: string;
+  start_time: string;
+  end_time: string;
+  activity: string;
+  host?: string;
+  description?: string;
+  image?: string;
 }
 
 interface EventData {
@@ -75,7 +104,13 @@ interface EventData {
   banner_url?: string;
   location: string;
   address?: string;
+  landmark?: string;
   price?: string;
+  event_type?: string;
+  tags?: string[];
+  social_links?: SocialLink[];
+  line_up?: LineUpItem[];
+  itinerary?: ItineraryItem[];
   creator?: {
     id: number;
     username: string;
@@ -101,6 +136,17 @@ interface AttendeeData {
   is_validated?: boolean;
   payment_status?: string;
   validated_at?: string | null;
+}
+
+interface TicketData {
+  id: string;
+  event: string;
+  ticket_sold?: number;
+  quantity?: number | "Unlimited" | null;
+  category_price?: string | number;
+  category_name?: string;
+  description?: string | null;
+  name?: string;
 }
 
 interface CurrentUser {
@@ -207,11 +253,9 @@ function EventDetailsContent() {
   const { withLoading } = useLoadingState();
 
   const [event, setEvent] = useState<EventData | null>(null);
-  const [customization, setCustomization] = useState<Customization | null>(
-    null
-  );
   const [countdownDate, setCountdownDate] = useState<Date | null>(null);
   const [attendees, setAttendees] = useState<AttendeeData[]>([]);
+  const [tickets, setTickets] = useState<TicketData[]>([]);
   const [pageError, setPageError] = useState<string | null>(null);
   const [showCheckInQRModal, setShowCheckInQRModal] = useState(false);
   const [checkInQrError, setCheckInQrError] = useState<string | null>(null);
@@ -232,9 +276,20 @@ function EventDetailsContent() {
   const [mapUrl, setMapUrl] = useState<string>("");
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
-  // Set auth check as complete immediately since we allow guest access
+  // Fetch current user on mount
   useEffect(() => {
-    setIsAuthCheckComplete(true);
+    const fetchUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+      } catch (error) {
+        console.warn("Error fetching current user:", error);
+        setCurrentUser(null);
+      } finally {
+        setIsAuthCheckComplete(true);
+      }
+    };
+    fetchUser();
   }, []);
 
   // Set hardcoded location (replace with your actual coordinates)
@@ -280,26 +335,39 @@ function EventDetailsContent() {
   }, [event]);
 
   const fetchAttendees = useCallback(async () => {
-    if (!id) return;
+    // 🛑 STOP: Do not fetch if there is no user or event ID
+    if (!currentUser || !id || !event?.id) {
+      setAttendees([]);
+      return;
+    }
 
     try {
       console.log("=== DEBUG: Fetching attendees ===");
       console.log("Event ID:", id);
 
-      // Use regular fetch instead of authenticatedRequest for guest access
+      const token = getAuthToken();
+      const headers: HeadersInit = {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      };
+
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const response = await fetch(
         `${API_BASE_URL}/attendees/?event_id=${id}`,
         {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
+          headers,
         }
       );
 
       if (!response.ok) {
-        console.warn("Failed to fetch attendees:", response.status);
+        // Silently handle errors - attendees are optional
+        if (response.status !== 500) {
+          console.warn("Failed to fetch attendees:", response.status);
+        }
         setAttendees([]);
         return;
       }
@@ -323,7 +391,7 @@ function EventDetailsContent() {
       console.warn("EventDetails - Error fetching attendees:", err);
       setAttendees([]);
     }
-  }, [id]);
+  }, [id, currentUser, event?.id]);
 
   useEffect(() => {
     if (!id) {
@@ -372,63 +440,75 @@ function EventDetailsContent() {
     fetchEvent();
   }, [id]);
 
-  // Fetch customization separately (same pattern as exploreEvent - customization is included in event object)
-  useEffect(() => {
-    if (!id) return;
+  // Customization is already included in the event response, no need to fetch separately
+  // This prevents 401 errors when the endpoint requires authentication
 
-    const fetchCustomization = async () => {
+  useEffect(() => {
+    // Only fetch attendees if user is logged in and event is loaded
+    if (id && currentUser && event?.id) {
+      fetchAttendees();
+    }
+  }, [id, currentUser, event?.id, fetchAttendees]);
+
+  // Fetch tickets for the event
+  useEffect(() => {
+    // 🛑 STOP: Do not fetch if there is no user or event ID
+    if (!currentUser || !id || !event?.id) {
+      setTickets([]);
+      return;
+    }
+
+    const fetchTickets = async () => {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/event-customizations/?event=${id}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-          }
-        );
+        const token = getAuthToken();
+        const headers: HeadersInit = {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        };
+
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/tickets/?event=${id}`, {
+          method: "GET",
+          headers,
+        });
 
         if (!response.ok) {
-          console.warn("Failed to fetch customization:", response.status);
+          // Silently handle errors - tickets are optional
+          if (response.status !== 500) {
+            console.warn("Failed to fetch tickets:", response.status);
+          }
+          setTickets([]);
           return;
         }
 
         const res = await response.json();
-        const customizationList = Array.isArray(res)
+        const ticketsList = Array.isArray(res)
           ? res
           : res?.data && Array.isArray(res.data)
           ? res.data
+          : res?.results && Array.isArray(res.results)
+          ? res.results
           : res?.success && Array.isArray(res.data)
           ? res.data
           : [];
 
-        if (customizationList.length > 0) {
-          setCustomization(customizationList[0] as Customization);
-          // Merge customization into event object (same as exploreEvent pattern)
-          setEvent((prevEvent) => {
-            if (prevEvent) {
-              return {
-                ...prevEvent,
-                customization: customizationList[0] as Customization,
-              };
-            }
-            return prevEvent;
-          });
-        }
+        // Filter tickets for the current event
+        const eventTickets = ticketsList.filter(
+          (ticket: TicketData) => ticket.event === id
+        );
+
+        setTickets(eventTickets);
       } catch (err) {
-        console.warn("Error fetching customization:", err);
+        console.warn("Error fetching tickets:", err);
+        setTickets([]);
       }
     };
 
-    fetchCustomization();
-  }, [id]);
-
-  useEffect(() => {
-    if (id) {
-      fetchAttendees();
-    }
-  }, [id, fetchAttendees]);
+    fetchTickets();
+  }, [id, currentUser, event?.id]);
 
   useEffect(() => {
     if (searchParams.get("refresh") === "true" && id) {
@@ -517,6 +597,54 @@ function EventDetailsContent() {
     const numericPrice = parseFloat(price.toString());
     if (isNaN(numericPrice) || numericPrice <= 0) return "Free";
     return `N${price}`;
+  };
+
+  const getLowestTicketPrice = (): string => {
+    if (tickets.length === 0) return "N/A";
+    const paidTickets = tickets.filter(
+      (t) => t.category_price && parseFloat(t.category_price.toString()) > 0
+    );
+    if (paidTickets.length === 0) {
+      const freeTickets = tickets.filter(
+        (t) =>
+          !t.category_price || parseFloat(t.category_price.toString()) === 0
+      );
+      if (freeTickets.length > 0) return "Free";
+      return "Contact for pricing";
+    }
+    const prices = paidTickets.map((t) =>
+      parseFloat(t.category_price?.toString() || "0")
+    );
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    if (minPrice === maxPrice) {
+      return `₦${minPrice.toLocaleString()}`;
+    }
+    return `₦${minPrice.toLocaleString()}-₦${maxPrice.toLocaleString()}`;
+  };
+
+  const extractStateAndCountry = (address: string | undefined): string => {
+    if (!address || address.trim() === "" || address === "TBD") {
+      return "Event Location";
+    }
+
+    // Split the address by spaces and get the last two words (state and country)
+    const parts = address.trim().split(/\s+/);
+
+    if (parts.length < 2) {
+      return address; // Return the address as-is if it's too short
+    }
+
+    // Get the last two words (state and country)
+    const state = parts[parts.length - 2];
+    const country = parts[parts.length - 1];
+
+    // Capitalize first letter of each word
+    const capitalize = (str: string) => {
+      return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    };
+
+    return `${capitalize(state)}, ${capitalize(country)}`;
   };
 
   const truncateDescription = (
@@ -733,6 +861,20 @@ function EventDetailsContent() {
     return "/images/placeholder.jpg";
   }, [event]);
 
+  // Get ticket description from the first ticket that has a description
+  const ticketDescription = useMemo(() => {
+    if (!tickets || tickets.length === 0) {
+      return null;
+    }
+
+    // Find the first ticket with a description
+    const ticketWithDescription = tickets.find(
+      (ticket) => ticket.description && ticket.description.trim() !== ""
+    );
+
+    return ticketWithDescription?.description || null;
+  }, [tickets]);
+
   // Show error state only if there's an actual error
   if (pageError) {
     return (
@@ -882,8 +1024,15 @@ function EventDetailsContent() {
               <div className={styles.heroLayout}>
                 <div className={styles.heroLeft}>
                   <Badge className={styles.eventBadge} size="lg">
-                    {event?.location || "Event Location"}
+                    <MapPin size={16} />
+                    {extractStateAndCountry(event?.address)}
                   </Badge>
+                  {event?.event_type && event.event_type.trim() && (
+                    <div className={styles.eventTypeBadge}>
+                      <Tag size={14} />
+                      <span>{event.event_type}</span>
+                    </div>
+                  )}
                   <Title className={styles.heroTitle}>{event?.title}</Title>
                   <Text className={styles.heroDescription}>
                     {truncateDescription(event?.description || "", 220)}
@@ -899,7 +1048,8 @@ function EventDetailsContent() {
                         }`}
                         prefetch={true}
                       >
-                        Get Access Card - {formatPrice(event?.price)}
+                        {event?.customization?.button_text || "Get Access Card"}{" "}
+                        @ {getLowestTicketPrice()}
                       </Button>
                       <Menu shadow="md" width={200}>
                         <Menu.Target>
@@ -928,6 +1078,21 @@ function EventDetailsContent() {
                       </Menu>
                     </Group>
                   </div>
+                  <div className={styles.heroStats}>
+                    <span>
+                      View{" "}
+                      {tickets.reduce((sum, t) => {
+                        const qty =
+                          t.ticket_sold !== undefined
+                            ? t.ticket_sold
+                            : t.quantity === "Unlimited"
+                            ? 0
+                            : (t.quantity as number) || 0;
+                        return sum + qty;
+                      }, 0)}{" "}
+                      tickets sold
+                    </span>
+                  </div>
                 </div>
                 <div className={styles.heroRight}>
                   <div className={styles.imageCard}>
@@ -950,10 +1115,40 @@ function EventDetailsContent() {
           <div className={styles.mainColumn}>
             <Paper className={styles.contentCard}>
               {/* Event Details Grid */}
-              <div className={styles.highlightedText}>INVITATION</div>
+              {ticketDescription && (
+                <div className={styles.highlightedText}>
+                  <Text
+                    size="lg"
+                    style={{ color: "#666", fontStyle: "italic" }}
+                  >
+                    {ticketDescription}
+                  </Text>
+                </div>
+              )}
               <div className={styles.creatorName}>
                 by {event?.creator?.username || "Unknown Host"}
               </div>
+              <div className={styles.tagsSection}>
+                <div className={styles.tagsContainer}> Tags</div>
+                {event?.tags && event.tags.length > 0 && (
+                  <div className={styles.section}>
+                    <div className={styles.tagsContainer}>
+                      {event.tags.map((tag, index) => (
+                        <Badge
+                          key={index}
+                          className={styles.tagBadge}
+                          variant="light"
+                          size="lg"
+                        >
+                          <Tag size={14} style={{ marginRight: "4px" }} />
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className={styles.eventDetailsGrid}>
                 <div className={styles.detailItem}>
                   <div className={styles.detailIcon}>
@@ -1001,9 +1196,9 @@ function EventDetailsContent() {
                     <Info size={20} />
                   </div>
                   <div className={styles.detailContent}>
-                    <Text className={styles.detailLabel}>Categories</Text>
+                    <Text className={styles.detailLabel}>Event Type</Text>
                     <Text className={styles.detailValue}>
-                      Event, Entertainment
+                      {event?.event_type || "N/A"}
                     </Text>
                   </div>
                 </div>
@@ -1128,6 +1323,16 @@ function EventDetailsContent() {
                   Direction
                 </Title>
 
+                {/* Landmark */}
+                {event?.landmark && event.landmark.trim() && (
+                  <div className={styles.landmarkContainer}>
+                    <Text className={styles.landmarkLabel}>Landmark:</Text>
+                    <Text className={styles.landmarkValue}>
+                      {event.landmark}
+                    </Text>
+                  </div>
+                )}
+
                 {/* Debug info - remove this after testing */}
                 {process.env.NODE_ENV === "development" && (
                   <div
@@ -1184,19 +1389,254 @@ function EventDetailsContent() {
               </div>
 
               {/* Contact Us Section */}
-              <div className={styles.section}>
-                <Title order={2} className={styles.sectionTitle}>
-                  Contact Us
-                </Title>
-                <div className={styles.socialIcons}>
-                  <div className={styles.socialIcon}>
-                    <Text style={{ fontSize: "24px" }}>𝕏</Text>
-                  </div>
-                  <div className={styles.socialIcon}>
-                    <Text style={{ fontSize: "24px" }}>📷</Text>
+              {event?.social_links && event.social_links.length > 0 && (
+                <div className={styles.section}>
+                  <Title order={2} className={styles.sectionTitle}>
+                    Contact Us
+                  </Title>
+                  <div className={styles.socialIcons}>
+                    {event.social_links.map((socialLink, index) => {
+                      const platform = socialLink.platform?.toLowerCase() || "";
+                      let IconComponent = LinkIcon;
+                      let iconColor = "#666";
+
+                      if (platform.includes("youtube")) {
+                        IconComponent = Youtube;
+                        iconColor = "#FF0000";
+                      } else if (platform.includes("instagram")) {
+                        IconComponent = Instagram;
+                        iconColor = "#E4405F";
+                      } else if (
+                        platform.includes("twitter") ||
+                        platform.includes("x")
+                      ) {
+                        IconComponent = Twitter;
+                        iconColor = "#1DA1F2";
+                      } else if (platform.includes("facebook")) {
+                        IconComponent = Facebook;
+                        iconColor = "#1877F2";
+                      } else if (platform.includes("tiktok")) {
+                        IconComponent = Share2;
+                        iconColor = "#000000";
+                      }
+
+                      return (
+                        <a
+                          key={index}
+                          href={socialLink.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.socialIcon}
+                          title={socialLink.platform}
+                        >
+                          <IconComponent
+                            size={24}
+                            style={{ color: iconColor }}
+                          />
+                        </a>
+                      );
+                    })}
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* Line Up Section */}
+              {event?.line_up && event.line_up.length > 0 && (
+                <div className={styles.section}>
+                  <Title order={2} className={styles.sectionTitle}>
+                    Line Up
+                  </Title>
+                  <div className={styles.lineupList}>
+                    {event.line_up.map((speaker, index) => (
+                      <div key={index} className={styles.lineupCard}>
+                        <div className={styles.lineupAvatar}>
+                          {speaker.image ? (
+                            <img
+                              src={speaker.image}
+                              alt={speaker.name}
+                              className={styles.lineupAvatarImg}
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                                e.currentTarget.nextElementSibling?.classList.remove(
+                                  styles.lineupAvatarPlaceholder
+                                );
+                                if (e.currentTarget.parentElement) {
+                                  const placeholder =
+                                    document.createElement("div");
+                                  placeholder.className =
+                                    styles.lineupAvatarPlaceholder;
+                                  e.currentTarget.parentElement.appendChild(
+                                    placeholder
+                                  );
+                                }
+                              }}
+                            />
+                          ) : (
+                            <div className={styles.lineupAvatarPlaceholder} />
+                          )}
+                        </div>
+                        <div className={styles.lineupContent}>
+                          <Text className={styles.lineupRole}>
+                            {speaker.role?.toUpperCase() || ""}
+                          </Text>
+                          <Text className={styles.lineupName}>
+                            {speaker.name}
+                          </Text>
+                          {speaker.description && (
+                            <Text className={styles.lineupDescription}>
+                              {speaker.description}
+                            </Text>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Schedule Section */}
+              {event?.itinerary && event.itinerary.length > 0 && (
+                <div className={styles.section}>
+                  <div className={styles.scheduleList}>
+                    {event.itinerary.map((schedule, index) => {
+                      const formatTime = (time: string): string => {
+                        if (!time) return "";
+                        try {
+                          const [hours, minutes] = time.split(":");
+                          const hour = parseInt(hours, 10);
+                          const ampm = hour >= 12 ? "pm" : "am";
+                          const hour12 = hour % 12 || 12;
+                          return `${hour12}:${minutes}${ampm}`;
+                        } catch {
+                          return time;
+                        }
+                      };
+
+                      // Color schemes for different schedules
+                      const colorSchemes = [
+                        {
+                          highlight: "#4FFF40", // Green
+                          background: "#f0fdf4",
+                          hostBorder: "#4FFF40",
+                          hostText: "#4FFF40",
+                        },
+                        {
+                          highlight: "#3B82F6", // Blue
+                          background: "#eff6ff",
+                          hostBorder: "#3B82F6",
+                          hostText: "#3B82F6",
+                        },
+                        {
+                          highlight: "#F59E0B", // Amber
+                          background: "#fffbeb",
+                          hostBorder: "#F59E0B",
+                          hostText: "#F59E0B",
+                        },
+                        {
+                          highlight: "#EF4444", // Red
+                          background: "#fef2f2",
+                          hostBorder: "#EF4444",
+                          hostText: "#EF4444",
+                        },
+                        {
+                          highlight: "#8B5CF6", // Purple
+                          background: "#faf5ff",
+                          hostBorder: "#8B5CF6",
+                          hostText: "#8B5CF6",
+                        },
+                        {
+                          highlight: "#EC4899", // Pink
+                          background: "#fdf2f8",
+                          hostBorder: "#EC4899",
+                          hostText: "#EC4899",
+                        },
+                      ];
+
+                      const colorScheme =
+                        colorSchemes[index % colorSchemes.length];
+
+                      const startTime = formatTime(schedule.start_time);
+                      const endTime = formatTime(schedule.end_time);
+                      const timeRange =
+                        startTime && endTime
+                          ? `${startTime} - ${endTime}`
+                          : schedule.start_time && schedule.end_time
+                          ? `${schedule.start_time} - ${schedule.end_time}`
+                          : "";
+
+                      const hasMultipleSchedules =
+                        event.itinerary && event.itinerary.length > 1;
+
+                      return (
+                        <div key={index} className={styles.scheduleItem}>
+                          {schedule.title && (
+                            <Title order={2} className={styles.scheduleTitle}>
+                              {schedule.title}
+                            </Title>
+                          )}
+                          <div
+                            className={styles.scheduleCard}
+                            style={{
+                              backgroundColor: hasMultipleSchedules
+                                ? colorScheme.background
+                                : "#ffffff",
+                            }}
+                          >
+                            <div
+                              className={styles.scheduleCardHighlight}
+                              style={{
+                                backgroundColor: hasMultipleSchedules
+                                  ? colorScheme.highlight
+                                  : "#4FFF40",
+                              }}
+                            />
+                            <div className={styles.scheduleCardLayout}>
+                              {schedule.image ? (
+                                <img
+                                  src={schedule.image}
+                                  alt={schedule.activity || "Schedule image"}
+                                  className={styles.scheduleImage}
+                                />
+                              ) : (
+                                <div
+                                  className={styles.scheduleImagePlaceholder}
+                                >
+                                  <Text size="xs" c="dimmed">
+                                    600 × 400
+                                  </Text>
+                                </div>
+                              )}
+                              <div className={styles.scheduleCardContent}>
+                                <Text className={styles.scheduleTime}>
+                                  {timeRange}
+                                </Text>
+                                <Text className={styles.scheduleActivity}>
+                                  {schedule.activity}
+                                </Text>
+                                {schedule.host && (
+                                  <Badge
+                                    className={styles.scheduleHost}
+                                    style={{
+                                      borderColor: hasMultipleSchedules
+                                        ? colorScheme.hostBorder
+                                        : "#4FFF40",
+                                      color: hasMultipleSchedules
+                                        ? colorScheme.hostText
+                                        : "#4FFF40",
+                                    }}
+                                  >
+                                    {schedule.host.toUpperCase()}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </Paper>
           </div>
 

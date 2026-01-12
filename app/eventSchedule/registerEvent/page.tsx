@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +32,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { useLoadingState } from "@/store/loadingHook";
+import CountdownTimer from "@/components/CountdownTimer";
 
 // --- INTERFACES ---
 interface EventData {
@@ -56,6 +57,9 @@ interface Ticket {
   category_price: string;
   name: string;
   quantity: string;
+  purchase_limit?: number | null;
+  start_date?: string | null;
+  end_date?: string | null;
 }
 
 interface QuestionOption {
@@ -143,6 +147,47 @@ function RegisterEventContent() {
   const [event, setEvent] = useState<EventData | null>(null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
+
+  // Filter tickets based on start_date and end_date
+  const availableTickets = useMemo(() => {
+    const now = new Date();
+    return tickets.filter((ticket) => {
+      // If no dates are set, ticket is always available
+      if (!ticket.start_date && !ticket.end_date) {
+        return true;
+      }
+
+      const startDate = ticket.start_date ? new Date(ticket.start_date) : null;
+      const endDate = ticket.end_date ? new Date(ticket.end_date) : null;
+
+      // Check if current date is within the ticket's date range
+      const isAfterStart = !startDate || now >= startDate;
+      const isBeforeEnd = !endDate || now <= endDate;
+
+      return isAfterStart && isBeforeEnd;
+    });
+  }, [tickets]);
+
+  // Find tickets that haven't started yet (for countdown display)
+  const upcomingTickets = useMemo(() => {
+    const now = new Date();
+    return tickets.filter((ticket) => {
+      if (!ticket.start_date) return false;
+      const startDate = new Date(ticket.start_date);
+      return now < startDate;
+    });
+  }, [tickets]);
+
+  // Get the earliest start_date from upcoming tickets
+  const earliestTicketStartDate = useMemo(() => {
+    if (upcomingTickets.length === 0) return null;
+    const startDates = upcomingTickets
+      .map((t) => (t.start_date ? new Date(t.start_date) : null))
+      .filter((d): d is Date => d !== null);
+    if (startDates.length === 0) return null;
+    return new Date(Math.min(...startDates.map((d) => d.getTime())));
+  }, [upcomingTickets]);
+
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [selectedTickets, setSelectedTickets] = useState<{
     [ticketId: string]: number;
@@ -179,13 +224,16 @@ function RegisterEventContent() {
 
   // Auto-select first ticket with quantity 1 when tickets are loaded
   useEffect(() => {
-    if (tickets.length > 0 && Object.keys(selectedTickets).length === 0) {
-      const firstTicket = tickets[0];
+    if (
+      availableTickets.length > 0 &&
+      Object.keys(selectedTickets).length === 0
+    ) {
+      const firstTicket = availableTickets[0];
       if (firstTicket) {
         setSelectedTickets({ [firstTicket.id]: 1 });
       }
     }
-  }, [tickets, selectedTickets]);
+  }, [availableTickets, selectedTickets]);
 
   // const fees = 500.0; // Commented out - not needed for now
 
@@ -927,6 +975,63 @@ function RegisterEventContent() {
     );
   };
 
+  // Get banner URL from event data - handle both array and string formats
+  // Must be called before any early returns (React Hook rules)
+  const bannerUrl = useMemo(() => {
+    if (!event) {
+      return "/images/placeholder.jpg";
+    }
+
+    // First, try customization banner_url
+    const customizationBanner = event.customization?.banner_url;
+    if (customizationBanner) {
+      // If it's an array, use the first valid HTTP/HTTPS URL
+      if (Array.isArray(customizationBanner)) {
+        const firstUrl = customizationBanner.find(
+          (url: any) =>
+            typeof url === "string" &&
+            url.trim() !== "" &&
+            (url.startsWith("http://") || url.startsWith("https://"))
+        );
+        if (firstUrl) {
+          return firstUrl;
+        }
+      }
+      // If it's a string, use it directly
+      else if (
+        typeof customizationBanner === "string" &&
+        customizationBanner.trim() !== ""
+      ) {
+        return customizationBanner;
+      }
+    }
+
+    // Fallback to event banner_url
+    if (event.banner_url) {
+      // If it's an array, use the first valid HTTP/HTTPS URL
+      if (Array.isArray(event.banner_url)) {
+        const firstUrl = event.banner_url.find(
+          (url: any) =>
+            typeof url === "string" &&
+            url.trim() !== "" &&
+            (url.startsWith("http://") || url.startsWith("https://"))
+        );
+        if (firstUrl) {
+          return firstUrl;
+        }
+      }
+      // If it's a string, use it directly
+      else if (
+        typeof event.banner_url === "string" &&
+        event.banner_url.trim() !== ""
+      ) {
+        return event.banner_url;
+      }
+    }
+
+    return "/images/placeholder.jpg";
+  }, [event]);
+
   if (uiLoading || !isMounted) {
     return (
       <Center style={{ height: "80vh", flexDirection: "column" }}>
@@ -974,19 +1079,6 @@ function RegisterEventContent() {
     "#7c3aed",
   ];
   const intervalIndex = Math.floor(Date.now() / (30 * 60 * 1000));
-
-  // Get banner URL from event data
-  let bannerUrl = "/images/placeholder.jpg";
-  if (event) {
-    if (
-      event.customization?.banner_url &&
-      event.customization.banner_url.trim() !== ""
-    ) {
-      bannerUrl = event.customization.banner_url;
-    } else if (event.banner_url && event.banner_url.trim() !== "") {
-      bannerUrl = event.banner_url;
-    }
-  }
 
   return (
     <div className={styles.pageWrapper}>
@@ -1071,7 +1163,51 @@ function RegisterEventContent() {
                 <Text size="sm" color="dimmed" mb="md">
                   Select the number of tickets you want to purchase
                 </Text>
-                {/* Debug info */}
+
+                {/* Show countdown/message when tickets haven't started yet */}
+                {availableTickets.length === 0 &&
+                  upcomingTickets.length > 0 &&
+                  earliestTicketStartDate && (
+                    <div className={styles.ticketCountdownSection}>
+                      <Text fw={600} size="md" mb="sm" c="dark">
+                        Ticket sales will start soon!
+                      </Text>
+                      <Text size="sm" c="dimmed" mb="md">
+                        Tickets will be available for purchase on{" "}
+                        {earliestTicketStartDate.toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </Text>
+                      <div className={styles.countdownWrapper}>
+                        <CountdownTimer
+                          targetDate={earliestTicketStartDate}
+                          size="small"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                {/* Show message when tickets have ended */}
+                {availableTickets.length === 0 &&
+                  upcomingTickets.length === 0 &&
+                  tickets.length > 0 &&
+                  !loading && (
+                    <div className={styles.noSelection}>
+                      <Text c="red" fw={500}>
+                        Ticket sales have ended.
+                      </Text>
+                      <Text size="sm" c="dimmed" mt="xs">
+                        The ticket sale period for this event has passed. Please
+                        contact the event organizer for more information.
+                      </Text>
+                    </div>
+                  )}
+
+                {/* Show message when no tickets exist */}
                 {tickets.length === 0 && !loading && (
                   <div className={styles.noSelection}>
                     <Text c="red" fw={500}>
@@ -1083,9 +1219,10 @@ function RegisterEventContent() {
                     </Text>
                   </div>
                 )}
+
                 <div className={styles.ticketsList}>
-                  {tickets.length > 0 ? (
-                    tickets.map((ticket, idx) => {
+                  {availableTickets.length > 0 ? (
+                    availableTickets.map((ticket, idx) => {
                       const badgeColor =
                         idx === 0 && event.customization?.card_color
                           ? event.customization.card_color
@@ -1147,11 +1284,23 @@ function RegisterEventContent() {
                                     )
                                   }
                                 >
-                                  {[0, 1, 2, 3, 4, 5, 6].map((num) => (
-                                    <option key={num} value={num}>
-                                      {num}
-                                    </option>
-                                  ))}
+                                  {(() => {
+                                    // Get purchase_limit from ticket, default to 10 if null/undefined
+                                    const maxQuantity =
+                                      ticket.purchase_limit !== null &&
+                                      ticket.purchase_limit !== undefined
+                                        ? ticket.purchase_limit
+                                        : 10; // Default max if unlimited
+                                    // Generate array from 0 to maxQuantity
+                                    return Array.from(
+                                      { length: maxQuantity + 1 },
+                                      (_, i) => i
+                                    ).map((num) => (
+                                      <option key={num} value={num}>
+                                        {num}
+                                      </option>
+                                    ));
+                                  })()}
                                 </select>
                               </div>
                             </div>
