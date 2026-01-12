@@ -53,7 +53,7 @@ export const EventSection: React.FC<EventSectionProps> = ({
       try {
         await withLoading(async () => {
           const response = await authenticatedRequest<any>(
-            `${API_BASE_URL}/events/?is_active=true&ordering=-start_date&limit=10`,
+            `${API_BASE_URL}/events/?is_active=true&ordering=start_date&limit=10`,
             "GET"
           );
 
@@ -70,6 +70,13 @@ export const EventSection: React.FC<EventSectionProps> = ({
               response
             );
           }
+
+          // Force client-side sort by start_date (ascending)
+          fetchedEventsData.sort((a, b) => {
+            const dateA = new Date(a.start_date).getTime();
+            const dateB = new Date(b.start_date).getTime();
+            return dateA - dateB;
+          });
 
           const now = new Date();
           const mappedEvents: EventCardProps[] = fetchedEventsData.map(

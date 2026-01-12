@@ -23,7 +23,7 @@ const PlatformShowcase: React.FC = () => {
               </Subtitle>
             </HeroText>
             <CTAButton>
-              <Link href="/eventSchedule/createEventForm">
+              <Link href="/dashboard?mode=createEvent">
                 <HostButton>Host an Event</HostButton>
               </Link>
             </CTAButton>

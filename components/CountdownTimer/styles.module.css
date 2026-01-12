@@ -2,7 +2,7 @@
   padding: 20px;
   background-color: #f9f9f9;
   border-radius: 8px;
-  width: 100%;
+  /* width: 100%; */
 }
 
 .countdownHeader {
@@ -21,7 +21,7 @@
 
 .timeBlock {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   min-width: 60px;
 }

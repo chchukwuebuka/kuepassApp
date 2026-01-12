@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useMemo, memo } from "react";
 import Link from "next/link";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import {
   Image,
   Stack,
@@ -77,6 +80,7 @@ interface MappedEvent {
   title: string;
   category: "Upcoming" | "Ongoing" | "Ended";
   image: string;
+  banner_url?: string[]; // Array of banner URLs for carousel
   date: string;
   start_date: string; // Raw start date from backend for formatting
   address: string;
@@ -236,23 +240,60 @@ const ExploreEvents: React.FC = () => {
         // Prepare fetch requests
         const fetchPromises: Promise<any>[] = [
           // Always fetch events
-          fetch(`${API_BASE_URL}/events/`).then(async (res) => {
-            if (!res.ok) {
-              throw new Error(`Failed to fetch events: ${res.status}`);
-            }
-            return res.json();
-          }),
+          fetch(`${API_BASE_URL}/events/`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+          })
+            .then(async (res) => {
+              if (!res.ok) {
+                if (res.status === 502 || res.status === 503) {
+                  throw new Error(
+                    "Server is temporarily unavailable. Please try again later."
+                  );
+                }
+                throw new Error(`Failed to fetch events: ${res.status}`);
+              }
+              return res.json();
+            })
+            .catch((err) => {
+              if (
+                err.message.includes("Failed to fetch") ||
+                err.message.includes("NetworkError")
+              ) {
+                throw new Error(
+                  "Unable to connect to the server. Please check your internet connection and try again."
+                );
+              }
+              throw err;
+            }),
         ];
 
         // Conditionally add authenticated requests
         if (token) {
           fetchPromises.push(
             fetch(`${API_BASE_URL}/users/me/`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }).then((res) => (res.ok ? res.json() : null)),
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            })
+              .then((res) => (res.ok ? res.json() : null))
+              .catch(() => null), // Silently fail for user data
             fetch(`${API_BASE_URL}/attendees/`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }).then((res) => (res.ok ? res.json() : null))
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            })
+              .then((res) => (res.ok ? res.json() : null))
+              .catch(() => null) // Silently fail for attendee data
           );
         } else {
           // Add nulls to maintain array structure
@@ -337,18 +378,20 @@ const ExploreEvents: React.FC = () => {
         const mappedEvents: MappedEvent[] = allEvents.map((e) => {
           // Handle banner_url as either array or string
           let bannerImage: string = "/images/placeholder.jpg";
+          let bannerUrls: string[] = [];
           const bannerUrl = e.customization?.banner_url;
           if (bannerUrl) {
             if (Array.isArray(bannerUrl) && bannerUrl.length > 0) {
-              // If it's an array, use the first valid HTTP/HTTPS URL
-              const firstUrl = bannerUrl.find(
+              // Filter and store all valid HTTP/HTTPS URLs
+              bannerUrls = bannerUrl.filter(
                 (url: any) =>
                   typeof url === "string" &&
                   url.trim() !== "" &&
                   (url.startsWith("http://") || url.startsWith("https://"))
-              );
-              if (firstUrl && typeof firstUrl === "string") {
-                bannerImage = firstUrl;
+              ) as string[];
+              // Use the first valid URL as the main image
+              if (bannerUrls.length > 0) {
+                bannerImage = bannerUrls[0];
               }
             } else if (
               typeof bannerUrl === "string" &&
@@ -356,6 +399,7 @@ const ExploreEvents: React.FC = () => {
             ) {
               // If it's a string, use it directly
               bannerImage = bannerUrl;
+              bannerUrls = [bannerUrl];
             }
           }
 
@@ -383,6 +427,7 @@ const ExploreEvents: React.FC = () => {
             title: e.title,
             category: getEventCategory(e.start_date, e.end_date),
             image: bannerImage,
+            banner_url: bannerUrls.length > 0 ? bannerUrls : undefined,
             date: formatDateRange(e.start_date, e.end_date),
             start_date: e.start_date || "",
             address: e.address || e.location || "Location not specified",
@@ -395,12 +440,26 @@ const ExploreEvents: React.FC = () => {
         // Set events once (no double rendering)
         setEvents(mappedEvents);
 
-        // Set the first upcoming event as featured
+        // Set featured event: prioritize upcoming, then ongoing, then first event
         const upcomingEvent = mappedEvents.find(
           (e) => e.category === "Upcoming"
         );
         if (upcomingEvent) {
           setFeaturedEvent(upcomingEvent);
+        } else {
+          // If no upcoming events, try to find an ongoing event
+          const ongoingEvent = mappedEvents.find(
+            (e) => e.category === "Ongoing"
+          );
+          if (ongoingEvent) {
+            setFeaturedEvent(ongoingEvent);
+          } else if (mappedEvents.length > 0) {
+            // Fallback to first event if no upcoming or ongoing events
+            setFeaturedEvent(mappedEvents[0]);
+          } else {
+            // No events at all
+            setFeaturedEvent(null);
+          }
         }
       } catch (err: any) {
         console.error("Error loading events:", err);
@@ -408,6 +467,7 @@ const ExploreEvents: React.FC = () => {
           err.message || "Failed to load events. Please try again later."
         );
         setEvents([]);
+        setFeaturedEvent(null); // Clear featured event on error
       } finally {
         setIsLoading(false);
       }
@@ -525,12 +585,38 @@ const ExploreEvents: React.FC = () => {
           <h2 className={styles.titlePageContainer}>Featured Events</h2>
           <div className={styles.titlePage}>
             <div className={styles.featuredImageContainer}>
-              <Image
-                src={featuredEvent.image}
-                alt={featuredEvent.title}
-                className={styles.featuredImage}
-                fallbackSrc="/images/placeholder.jpg"
-              />
+              {featuredEvent.banner_url &&
+              featuredEvent.banner_url.length > 1 ? (
+                <Slider
+                  autoplay
+                  autoplaySpeed={3000}
+                  infinite
+                  speed={500}
+                  slidesToShow={1}
+                  slidesToScroll={1}
+                  dots
+                  arrows={false}
+                  className={styles.featuredCarousel}
+                >
+                  {featuredEvent.banner_url.map((url, index) => (
+                    <div key={index} className={styles.carouselSlide}>
+                      <Image
+                        src={url}
+                        alt={`${featuredEvent.title} - Banner ${index + 1}`}
+                        className={styles.featuredImage}
+                        fallbackSrc="/images/placeholder.jpg"
+                      />
+                    </div>
+                  ))}
+                </Slider>
+              ) : (
+                <Image
+                  src={featuredEvent.image}
+                  alt={featuredEvent.title}
+                  className={styles.featuredImage}
+                  fallbackSrc="/images/placeholder.jpg"
+                />
+              )}
               <div className={styles.featuredOverlay} />
             </div>
             <div className={styles.featuredContent}>
@@ -547,15 +633,6 @@ const ExploreEvents: React.FC = () => {
               >
                 Get your tickets now
               </Button>
-            </div>
-            <div className={styles.paginationDots}>
-              <div
-                className={styles.dot}
-                style={{ backgroundColor: "#f97316" }}
-              />
-              <div className={styles.dot} />
-              <div className={styles.dot} />
-              <div className={styles.dot} />
             </div>
           </div>
         </div>
