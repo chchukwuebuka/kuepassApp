@@ -202,40 +202,46 @@ function DashboardContent() {
   const contentMapping: Record<PageKey, React.ReactElement> = {
     overview: (
       <>
-        {loading ? (
-          <Center style={{ height: "200px" }}>
-            <Loader size="xl" />
-          </Center>
-        ) : error ? (
-          <Center style={{ height: "200px" }}>
-            <Text color="red" size="xl">
-              {error}
-            </Text>
-          </Center>
-        ) : event ? (
-          <TopBanner event={event} />
+        {!eventId ? (
+          <CreateEventPage />
         ) : (
-          <div className={styles.placeholderBanner}>
-            <h2>Select an event to view details</h2>
-          </div>
+          <>
+            {loading ? (
+              <Center style={{ height: "200px" }}>
+                <Loader size="xl" />
+              </Center>
+            ) : error ? (
+              <Center style={{ height: "200px" }}>
+                <Text color="red" size="xl">
+                  {error}
+                </Text>
+              </Center>
+            ) : event ? (
+              <TopBanner event={event} />
+            ) : (
+              <div className={styles.placeholderBanner}>
+                <h2>Select an event to view details</h2>
+              </div>
+            )}
+            <div className={styles.statsGrid}>
+              <StatsCard
+                title="Total Registered Users"
+                value={registeredUsers.toString()}
+              />
+              <StatsCard
+                title="Total Validated Users"
+                value={validatedUsers.toString()}
+              />
+              <StatsCard
+                title="Total Balance"
+                value={totalBalance}
+                btnValue="View Details"
+                onClick={() => console.log("Total Balance button clicked!")}
+              />
+            </div>
+            <UserTable eventId={eventId || ""} searchQuery="" filter="all" />
+          </>
         )}
-        <div className={styles.statsGrid}>
-          <StatsCard
-            title="Total Registered Users"
-            value={registeredUsers.toString()}
-          />
-          <StatsCard
-            title="Total Validated Users"
-            value={validatedUsers.toString()}
-          />
-          <StatsCard
-            title="Total Balance"
-            value={totalBalance}
-            btnValue="View Details"
-            onClick={() => console.log("Total Balance button clicked!")}
-          />
-        </div>
-        <UserTable eventId={eventId || ""} searchQuery="" filter="all" />
       </>
     ),
     customization: <Customization />,
