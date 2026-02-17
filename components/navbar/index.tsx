@@ -211,6 +211,12 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
                   </Group>
                 )}
               </div>
+              <Burger
+                opened={opened}
+                onClick={open}
+                className={styles.mobileMenuButton}
+                size="sm"
+              />
             </>
           ) : (
             <>
@@ -335,6 +341,17 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
       >
         <Stack gap="md">
           <Stack gap="xs">
+            {isOnDashboard && (
+              <>
+                <UnstyledButton className={styles.mobileNavLink}>
+                  <Group>
+                    <IconEye size={18} stroke={1.5} />
+                    <Text style={{ color: "#000" }}>View your event</Text>
+                  </Group>
+                </UnstyledButton>
+                <Divider my={5} />
+              </>
+            )}
             {navLinks.map((link) => (
               <UnstyledButton
                 key={link.label}

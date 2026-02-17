@@ -1,5 +1,3 @@
-
-
 /* Base Navbar Styles */
 .navFlexEnhanced {
   display: flex;
@@ -138,7 +136,7 @@
 }
 
 .navBTNEnhanced {
-  
+
   color: #ffffff !important;
   background-color: transparent !important;
   border: 1px solid #f59e0b !important;
@@ -308,37 +306,37 @@
     padding: 0 1.5rem;
     height: 75px;
   }
-  
+
   .kuepass {
     width: 7rem;
   }
-  
+
   .searchContainer {
     display: block;
     max-width: 250px;
     margin: 0 1rem;
   }
-  
+
   .navLinkEnhanced {
     display: flex;
     gap: 1rem;
   }
-  
+
   .navBTNEnhanced,
   .navBTN1Enhanced {
     width: 6.5rem;
     height: 2.25rem;
     font-size: 0.8rem;
   }
-  
+
   .avatarButtonEnhanced {
     min-width: 7rem;
   }
-  
+
   .userName {
     max-width: 80px;
   }
-  
+
   .mobileMenuButton {
     display: none;
   }
@@ -347,36 +345,36 @@
 /* Desktop Styles (1200px and up) */
 @media (min-width: 1200px) {
   .navFlexEnhanced {
-   
+
     height: 80px;
   }
-  
+
   .kuepass {
     width: 8.383125rem;
     height: 2.844375rem;
   }
-  
+
   .searchContainer {
     display: block;
     max-width: 400px;
     margin: 0 2rem;
   }
-  
+
   .searchInput {
     height: 42px;
     font-size: 16px;
   }
-  
+
   .navLinkEnhanced {
     display: flex;
     gap: 2rem;
     font-size: 1rem;
   }
-  
+
   .groupBTN {
     gap: 20px;
   }
-  
+
   .navBTNEnhanced,
   .navBTN1Enhanced,
   .navBTN11Enhanced {
@@ -384,23 +382,23 @@
     height: 2.75rem;
     font-size: 1rem;
   }
-  
+
   .avatarButtonEnhanced {
     min-width: 10.125rem;
     height: 2.75rem;
     padding: 0 1rem;
   }
-  
+
   .userAvatar {
     width: 36px;
     height: 36px;
   }
-  
+
   .userName {
     max-width: 150px;
     font-size: 1rem;
   }
-  
+
   .mobileMenuButton {
     display: none;
   }
@@ -412,23 +410,23 @@
     padding: 0 1rem;
     height: 60px;
   }
-  
+
   .kuepass {
     width: 5.5rem;
   }
-  
+
   .searchContainer {
     display: none;
   }
-  
+
   .navLinkEnhanced {
     display: none;
   }
-  
+
   .groupBTN {
     gap: 0.5rem;
   }
-  
+
   .navBTNEnhanced,
   .navBTN1Enhanced {
     width: 5.5rem;
@@ -436,24 +434,30 @@
     font-size: 0.75rem;
     padding: 0 0.5rem !important;
   }
-  
+
   .avatarButtonEnhanced {
     min-width: 6rem;
     height: 2rem;
     padding: 0 0.5rem;
   }
-  
+
   .userAvatar {
     width: 28px;
     height: 28px;
   }
-  
+
   .userName {
     display: none;
   }
-  
+
   .mobileMenuButton {
     display: flex;
+  }
+
+  /* Dashboard specific mobile styles */
+  .dashboardNavCenter,
+  .dashboardNavRight {
+    display: none;
   }
 }
 
@@ -463,15 +467,15 @@
     padding: 0 0.75rem;
     height: 55px;
   }
-  
+
   .kuepass {
     width: 5rem;
   }
-  
+
   .groupBTN {
     gap: 0.25rem;
   }
-  
+
   .navBTNEnhanced,
   .navBTN1Enhanced {
     width: 4.5rem;
@@ -479,13 +483,13 @@
     font-size: 0.7rem;
     padding: 0 0.25rem !important;
   }
-  
+
   .avatarButtonEnhanced {
     min-width: 5rem;
     height: 1.75rem;
     padding: 0 0.25rem;
   }
-  
+
   .userAvatar {
     width: 24px;
     height: 24px;
@@ -497,24 +501,25 @@
   .navFlexEnhanced {
     height: 50px;
   }
-  
+
   .kuepass {
     width: 5rem;
   }
-  
+
   .navBTNEnhanced,
   .navBTN1Enhanced {
     height: 1.75rem;
     font-size: 0.75rem;
   }
-  
+
   .avatarButtonEnhanced {
     height: 1.75rem;
   }
 }
 
 /* High DPI Displays */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+@media (-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
   .kuepass {
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
@@ -570,13 +575,11 @@
 .dashboardNavSeparator {
   width: 1px;
   height: 24px;
-  background: repeating-linear-gradient(
-    to bottom,
-    #3b82f6 0,
-    #3b82f6 2px,
-    transparent 2px,
-    transparent 6px
-  );
+  background: repeating-linear-gradient(to bottom,
+      #3b82f6 0,
+      #3b82f6 2px,
+      transparent 2px,
+      transparent 6px);
   border: none;
   margin: 0 0.5rem;
 }

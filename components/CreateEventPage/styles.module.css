@@ -142,15 +142,15 @@
 /* Main Content */
 .mainContent {
   max-width: 1400px;
-  
+
 }
 
 .section {
   background-color: white;
- 
+
   padding: 2rem;
   /* margin-bottom: 2rem; */
- 
+
 }
 
 .sectionHeader {
@@ -167,8 +167,8 @@
 .sectionSubtitle {
   /* font-size: 0.95rem; */
   color: #151515;
-font-weight: 500;
-font-size: 18px;
+  font-weight: 500;
+  font-size: 18px;
 
 }
 
@@ -420,12 +420,12 @@ font-size: 18px;
 
 .eventTypeCard:hover {
   border-color: #025a3a;
-  background-color: rgb(254,247,236)#f0fdf4;
+  background-color: rgb(254, 247, 236)#f0fdf4;
 }
 
 .eventTypeCardSelected {
   border-color: #025a3a;
-  background-color: rgb(254,247,236);
+  background-color: rgb(254, 247, 236);
 }
 
 .eventTypeCardContent {
@@ -512,7 +512,7 @@ font-size: 18px;
   background-color: #F5F6FA;
   transition: all 0.2s ease;
 
-/* border-radius: 4px; */
+  /* border-radius: 4px; */
 
 }
 
@@ -561,7 +561,7 @@ font-size: 18px;
   margin-top: 0.5rem;
   border: 1px solid #D5D5D5;
   border-radius: 8px;
-  width: 390px;
+  /* width: 390px; */
 }
 
 .locationButton {
@@ -752,14 +752,12 @@ font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(
-    135deg,
-    #f0f9ff 0%,
-    #e0f2fe 25%,
-    #bae6fd 50%,
-    #7dd3fc 75%,
-    #38bdf8 100%
-  );
+  background: linear-gradient(135deg,
+      #f0f9ff 0%,
+      #e0f2fe 25%,
+      #bae6fd 50%,
+      #7dd3fc 75%,
+      #38bdf8 100%);
   position: relative;
   overflow: hidden;
 }
@@ -771,7 +769,7 @@ font-size: 18px;
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: 
+  background-image:
     /* Roads */
     linear-gradient(90deg, rgba(156, 163, 175, 0.3) 0%, rgba(156, 163, 175, 0.3) 100%),
     linear-gradient(0deg, rgba(156, 163, 175, 0.3) 0%, rgba(156, 163, 175, 0.3) 100%),
@@ -844,8 +842,8 @@ font-size: 18px;
   margin: 0;
 
 
-font-weight: 400;
-font-size: 16px;
+  font-weight: 400;
+  font-size: 16px;
 
 }
 
@@ -932,6 +930,7 @@ font-size: 16px;
 /* Social Links Section */
 .socialLinksContainer {
   display: flex;
+  flex-wrap: wrap;
   flex-direction: row;
   gap: 0.75rem;
 }
@@ -1935,7 +1934,8 @@ height: 306; */
 .saveContinueButton {
   flex: 1;
   border: none;
-  border-radius: 63.08px; /* Fully rounded pill shape */
+  border-radius: 63.08px;
+  /* Fully rounded pill shape */
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
@@ -1944,13 +1944,14 @@ height: 306; */
 
 
   width: 130px;
-height: 49px;
+  height: 49px;
 
 
 }
 
 .saveExitButton {
-  background-color: #fed7aa; /* Light orange/peach */
+  background-color: #fed7aa;
+  /* Light orange/peach */
 }
 
 .saveExitButton:hover:not(:disabled) {
@@ -1958,7 +1959,8 @@ height: 49px;
 }
 
 .saveContinueButton {
-  background-color: #F5B645; /* Darker orange/gold */
+  background-color: #F5B645;
+  /* Darker orange/gold */
   color: #151515;
 }
 
@@ -2269,9 +2271,9 @@ height: 49px;
 
 
 
-font-family: Raleway;
-font-weight: 600;
-text-align: center;
+  font-family: Raleway;
+  font-weight: 600;
+  text-align: center;
 
 }
 
@@ -2367,7 +2369,7 @@ text-align: center;
   width: 100%;
 }
 
-.questionsList > .addQuestionsButton {
+.questionsList>.addQuestionsButton {
   align-self: center;
   margin-top: 1rem;
 }
@@ -2747,7 +2749,7 @@ text-align: center;
 .previewHeroContentContainer {
   display: flex;
   flex-direction: column;
-  gap: 1rem; 
+  gap: 1rem;
   margin-top: 4rem;
   width: 60%;
 }
@@ -3484,3 +3486,83 @@ text-align: center;
   transform: translateY(-1px);
 }
 
+@media (max-width: 768px) {
+  .saveButtonsContainer {
+    width: 100%;
+    flex-direction: column-reverse;
+    gap: 1rem;
+  }
+
+  .saveExitButton,
+  .saveContinueButton {
+    width: 100%;
+  }
+
+  /* Tickets Header */
+  .ticketsSectionHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .addTicketHeaderButton {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem;
+  }
+
+  /* Ticket Step Buttons */
+  .ticketsStepSaveButtonsContainer {
+    flex-direction: column-reverse;
+    gap: 1rem;
+    padding: 1rem;
+    /* Add padding for breathing room */
+  }
+
+  .ticketsStepBackButton,
+  .ticketsStepSaveExitButton,
+  .ticketsStepSaveContinueButton {
+    width: 100%;
+    min-width: unset;
+    /* Override min-width */
+  }
+
+  /* Preview */
+  .previewContentWrapper {
+    margin-left: 0;
+    margin-right: 0;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .previewTicketCard {
+    position: static;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 1rem;
+  }
+
+  .previewHeroContent {
+    padding: 1rem;
+    padding-top: 2rem;
+    width: 100%;
+  }
+
+  .previewHeroContentContainer {
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  .previewHeroTitle {
+    font-size: 1.75rem;
+  }
+
+  .previewHeroStats {
+    margin-top: 0.5rem;
+  }
+
+  .previewDetailsList {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
