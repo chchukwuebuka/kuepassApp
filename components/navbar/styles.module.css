@@ -39,8 +39,12 @@
 
 /* Dashboard-specific styles - black text */
 .dashboardNav {
-  background-color: transparent;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
 }
 
 .dashboardNav .link {
@@ -455,9 +459,23 @@
   }
 
   /* Dashboard specific mobile styles */
-  .dashboardNavCenter,
+  .dashboardNavCenter {
+    display: none !important;
+  }
+
   .dashboardNavRight {
-    display: none;
+    display: flex !important;
+    gap: 0.5rem;
+  }
+
+  .dashboardUserButton {
+    padding: 0.25rem !important;
+    border-radius: 50% !important;
+  }
+
+  .dashboardUserName,
+  .dashboardChevron {
+    display: none !important;
   }
 }
 
@@ -550,6 +568,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex: 1;
 }
 
 .dashboardLogoContainer {
@@ -557,6 +576,11 @@
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.dashboardLogoContainer:hover {
+  transform: scale(1.02);
 }
 
 .dashboardLogoIcon {
@@ -567,43 +591,52 @@
 .dashboardNavCenter {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  flex: 1;
-  justify-content: center;
+  gap: 0.5rem;
+  background: white;
+  padding: 0.35rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.dashboardNavCenter:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
 }
 
 .dashboardNavSeparator {
   width: 1px;
-  height: 24px;
-  background: repeating-linear-gradient(to bottom,
-      #3b82f6 0,
-      #3b82f6 2px,
-      transparent 2px,
-      transparent 6px);
-  border: none;
-  margin: 0 0.5rem;
+  height: 20px;
+  background-color: rgba(0, 0, 0, 0.1);
+  margin: 0 0.25rem;
 }
 
 .dashboardViewEventButton {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: none;
+  background: linear-gradient(135deg, #034230 0%, #056348 100%);
+  color: #ffffff;
   border: none;
-  color: #034230;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  padding: 0.5rem 0.75rem;
-  transition: all 0.2s ease;
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(3, 66, 48, 0.25);
 }
 
 .dashboardViewEventButton:hover {
-  color: #034230;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(3, 66, 48, 0.35);
+  background: linear-gradient(135deg, #04523B 0%, #067c5a 100%);
+  color: #ffffff;
 }
 
 .viewEventIcon {
-  color: #034230;
+  color: #ffffff;
   flex-shrink: 0;
 }
 
@@ -611,50 +644,59 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  background: none;
+  background: transparent;
   border: none;
-  color: #034230;
-  font-size: 18px;
-  font-weight: 600;
+  color: #4b5563;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
   transition: all 0.2s ease;
 }
 
 .dashboardMoreButton:hover {
-  color: #034230;
+  background: rgba(0, 0, 0, 0.04);
+  color: #111827;
 }
 
 .dashboardNavRight {
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex: 1;
+  justify-content: flex-end;
 }
 
 .dashboardUserButton {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background-color: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 0.5rem 1rem;
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  padding: 0.35rem 0.75rem 0.35rem 0.35rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 .dashboardUserButton:hover {
-  background-color: #e5e7eb;
-  border-color: #d1d5db;
+  background-color: #f9fafb;
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
 }
 
 .dashboardUserAvatar {
   flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .dashboardUserName {
-  color: #000;
-  font-size: 0.95rem;
-  font-weight: 500;
+  color: #111827;
+  font-size: 0.875rem;
+  font-weight: 600;
   max-width: 120px;
 }
