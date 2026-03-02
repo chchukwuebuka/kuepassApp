@@ -132,20 +132,20 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
               </div>
 
               <div className={styles.dashboardNavCenter}>
-                <div className={styles.dashboardNavSeparator}></div>
                 <button className={styles.dashboardViewEventButton}>
                   <IconEye
-                    size={18}
+                    size={16}
                     stroke={2}
                     className={styles.viewEventIcon}
                   />
                   <span>View your event</span>
                 </button>
-                <Menu position="bottom-end" shadow="md" width={200}>
+                <div className={styles.dashboardNavSeparator}></div>
+                <Menu position="bottom-end" shadow="md" width={200} transitionProps={{ transition: 'pop', duration: 150 }}>
                   <Menu.Target>
                     <button className={styles.dashboardMoreButton}>
-                      <span>More</span>
-                      <IconChevronDown size={18} stroke={1.5} />
+                      <span>Explore</span>
+                      <IconChevronDown size={16} stroke={2} />
                     </button>
                   </Menu.Target>
                   <Menu.Dropdown>
@@ -180,7 +180,7 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
                         <Text className={styles.dashboardUserName} truncate>
                           {userInfo?.username || "User"}
                         </Text>
-                        <IconChevronDown size={16} stroke={1.5} />
+                        <IconChevronDown size={16} stroke={1.5} className={styles.dashboardChevron} />
                       </UnstyledButton>
                     </Menu.Target>
                     <Menu.Dropdown>
@@ -345,8 +345,8 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
               <>
                 <UnstyledButton className={styles.mobileNavLink}>
                   <Group>
-                    <IconEye size={18} stroke={1.5} />
-                    <Text style={{ color: "#000" }}>View your event</Text>
+                    <IconCalendarEvent size={18} stroke={1.5} />
+                    <Text style={{ color: "#000", fontWeight: 500 }}>My Events</Text>
                   </Group>
                 </UnstyledButton>
                 <Divider my={5} />
