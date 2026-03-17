@@ -146,7 +146,7 @@ const ShareButtons = ({
   };
 
   return (
-    <Group spacing="xs" mt="md">
+    <div className={styles.shareGroup}>
       <Button
         component="a"
         href={shareLinks.twitter}
@@ -156,6 +156,7 @@ const ShareButtons = ({
         variant="light"
         color="blue"
         leftIcon={<IconBrandX size={16} />}
+        className={styles.fullWidthMobile}
       >
         Share on X
       </Button>
@@ -168,6 +169,7 @@ const ShareButtons = ({
         variant="light"
         color="indigo"
         leftIcon={<IconBrandFacebook size={16} />}
+        className={styles.fullWidthMobile}
       >
         Share on Facebook
       </Button>
@@ -178,11 +180,12 @@ const ShareButtons = ({
           variant="light"
           color="pink"
           leftIcon={<IconBrandInstagram size={16} />}
+          className={styles.fullWidthMobile}
         >
           {copied ? "Copied" : "Copy for Instagram"}
         </Button>
       </Tooltip>
-    </Group>
+    </div>
   );
 };
 
@@ -371,7 +374,7 @@ export default function YourPromotionKitComponent({
               <Stack spacing="md" style={{ flex: 1 }}>
                 <Group spacing="sm">
                   <ThemeIcon
-                    size="xl"
+                    size={56}
                     radius="xl"
                     className={styles.headerIcon}
                   >
@@ -396,7 +399,6 @@ export default function YourPromotionKitComponent({
                 <Group spacing="md">
                   <Button
                     onClick={handleGeneratePlan}
-                    size="lg"
                     className={styles.generateButton}
                     leftIcon={<IconRocket size={20} />}
                   >
@@ -419,8 +421,7 @@ export default function YourPromotionKitComponent({
           >
             <Tabs
               defaultValue="social"
-              variant="pills"
-              radius="xl"
+              variant="unstyled"
               className={styles.tabs}
             >
               <Tabs.List className={styles.tabsList}>
@@ -469,8 +470,14 @@ export default function YourPromotionKitComponent({
                             p="lg"
                             radius="lg"
                           >
-                            <Group position="apart" mb="md">
-                              <Badge variant="dot" size="lg">
+                            <Group position="apart" mb="xl">
+                              <Badge 
+                                size="lg" 
+                                radius="md" 
+                                color="teal" 
+                                variant="light" 
+                                style={{ fontWeight: 700, letterSpacing: '0.02em', padding: '16px' }}
+                              >
                                 {template.theme}
                               </Badge>
                             </Group>
@@ -523,19 +530,20 @@ export default function YourPromotionKitComponent({
                           <Group position="apart" mb="md">
                             <Group spacing="md">
                               <ThemeIcon
-                                size="lg"
-                                color="green"
+                                size={48}
+                                radius="md"
+                                color="teal"
                                 variant="light"
                               >
-                                <IconMail size={20} />
+                                <IconMail size={24} />
                               </ThemeIcon>
                               <div>
-                                <Text weight={600} size="lg">
+                                <Text weight={700} size="lg" color="dark.9">
                                   {email.name}
                                 </Text>
-                                <Group spacing="xs">
-                                  <IconClock size={14} />
-                                  <Text size="sm" color="dimmed">
+                                <Group spacing="xs" mt={4}>
+                                  <IconClock size={14} color="#6b7280" />
+                                  <Text size="sm" color="dimmed" weight={500}>
                                     {email.send_timing}
                                   </Text>
                                 </Group>
@@ -576,8 +584,8 @@ export default function YourPromotionKitComponent({
                               </Code>
                             </div>
                             <div>
-                              <Text weight={500} mb="xs">
-                                Email Body:
+                              <Text weight={600} size="sm" mb="xs" color="gray.7" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                Email Body
                               </Text>
                               <Textarea
                                 value={email.body}
@@ -602,12 +610,12 @@ export default function YourPromotionKitComponent({
                     Advertising Strategy
                   </Title>
                   <Card className={styles.platformCard} p="lg" radius="lg">
-                    <Group spacing="md" mb="md">
-                      <ThemeIcon size="lg" color="orange" variant="light">
-                        <IconCurrencyDollar size={20} />
+                    <Group spacing="md" mb="lg">
+                      <ThemeIcon size={48} radius="md" color="orange" variant="light">
+                        <IconCurrencyDollar size={24} />
                       </ThemeIcon>
                       <div>
-                        <Text weight={600}>Recommended Ad Platforms</Text>
+                        <Text weight={700} size="lg">Recommended Ad Platforms</Text>
                       </div>
                     </Group>
                     <Group spacing="sm">
@@ -635,21 +643,22 @@ export default function YourPromotionKitComponent({
                               {getPlatformIcon(item.platform)}
                               <Text weight={600}>{item.platform}</Text>
                             </Group>
-                            <Badge size="lg" color="orange" variant="light">
+                            <Badge size="lg" radius="md" color="teal" variant="filled">
                               {item.suggested_allocation_percent}%
                             </Badge>
                           </Group>
                           <Progress
                             value={item.suggested_allocation_percent}
-                            size="lg"
+                            size="md"
                             radius="xl"
-                            mb="md"
+                            color="teal"
+                            mb="xl"
                           />
-                          <div>
-                            <Text size="sm" weight={500} mb="xs">
-                              Target Audience:
+                          <div style={{ background: '#f9fafb', padding: '16px', borderRadius: '12px' }}>
+                            <Text size="xs" weight={700} mb={4} color="gray.5" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                              Target Audience
                             </Text>
-                            <Text size="sm" color="dimmed">
+                            <Text size="sm" color="dark.7" weight={500} style={{ lineHeight: 1.5 }}>
                               {item.target_audience_suggestion}
                             </Text>
                           </div>
@@ -680,9 +689,11 @@ export default function YourPromotionKitComponent({
                               Day {task.day}
                             </Badge>
                             <Badge
-                              size="sm"
+                              size="lg"
+                              radius="md"
                               color={getTaskCategoryColor(task.task_category)}
                               variant="light"
+                              style={{ fontWeight: 600 }}
                             >
                               {task.task_category}
                             </Badge>

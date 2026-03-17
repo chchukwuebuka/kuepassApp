@@ -3,6 +3,7 @@
   gap: 2rem;
   margin-bottom: 20px;
   margin-top: 70px;
+  flex-wrap: wrap;
 }
 
 .summaryRegular {
@@ -10,7 +11,10 @@
   width: 10rem;
   border-radius: 8px;
   padding: 10px;
-  height: 100px;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .summaryText {
@@ -26,6 +30,7 @@
 .inputIMGcard {
   padding-top: 20px;
   width: 20%;
+  min-width: 120px;
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -33,7 +38,8 @@
   border-radius: 10px;
   margin-bottom: 20px;
   cursor: pointer;
-  height: 100px;
+  min-height: 100px;
+  justify-content: center;
 }
 
 .inputIMG {
@@ -52,4 +58,35 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .summary {
+    gap: 1rem;
+    margin-top: 40px;
+    justify-content: center;
+  }
+  .summaryRegular {
+    width: 45%;
+    flex-grow: 1;
+  }
+  .inputIMGcard {
+    width: 100%;
+    margin-bottom: 0px;
+  }
+}
+
+@media (max-width: 480px) {
+  .summaryRegular {
+    width: 100%;
+  }
+  .searchExport {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .searchExport > * {
+    width: 100%;
+  }
 }

@@ -82,7 +82,7 @@
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 1.5rem;
 }
 
 .kuepass {
@@ -306,6 +306,10 @@
 
 /* Tablet Styles (768px - 1199px) */
 @media (min-width: 768px) and (max-width: 1199px) {
+  .navContainer {
+    padding: 0 1.25rem;
+  }
+
   .navFlexEnhanced {
     padding: 0 1.5rem;
     height: 75px;
@@ -410,6 +414,10 @@
 
 /* Mobile Styles (up to 767px) */
 @media (max-width: 767px) {
+  .navContainer {
+    padding: 0 1rem;
+  }
+
   .navFlexEnhanced {
     padding: 0 1rem;
     height: 60px;
@@ -432,17 +440,9 @@
   }
 
   .navBTNEnhanced,
-  .navBTN1Enhanced {
-    width: 5.5rem;
-    height: 2rem;
-    font-size: 0.75rem;
-    padding: 0 0.5rem !important;
-  }
-
+  .navBTN1Enhanced,
   .avatarButtonEnhanced {
-    min-width: 6rem;
-    height: 2rem;
-    padding: 0 0.5rem;
+    display: none !important;
   }
 
   .userAvatar {
@@ -464,8 +464,7 @@
   }
 
   .dashboardNavRight {
-    display: flex !important;
-    gap: 0.5rem;
+    display: none !important;
   }
 
   .dashboardUserButton {
@@ -481,6 +480,10 @@
 
 /* Extra Small Mobile (up to 480px) */
 @media (max-width: 480px) {
+  .navContainer {
+    padding: 0 0.75rem;
+  }
+
   .navFlexEnhanced {
     padding: 0 0.75rem;
     height: 55px;
@@ -492,20 +495,6 @@
 
   .groupBTN {
     gap: 0.25rem;
-  }
-
-  .navBTNEnhanced,
-  .navBTN1Enhanced {
-    width: 4.5rem;
-    height: 1.75rem;
-    font-size: 0.7rem;
-    padding: 0 0.25rem !important;
-  }
-
-  .avatarButtonEnhanced {
-    min-width: 5rem;
-    height: 1.75rem;
-    padding: 0 0.25rem;
   }
 
   .userAvatar {
@@ -522,16 +511,6 @@
 
   .kuepass {
     width: 5rem;
-  }
-
-  .navBTNEnhanced,
-  .navBTN1Enhanced {
-    height: 1.75rem;
-    font-size: 0.75rem;
-  }
-
-  .avatarButtonEnhanced {
-    height: 1.75rem;
   }
 }
 
