@@ -42,9 +42,10 @@ import {
 import styles from "./styles.module.css";
 
 // API base URL configuration
-const API_BASE_URL =
+const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://api.kuepass.com/api/";
+  "https://api.kuepass.com/api/"
+).replace(/\/+$/, "");
 
 // Interfaces for type safety
 interface MarketingPlan {
@@ -194,6 +195,8 @@ export default function YourPromotionKitComponent({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedText, setCopiedText] = useState<string | null>(null);
+  const [isAutomating, setIsAutomating] = useState(false);
+  const [automationSuccess, setAutomationSuccess] = useState(false);
 
   // Fetch event data and extract marketing plan
   useEffect(() => {
@@ -211,7 +214,7 @@ export default function YourPromotionKitComponent({
           `${API_BASE_URL}/events/${eventId}/`,
           "GET"
         );
-        setEvent(eventResponse.data || eventResponse); // adjust if your API wraps in .data
+        setEvent(eventResponse.data || eventResponse);
         // Check for marketing plan in customization
         const planFromEvent =
           eventResponse.data?.customization?.marketing_plan ||
@@ -231,7 +234,7 @@ export default function YourPromotionKitComponent({
   const handleGeneratePlan = async () => {
     if (!eventId) {
       setError(
-        "No event is selected. Please choose an event from the sidebar first."
+        "No event found. Please create an event first."
       );
       return;
     }
@@ -254,6 +257,29 @@ export default function YourPromotionKitComponent({
       );
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Automate email sequence
+  const handleAutomateEmails = async () => {
+    if (!eventId || !plan || !plan.emailSequence) return;
+    
+    setIsAutomating(true);
+    setAutomationSuccess(false);
+    
+    try {
+      await authenticatedRequest(
+        `${API_BASE_URL}/events/${eventId}/automate-emails/`,
+        "POST",
+        { emailSequence: plan.emailSequence }
+      );
+      setAutomationSuccess(true);
+      setTimeout(() => setAutomationSuccess(false), 5000); // Hide success after 5s
+    } catch (err: any) {
+      console.error("Failed to automate emails:", err);
+      setError(err.message || "Failed to plug emails into the automated drip campaign.");
+    } finally {
+      setIsAutomating(false);
     }
   };
 
@@ -470,9 +496,26 @@ export default function YourPromotionKitComponent({
               {/* Email Campaigns Tab */}
               <Tabs.Panel value="email" pt="xl">
                 <Stack spacing="xl">
-                  <Title order={3} className={styles.sectionTitle}>
-                    Email Campaign Sequence
-                  </Title>
+                  <Group position="apart">
+                    <Title order={3} className={styles.sectionTitle}>
+                      Email Campaign Sequence
+                    </Title>
+                    <Button
+                      leftIcon={<IconMail size={16} />}
+                      onClick={handleAutomateEmails}
+                      loading={isAutomating}
+                      color={automationSuccess ? "teal" : "blue"}
+                    >
+                      {automationSuccess ? "Automations Active!" : "Automate Email Sequence"}
+                    </Button>
+                  </Group>
+                  
+                  {automationSuccess && (
+                    <Alert icon={<IconSparkles size={16} />} color="teal" radius="md">
+                      These emails have been saved to your event and will now be automatically sent to attendees based on their schedule (e.g. at registration, 30 days before, etc).
+                    </Alert>
+                  )}
+
                   <Grid>
                     {plan.emailSequence.map((email, index) => (
                       <Grid.Col key={index} span={12}>

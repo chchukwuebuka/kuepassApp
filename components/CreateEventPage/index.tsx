@@ -1177,25 +1177,55 @@ export default function CreateEventPage() {
         setSchedules(mappedSchedules);
       }
 
-      // Store ticket suggestions for user review (don't auto-add)
+      // Auto-add sections so lineup/itinerary are visible in the form
+      const sectionsToAdd: string[] = [];
+      if (eventData.line_up && eventData.line_up.length > 0) sectionsToAdd.push("lineup");
+      if (eventData.itinerary && eventData.itinerary.length > 0) sectionsToAdd.push("itinerary");
+      if (sectionsToAdd.length > 0) {
+        setFormData((prev) => ({
+          ...prev,
+          sections: [...new Set([...prev.sections, ...sectionsToAdd])],
+        }));
+      }
+
+      // Directly add AI-generated tickets to the form
       if (ticketSuggestions && Array.isArray(ticketSuggestions) && ticketSuggestions.length > 0) {
-        const mappedSuggestions = ticketSuggestions.map((ticket: any) => ({
-          id: ticket.id || uuidv4(),
+        const newTickets = ticketSuggestions.map((ticket: any) => ({
+          id: uuidv4(),
           name: ticket.name || "General Ticket",
           price: parseFloat(ticket.category_price || ticket.price || "0"),
           quantity:
             ticket.quantity === null || ticket.quantity === undefined
-              ? "Unlimited"
-              : String(ticket.quantity),
-          type: ticket.category_name || ticket.type || "Paid",
+              ? null
+              : Number(ticket.quantity),
+          type: (ticket.type?.toLowerCase() === 'free' || parseFloat(ticket.price || "0") === 0) ? 'Free' : 'Paid',
           description: ticket.description || "",
           perks: ticket.perks || [],
         }));
-        setAiTicketSuggestions(mappedSuggestions);
+        setTickets((prev) => [...prev, ...newTickets as any]);
+      }
+
+      // Directly add AI-generated questions to the form
+      const questionSuggestions = rawResponse?.question_suggestions || rawResponse?.questions || rawResponse?.registration_questions || [];
+      console.log('[AI Create] Raw response keys:', Object.keys(rawResponse));
+      console.log('[AI Create] Question suggestions:', questionSuggestions);
+      if (questionSuggestions && Array.isArray(questionSuggestions) && questionSuggestions.length > 0) {
+        const newQuestions: Question[] = questionSuggestions.map((q: any) => ({
+          id: uuidv4(),
+          type: q.type || 'text',
+          title: q.title || '',
+          required: q.required || false,
+          placeholder: q.placeholder || '',
+          options: q.options?.map((text: string) => ({ id: uuidv4(), text })) || [],
+        }));
+        setQuestions((prev) => [...prev, ...newQuestions]);
       }
 
       setAiGenerated(true);
       setShowAiSection(false);
+
+      // Auto-navigate to step 2 so user sees the tickets and questions
+      setTimeout(() => setCurrentStep(2), 500);
     } catch (err: any) {
       console.error("AI event generation failed:", err);
       setAiError(
@@ -3041,100 +3071,6 @@ export default function CreateEventPage() {
 
         {currentStep === 2 && (
           <>
-            {/* AI Ticket Suggestions Panel */}
-            {aiTicketSuggestions.length > 0 && (
-              <div className={styles.aiTicketSuggestionsPanel}>
-                <div className={styles.aiTicketSuggestionsHeader}>
-                  <div className={styles.aiTicketSuggestionsIcon}>✨</div>
-                  <div>
-                    <h3 className={styles.aiTicketSuggestionsTitle}>AI Ticket Suggestions</h3>
-                    <p className={styles.aiTicketSuggestionsSubtitle}>
-                      Review the AI-generated ticket tiers below. Accept the ones you like or dismiss to create your own.
-                    </p>
-                  </div>
-                </div>
-                <div className={styles.aiTicketSuggestionsList}>
-                  {aiTicketSuggestions.map((suggestion) => (
-                    <div key={suggestion.id} className={styles.aiTicketSuggestionCard}>
-                      <div className={styles.aiTicketSuggestionInfo}>
-                        <div className={styles.aiTicketSuggestionTop}>
-                          <span className={styles.aiTicketSuggestionName}>{suggestion.name}</span>
-                          <span className={styles.aiTicketSuggestionType}>{suggestion.type}</span>
-                        </div>
-                        <div className={styles.aiTicketSuggestionPrice}>
-                          {suggestion.price > 0 ? `₦${suggestion.price.toLocaleString()}` : 'Free'}
-                          <span className={styles.aiTicketSuggestionQty}> · Qty: {suggestion.quantity}</span>
-                        </div>
-                        {suggestion.description && (
-                          <p className={styles.aiTicketSuggestionDesc}>{suggestion.description}</p>
-                        )}
-                        {suggestion.perks && suggestion.perks.length > 0 && (
-                          <div className={styles.aiTicketSuggestionPerks}>
-                            {suggestion.perks.map((perk, i) => (
-                              <span key={i} className={styles.aiTicketSuggestionPerk}>✓ {perk}</span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <div className={styles.aiTicketSuggestionActions}>
-                        <button
-                          className={styles.aiTicketAcceptButton}
-                          onClick={() => {
-                            const newTicket = {
-                              id: uuidv4(),
-                              name: suggestion.name,
-                              price: suggestion.price,
-                              quantity: suggestion.quantity === 'Unlimited' ? 'Unlimited' : suggestion.quantity,
-                              type: suggestion.type === 'free' || suggestion.price === 0 ? 'Free' : 'Paid',
-                              description: suggestion.description,
-                              perks: suggestion.perks,
-                            };
-                            setTickets((prev) => [...prev, newTicket as any]);
-                            setAiTicketSuggestions((prev) => prev.filter((s) => s.id !== suggestion.id));
-                          }}
-                        >
-                          ✓ Accept
-                        </button>
-                        <button
-                          className={styles.aiTicketDismissButton}
-                          onClick={() => {
-                            setAiTicketSuggestions((prev) => prev.filter((s) => s.id !== suggestion.id));
-                          }}
-                        >
-                          ✕ Dismiss
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className={styles.aiTicketSuggestionsBulkActions}>
-                  <button
-                    className={styles.aiTicketAcceptAllButton}
-                    onClick={() => {
-                      const newTickets = aiTicketSuggestions.map((s) => ({
-                        id: uuidv4(),
-                        name: s.name,
-                        price: s.price,
-                        quantity: s.quantity === 'Unlimited' ? 'Unlimited' : s.quantity,
-                        type: s.type === 'free' || s.price === 0 ? 'Free' : 'Paid',
-                        description: s.description,
-                        perks: s.perks,
-                      }));
-                      setTickets((prev) => [...prev, ...newTickets as any]);
-                      setAiTicketSuggestions([]);
-                    }}
-                  >
-                    Accept All ({aiTicketSuggestions.length})
-                  </button>
-                  <button
-                    className={styles.aiTicketDismissAllButton}
-                    onClick={() => setAiTicketSuggestions([])}
-                  >
-                    Dismiss All
-                  </button>
-                </div>
-              </div>
-            )}
             <TicketsStep
               tickets={tickets as any}
               onAddTicket={() => setIsModalOpen(true)}
