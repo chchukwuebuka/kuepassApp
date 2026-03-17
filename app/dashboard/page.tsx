@@ -114,6 +114,7 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const eventId = searchParams.get("eventId");
   const mode = searchParams.get("mode");
+  const [activeEventId, setActiveEventId] = useState<string>(eventId || "");
   const [event, setEvent] = useState<EventData | null>(null);
   const [registeredUsers, setRegisteredUsers] = useState<number>(0);
   const [validatedUsers, setValidatedUsers] = useState<number>(0);
@@ -124,8 +125,37 @@ function DashboardContent() {
     mode === "createEvent" ? "createEvent" : "overview"
   );
 
+  // Auto-fetch the most recent event when no eventId is in the URL
   useEffect(() => {
-    if (!eventId) {
+    if (eventId) {
+      setActiveEventId(eventId);
+      return;
+    }
+
+    const fetchLatestEvent = async () => {
+      try {
+        const response = await authenticatedRequest<any>(
+          `${API_BASE_URL}/events/`,
+          "GET"
+        );
+        const eventList = response?.data || response?.results || response || [];
+        const events = Array.isArray(eventList) ? eventList : [];
+        if (events.length > 0) {
+          // Use the most recently created event
+          const sorted = [...events].sort(
+            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+          setActiveEventId(sorted[0].id);
+        }
+      } catch (err) {
+        console.error("Failed to auto-fetch events:", err);
+      }
+    };
+    fetchLatestEvent();
+  }, [eventId]);
+
+  useEffect(() => {
+    if (!activeEventId) {
       setEvent(null);
       setRegisteredUsers(0);
       setValidatedUsers(0);
@@ -141,14 +171,14 @@ function DashboardContent() {
       try {
         // 1) Fetch the single event
         const eventResponse = await authenticatedRequest<{ data: EventData }>(
-          `${API_BASE_URL}/events/${eventId}/`,
+          `${API_BASE_URL}/events/${activeEventId}/`,
           "GET"
         );
         setEvent(eventResponse.data);
 
         // 2) Fetch all attendees (the endpoint is returning everyone, not just this event)
         const attendeesResponse = await authenticatedRequest<any>(
-          `${API_BASE_URL}/attendees/?event=${eventId}`,
+          `${API_BASE_URL}/attendees/?event=${activeEventId}`,
           "GET"
         );
 
@@ -170,7 +200,7 @@ function DashboardContent() {
 
         // 4) Filter down to only those whose `event` property exactly matches our eventId
         const filteredForThisEvent = allAttendees.filter(
-          (att) => att.event === eventId
+          (att) => att.event === activeEventId
         );
 
         // 5) Now count how many remain after filtering
@@ -193,7 +223,7 @@ function DashboardContent() {
     };
 
     fetchEventData();
-  }, [eventId]);
+  }, [activeEventId]);
 
   const handleNavClick = (pageKey: PageKey) => {
     setActivePage(pageKey);
@@ -202,7 +232,7 @@ function DashboardContent() {
   const contentMapping: Record<PageKey, React.ReactElement> = {
     overview: (
       <>
-        {!eventId ? (
+        {!activeEventId ? (
           <CreateEventPage />
         ) : (
           <>
@@ -239,15 +269,15 @@ function DashboardContent() {
                 onClick={() => console.log("Total Balance button clicked!")}
               />
             </div>
-            <UserTable eventId={eventId || ""} searchQuery="" filter="all" />
+            <UserTable eventId={activeEventId} searchQuery="" filter="all" />
           </>
         )}
       </>
     ),
     customization: <Customization />,
-    userManagement: <TicketDashboard eventId={eventId || ""} />,
+    userManagement: <TicketDashboard eventId={activeEventId} />,
     finance: <Finance />,
-    salesAnalytics: <SalesAnalyticsPage eventId={eventId || ""} />,
+    salesAnalytics: <SalesAnalyticsPage eventId={activeEventId} />,
     store: (
       <>
         <h1>Store</h1>
@@ -255,7 +285,7 @@ function DashboardContent() {
       </>
     ),
     "Generate Promotion Kit": (
-      <YourPromotionKitComponent eventId={eventId || ""} />
+      <YourPromotionKitComponent eventId={activeEventId} />
     ),
     support: (
       <>

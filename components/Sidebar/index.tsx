@@ -48,13 +48,11 @@ const menuItems: {
     key: "salesAnalytics",
     icon: <FaChartLine />,
     label: "Sales Analytics",
-    disabled: true,
   },
   {
     key: "Generate Promotion Kit",
     icon: <FaStore />,
     label: "Generate Promotion Kit",
-    disabled: true,
   },
   { key: "store", icon: <FaStore />, label: "Store", disabled: true },
   {

@@ -15,6 +15,15 @@ import {
   IconX,
   IconVideo,
   IconLink,
+  IconSparkles,
+  IconMail,
+  IconTargetArrow,
+  IconChevronDown,
+  IconChevronUp,
+  IconCopy,
+  IconCheck,
+  IconRocket,
+  IconLoader2,
 } from "@tabler/icons-react";
 import CountdownTimer from "../CountdownTimer";
 import { authenticatedRequest } from "@/app/services/auth";
@@ -23,6 +32,703 @@ import styles from "./styles.module.css";
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.kuepass.com/api/"
 ).replace(/\/$/, "");
+
+// ─── Promotion Kit Section ─────────────────────────────────────────────────
+
+interface PromotionKitSectionProps {
+  eventName: string;
+  eventDescription: string;
+  eventType: string;
+  locationType: string;
+  address: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  country: string;
+  startDate: string;
+  startTime: string;
+  endDate: string;
+  endTime: string;
+  tags: string[];
+  tickets: any[];
+}
+
+function PromotionKitSection({
+  eventName,
+  eventDescription,
+  eventType,
+  locationType,
+  address,
+  streetAddress,
+  city,
+  state,
+  country,
+  startDate,
+  startTime,
+  endDate,
+  endTime,
+  tags,
+  tickets,
+}: PromotionKitSectionProps) {
+  const [plan, setPlan] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [copiedItem, setCopiedItem] = useState<string | null>(null);
+
+  const copyToClipboard = async (text: string, id: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedItem(id);
+      setTimeout(() => setCopiedItem(null), 2000);
+    } catch (err) {
+      console.error("Copy failed:", err);
+    }
+  };
+
+  const handleGenerate = async () => {
+    setLoading(true);
+    setError(null);
+    setPlan(null);
+
+    const locationStr =
+      locationType === "virtual"
+        ? "Virtual"
+        : [streetAddress || address, city, state, country]
+            .filter(Boolean)
+            .join(", ") || "TBA";
+
+    const lowestPrice =
+      tickets.length > 0
+        ? Math.min(...tickets.map((t: any) => t.price || 0))
+        : 0;
+
+    try {
+      const response = await authenticatedRequest<any>(
+        `${API_BASE_URL}/ai/generate-marketing-plan-from-details/`,
+        "POST",
+        {
+          title: eventName,
+          description: eventDescription,
+          event_type: eventType,
+          location: locationStr,
+          address: streetAddress || address,
+          start_date: startDate && startTime ? `${startDate}T${startTime}` : startDate,
+          end_date: endDate && endTime ? `${endDate}T${endTime}` : endDate,
+          price: lowestPrice,
+          tags: tags,
+          marketing_budget: 50000,
+        }
+      );
+      setPlan(response);
+      setExpandedSection("social");
+    } catch (err: any) {
+      console.error("Marketing plan error:", err);
+      setError(err.message || "Failed to generate marketing plan.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleSection = (section: string) => {
+    setExpandedSection(expandedSection === section ? null : section);
+  };
+
+  const sectionStyle: React.CSSProperties = {
+    margin: "24px 0",
+    borderRadius: "16px",
+    overflow: "hidden",
+    border: "1px solid #e5e7eb",
+    background: "#fff",
+  };
+
+  const headerStyle: React.CSSProperties = {
+    padding: "20px 24px",
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+    color: "#fff",
+  };
+
+  const accordionHeaderStyle: React.CSSProperties = {
+    padding: "14px 20px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    cursor: "pointer",
+    borderBottom: "1px solid #f3f4f6",
+    transition: "background 0.2s",
+    userSelect: "none",
+  };
+
+  const accordionBodyStyle: React.CSSProperties = {
+    padding: "16px 20px",
+    background: "#fafafa",
+  };
+
+  const cardStyle: React.CSSProperties = {
+    padding: "14px",
+    borderRadius: "10px",
+    border: "1px solid #e5e7eb",
+    background: "#fff",
+    marginBottom: "12px",
+  };
+
+  const copyBtnStyle: React.CSSProperties = {
+    background: "none",
+    border: "1px solid #d1d5db",
+    borderRadius: "6px",
+    padding: "4px 8px",
+    cursor: "pointer",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "4px",
+    fontSize: "12px",
+    color: "#6b7280",
+  };
+
+  if (!plan && !loading && !error) {
+    return (
+      <div style={sectionStyle}>
+        <div style={headerStyle}>
+          <IconSparkles size={24} />
+          <div>
+            <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 600 }}>
+              AI Promotion Kit
+            </h3>
+            <p style={{ margin: "4px 0 0", fontSize: "13px", opacity: 0.9 }}>
+              Generate a complete marketing plan based on your event details
+            </p>
+          </div>
+        </div>
+        <div style={{ padding: "24px", textAlign: "center" }}>
+          <p style={{ color: "#6b7280", marginBottom: "16px", fontSize: "14px" }}>
+            Get AI-generated social media captions, email campaigns, advertising
+            strategies, and a marketing calendar — all tailored to your event.
+          </p>
+          <button
+            type="button"
+            onClick={handleGenerate}
+            style={{
+              background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+              color: "#fff",
+              border: "none",
+              borderRadius: "10px",
+              padding: "12px 28px",
+              fontSize: "15px",
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <IconRocket size={18} />
+            Generate Your Free Marketing Plan
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div style={sectionStyle}>
+        <div style={headerStyle}>
+          <IconSparkles size={24} />
+          <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 600 }}>
+            AI Promotion Kit
+          </h3>
+        </div>
+        <div
+          style={{
+            padding: "48px 24px",
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "16px",
+          }}
+        >
+          <IconLoader2
+            size={36}
+            style={{ animation: "spin 1s linear infinite", color: "#6366f1" }}
+          />
+          <p style={{ color: "#6b7280", fontSize: "14px" }}>
+            AI is crafting your marketing plan...
+          </p>
+          <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={sectionStyle}>
+        <div style={{ ...headerStyle, background: "#ef4444" }}>
+          <IconSparkles size={24} />
+          <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 600 }}>
+            AI Promotion Kit
+          </h3>
+        </div>
+        <div style={{ padding: "24px", textAlign: "center" }}>
+          <p style={{ color: "#ef4444", marginBottom: "16px" }}>{error}</p>
+          <button
+            type="button"
+            onClick={handleGenerate}
+            style={{
+              background: "#6366f1",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              padding: "10px 24px",
+              cursor: "pointer",
+              fontWeight: 600,
+            }}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Render the generated plan
+  return (
+    <div style={sectionStyle}>
+      <div style={headerStyle}>
+        <IconSparkles size={24} />
+        <div style={{ flex: 1 }}>
+          <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 600 }}>
+            AI Promotion Kit
+          </h3>
+          <p style={{ margin: "2px 0 0", fontSize: "12px", opacity: 0.85 }}>
+            Generated for &quot;{eventName}&quot;
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleGenerate}
+          style={{
+            background: "rgba(255,255,255,0.2)",
+            color: "#fff",
+            border: "1px solid rgba(255,255,255,0.3)",
+            borderRadius: "8px",
+            padding: "6px 14px",
+            cursor: "pointer",
+            fontSize: "12px",
+            fontWeight: 500,
+          }}
+        >
+          Regenerate
+        </button>
+      </div>
+
+      {/* Social Media Section */}
+      {plan?.socialMediaStrategy && (
+        <>
+          <div
+            style={accordionHeaderStyle}
+            onClick={() => toggleSection("social")}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <IconBrandInstagram size={20} style={{ color: "#e1306c" }} />
+              <span style={{ fontWeight: 600, fontSize: "14px" }}>
+                Social Media Strategy
+              </span>
+              <span
+                style={{
+                  background: "#f3f0ff",
+                  color: "#6366f1",
+                  borderRadius: "12px",
+                  padding: "2px 10px",
+                  fontSize: "11px",
+                  fontWeight: 500,
+                }}
+              >
+                {plan.socialMediaStrategy.captionTemplates?.length || 0} captions
+              </span>
+            </div>
+            {expandedSection === "social" ? (
+              <IconChevronUp size={18} />
+            ) : (
+              <IconChevronDown size={18} />
+            )}
+          </div>
+          {expandedSection === "social" && (
+            <div style={accordionBodyStyle}>
+              {plan.socialMediaStrategy.captionTemplates?.map(
+                (tmpl: any, i: number) => (
+                  <div key={i} style={cardStyle}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          background: "#f3f0ff",
+                          color: "#6366f1",
+                          borderRadius: "6px",
+                          padding: "2px 8px",
+                          fontSize: "11px",
+                          fontWeight: 500,
+                        }}
+                      >
+                        {tmpl.theme}
+                      </span>
+                      <button
+                        type="button"
+                        style={copyBtnStyle}
+                        onClick={() => copyToClipboard(tmpl.caption, `social-${i}`)}
+                      >
+                        {copiedItem === `social-${i}` ? (
+                          <IconCheck size={12} style={{ color: "#22c55e" }} />
+                        ) : (
+                          <IconCopy size={12} />
+                        )}
+                        {copiedItem === `social-${i}` ? "Copied" : "Copy"}
+                      </button>
+                    </div>
+                    <p
+                      style={{
+                        fontSize: "13px",
+                        lineHeight: 1.5,
+                        color: "#374151",
+                        margin: 0,
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      {tmpl.caption}
+                    </p>
+                  </div>
+                )
+              )}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Email Section */}
+      {plan?.emailSequence && (
+        <>
+          <div
+            style={accordionHeaderStyle}
+            onClick={() => toggleSection("email")}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <IconMail size={20} style={{ color: "#22c55e" }} />
+              <span style={{ fontWeight: 600, fontSize: "14px" }}>
+                Email Campaigns
+              </span>
+              <span
+                style={{
+                  background: "#ecfdf5",
+                  color: "#16a34a",
+                  borderRadius: "12px",
+                  padding: "2px 10px",
+                  fontSize: "11px",
+                  fontWeight: 500,
+                }}
+              >
+                {plan.emailSequence.length} emails
+              </span>
+            </div>
+            {expandedSection === "email" ? (
+              <IconChevronUp size={18} />
+            ) : (
+              <IconChevronDown size={18} />
+            )}
+          </div>
+          {expandedSection === "email" && (
+            <div style={accordionBodyStyle}>
+              {plan.emailSequence.map((email: any, i: number) => (
+                <div key={i} style={cardStyle}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    <div>
+                      <strong style={{ fontSize: "14px" }}>{email.name}</strong>
+                      <div
+                        style={{
+                          fontSize: "11px",
+                          color: "#9ca3af",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                          marginTop: "2px",
+                        }}
+                      >
+                        <IconClock size={12} /> {email.send_timing}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      style={copyBtnStyle}
+                      onClick={() =>
+                        copyToClipboard(
+                          `Subject: ${email.subject}\n\n${email.body}`,
+                          `email-${i}`
+                        )
+                      }
+                    >
+                      {copiedItem === `email-${i}` ? (
+                        <IconCheck size={12} style={{ color: "#22c55e" }} />
+                      ) : (
+                        <IconCopy size={12} />
+                      )}
+                      {copiedItem === `email-${i}` ? "Copied" : "Copy"}
+                    </button>
+                  </div>
+                  <div
+                    style={{
+                      background: "#f9fafb",
+                      borderRadius: "6px",
+                      padding: "8px 10px",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    <span style={{ fontSize: "11px", color: "#6b7280" }}>
+                      Subject:
+                    </span>
+                    <p
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        margin: "2px 0 0",
+                      }}
+                    >
+                      {email.subject}
+                    </p>
+                  </div>
+                  <p
+                    style={{
+                      fontSize: "12px",
+                      lineHeight: 1.5,
+                      color: "#4b5563",
+                      margin: 0,
+                      whiteSpace: "pre-wrap",
+                      maxHeight: "120px",
+                      overflow: "auto",
+                    }}
+                  >
+                    {email.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Advertising Section */}
+      {plan?.advertisingPlan && (
+        <>
+          <div
+            style={accordionHeaderStyle}
+            onClick={() => toggleSection("ads")}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <IconTargetArrow size={20} style={{ color: "#f59e0b" }} />
+              <span style={{ fontWeight: 600, fontSize: "14px" }}>
+                Advertising Strategy
+              </span>
+            </div>
+            {expandedSection === "ads" ? (
+              <IconChevronUp size={18} />
+            ) : (
+              <IconChevronDown size={18} />
+            )}
+          </div>
+          {expandedSection === "ads" && (
+            <div style={accordionBodyStyle}>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "12px" }}>
+                {plan.advertisingPlan.suggestedPlatforms?.map(
+                  (p: string, i: number) => (
+                    <span
+                      key={i}
+                      style={{
+                        background: "#fff7ed",
+                        color: "#ea580c",
+                        borderRadius: "20px",
+                        padding: "4px 14px",
+                        fontSize: "12px",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {p}
+                    </span>
+                  )
+                )}
+              </div>
+              {plan.advertisingPlan.budgetBreakdown?.map(
+                (item: any, i: number) => (
+                  <div key={i} style={cardStyle}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      <strong style={{ fontSize: "13px" }}>
+                        {item.platform}
+                      </strong>
+                      <span
+                        style={{
+                          background: "#fff7ed",
+                          color: "#ea580c",
+                          borderRadius: "6px",
+                          padding: "2px 8px",
+                          fontSize: "11px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {item.suggested_allocation_percent}%
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        height: "6px",
+                        borderRadius: "3px",
+                        background: "#f3f4f6",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: "100%",
+                          width: `${item.suggested_allocation_percent}%`,
+                          borderRadius: "3px",
+                          background:
+                            "linear-gradient(90deg, #f59e0b, #ea580c)",
+                        }}
+                      />
+                    </div>
+                    <p
+                      style={{
+                        fontSize: "12px",
+                        color: "#6b7280",
+                        margin: 0,
+                      }}
+                    >
+                      {item.target_audience_suggestion}
+                    </p>
+                  </div>
+                )
+              )}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Calendar Section */}
+      {plan?.marketingCalendar && (
+        <>
+          <div
+            style={accordionHeaderStyle}
+            onClick={() => toggleSection("calendar")}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <IconCalendar size={20} style={{ color: "#3b82f6" }} />
+              <span style={{ fontWeight: 600, fontSize: "14px" }}>
+                Marketing Calendar
+              </span>
+              <span
+                style={{
+                  background: "#eff6ff",
+                  color: "#2563eb",
+                  borderRadius: "12px",
+                  padding: "2px 10px",
+                  fontSize: "11px",
+                  fontWeight: 500,
+                }}
+              >
+                {plan.marketingCalendar.length} tasks
+              </span>
+            </div>
+            {expandedSection === "calendar" ? (
+              <IconChevronUp size={18} />
+            ) : (
+              <IconChevronDown size={18} />
+            )}
+          </div>
+          {expandedSection === "calendar" && (
+            <div style={accordionBodyStyle}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+                  gap: "10px",
+                }}
+              >
+                {plan.marketingCalendar.map((task: any, i: number) => (
+                  <div key={i} style={cardStyle}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          background: "#eff6ff",
+                          color: "#2563eb",
+                          borderRadius: "6px",
+                          padding: "2px 8px",
+                          fontSize: "11px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Day {task.day}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "10px",
+                          color: "#9ca3af",
+                          fontWeight: 500,
+                        }}
+                      >
+                        {task.task_category}
+                      </span>
+                    </div>
+                    <p
+                      style={{
+                        fontSize: "12px",
+                        color: "#374151",
+                        margin: 0,
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {task.task_description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+
+// ─── Preview Step Component ────────────────────────────────────────────────
+
 
 interface ExtendedTicket {
   id: string;
@@ -1140,6 +1846,25 @@ export default function PreviewStep({
       {/* Schedule Section */}
 
       {/* Event Details Card */}
+
+      {/* Generate Promotion Kit Section */}
+      <PromotionKitSection
+        eventName={eventName}
+        eventDescription={eventDescription}
+        eventType={eventType}
+        locationType={locationType}
+        address={address}
+        streetAddress={streetAddress}
+        city={city}
+        state={state}
+        country={country}
+        startDate={startDate}
+        startTime={startTime}
+        endDate={endDate}
+        endTime={endTime}
+        tags={tags}
+        tickets={tickets}
+      />
 
       {/* Navigation Buttons */}
       <div className={styles.previewActions}>

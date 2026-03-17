@@ -8,6 +8,17 @@ const nextConfig = {
   // Your other Next.js configurations can go here
   reactStrictMode: true, // Example other config
 
+  // Redirect /manual-register/:eventId → /eventSchedule/manual-register/:eventId
+  async redirects() {
+    return [
+      {
+        source: "/manual-register/:eventId",
+        destination: "/eventSchedule/manual-register/:eventId",
+        permanent: true,
+      },
+    ];
+  },
+
   eslint: {
     // Warning: This allows production builds to successfully complete even if
     // your project has ESLint errors. It's best to fix the errors.

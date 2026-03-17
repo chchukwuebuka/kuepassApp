@@ -4,6 +4,12 @@
   width: 40%;
 }
 
+@media (max-width: 768px) {
+  .searchContainer {
+    width: 100%;
+  }
+}
+
 .searchInputWrapper {
   position: relative;
   width: 100%;

@@ -1,9 +1,517 @@
 .analyticsContainer {
-      animation: fadeIn 0.5s ease-in-out;
-      margin-top: 35px;
+  padding: 24px;
+  max-width: 1100px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 35px auto 0;
+  animation: fadeIn 0.5s ease-in-out;
+  overflow-x: hidden;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header */
+.header {
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 0 8px;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  color: #6b7280;
+  margin: 0;
+  font-size: 15px;
+}
+
+/* Loading & Error */
+.loadingContainer {
+  padding: 64px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid #f3f4f6;
+  border-top-color: #025a3a;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loadingText {
+  color: #6b7280;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.errorCard {
+  padding: 24px;
+  margin: 24px;
+  border-radius: 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.errorTitle {
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 16px;
+  margin: 0 0 8px;
+}
+
+.errorText {
+  color: #991b1b;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Summary Cards (Glassmorphic) */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.summaryCard {
+  padding: 24px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 24px -6px rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.summaryCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+.summaryCardHighlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+}
+
+.summaryLabel {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.summaryValue {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+
+.summarySub {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* AI Health Banner */
+.aiAssessmentBox {
+  padding: 20px 24px;
+  border-radius: 16px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  box-shadow: 0 4px 20px -8px rgba(0, 0, 0, 0.05);
+}
+
+.aiAssessmentIcon {
+  font-size: 28px;
+  line-height: 1;
+  background: white;
+  padding: 10px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.aiAssessmentContent {
+  flex: 1;
+}
+
+.aiAssessmentTitle {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.aiAssessmentText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* Ticket Performance Section */
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: #111827;
+  letter-spacing: -0.01em;
+}
+
+.ticketList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.ticketCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  transition: box-shadow 0.2s ease;
+}
+
+.ticketCard:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.ticketHeader {
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 20px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.ticketInfo {
+  flex: 1;
+  min-width: 240px;
+}
+
+.ticketNameRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.ticketName {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.ticketTypeBadge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+}
+
+.ticketPrice {
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.ticketStatsGrid {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.ticketStat {
+  text-align: right;
+}
+
+.ticketStatValue {
+  font-size: 24px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1.2;
+}
+
+.ticketStatLabel {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Progress Bar Container */
+.progressContainer {
+  padding: 16px 24px;
+  background: #fafafa;
+}
+
+.progressLabelRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.progressBarTrack {
+  height: 8px;
+  border-radius: 8px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* AI Ticket Recommendation */
+.ticketAlert {
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(0,0,0,0.04);
+}
+
+.ticketAlertIcon {
+  font-size: 20px;
+}
+
+.ticketAlertMeta {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ticketAlertAction {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ticketAlertPrice {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  background: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.ticketAlertReason {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  flex: 2 1 300px;
+  font-weight: 500;
+}
+
+/* Marketing Tips */
+.marketingBox {
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 4px 20px -8px rgba(0, 0, 0, 0.05);
+}
+
+.marketingHeader {
+  padding: 18px 24px;
+  background: linear-gradient(135deg, #025a3a 0%, #013a25 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.marketingHeaderIcon {
+  font-size: 24px;
+}
+
+.marketingHeaderTitle {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.marketingList {
+  padding: 8px 0;
+}
+
+.marketingItem {
+  padding: 16px 24px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  transition: background-color 0.2s ease;
+}
+
+.marketingItem:not(:last-child) {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.marketingItem:hover {
+  background-color: #f8fafc;
+}
+
+.marketingItemNum {
+  background: #e6f4ea;
+  color: #025a3a;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(2, 90, 58, 0.15);
+}
+
+.marketingItemText {
+  font-size: 14px;
+  color: #374151;
+  margin: 0;
+  line-height: 1.6;
+  font-weight: 500;
+  padding-top: 4px;
+}
+
+/* Responsive Styles */
+@media (max-width: 1024px) {
+  .summaryGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .analyticsContainer {
+    padding: 16px;
+    margin-top: 20px;
   }
   
-  @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+  .title {
+    font-size: 24px;
   }
+  
+  .summaryGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .aiAssessmentBox {
+    flex-direction: column;
+    padding: 16px;
+  }
+  
+  .ticketHeader {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .ticketStatsGrid {
+    width: 100%;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  
+  .ticketStat {
+    text-align: left;
+  }
+  
+  .ticketAlert {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .ticketAlertMeta {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .ticketAlertReason {
+    width: 100%;
+    flex: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .analyticsContainer {
+    padding: 12px;
+  }
+  
+  .summaryValue {
+    font-size: 28px;
+  }
+  
+  .ticketStatsGrid {
+    gap: 16px;
+  }
+  
+  .ticketStatValue {
+    font-size: 20px;
+  }
+  
+  .marketingHeader {
+    padding: 16px;
+  }
+  
+  .marketingItem {
+    padding: 16px;
+  }
+}
