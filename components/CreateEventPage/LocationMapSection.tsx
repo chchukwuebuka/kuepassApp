@@ -3,6 +3,7 @@
 import React from "react";
 import { IconCalendar } from "@tabler/icons-react";
 import styles from "./styles.module.css";
+import AutocompleteInput from "./AutocompleteInput";
 
 interface LocationMapSectionProps {
   address?: string;
@@ -11,6 +12,10 @@ interface LocationMapSectionProps {
   additionalDetails: string;
   onLandmarkChange?: (value: string) => void;
   onAdditionalDetailsChange: (value: string) => void;
+  landmarkSuggestion?: string | null;
+  additionalDetailsSuggestion?: string | null;
+  onAcceptLandmarkSuggestion?: () => void;
+  onAcceptAdditionalDetailsSuggestion?: () => void;
 }
 
 export default function LocationMapSection({
@@ -20,6 +25,10 @@ export default function LocationMapSection({
   additionalDetails,
   onLandmarkChange,
   onAdditionalDetailsChange,
+  landmarkSuggestion,
+  additionalDetailsSuggestion,
+  onAcceptLandmarkSuggestion,
+  onAcceptAdditionalDetailsSuggestion,
 }: LocationMapSectionProps) {
   return (
     <>
@@ -29,11 +38,12 @@ export default function LocationMapSection({
           <label className={styles.inputLabel}>
             Landmark
           </label>
-          <input
-            type="text"
+          <AutocompleteInput
             placeholder="Enter landmark (e.g., near the main gate, opposite the mall)"
             value={landmark || ""}
-            onChange={(e) => onLandmarkChange(e.target.value)}
+            onChange={(val) => onLandmarkChange(val)}
+            suggestion={landmarkSuggestion || null}
+            onAcceptSuggestion={onAcceptLandmarkSuggestion}
             className={styles.input}
           />
         </div>
@@ -44,11 +54,12 @@ export default function LocationMapSection({
         <label className={styles.inputLabel}>
           Additional details
         </label>
-        <input
-          type="text"
+        <AutocompleteInput
           placeholder="Enter additional details"
           value={additionalDetails}
-          onChange={(e) => onAdditionalDetailsChange(e.target.value)}
+          onChange={(val) => onAdditionalDetailsChange(val)}
+          suggestion={additionalDetailsSuggestion || null}
+          onAcceptSuggestion={onAcceptAdditionalDetailsSuggestion}
           className={styles.input}
         />
       </div>
@@ -84,4 +95,3 @@ export default function LocationMapSection({
     </>
   );
 }
-

@@ -203,6 +203,7 @@ export default function TicketsStep({
                     <th>TICKET PRICE</th>
                     <th>VALID TILL</th>
                     <th>STATUS</th>
+                    <th>ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -228,6 +229,16 @@ export default function TicketsStep({
                           <span className={status.className}>
                             {status.text}
                           </span>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className={styles.removeTicketButton}
+                            onClick={() => onRemoveTicket(ticket.id)}
+                            title={`Remove ${ticket.name}`}
+                          >
+                            <IconTrash size={16} />
+                          </button>
                         </td>
                       </tr>
                     );

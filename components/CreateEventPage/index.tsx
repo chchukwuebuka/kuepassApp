@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   IconUpload,
   IconEye,
@@ -13,6 +13,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./styles.module.css";
+import AutocompleteInput from "./AutocompleteInput";
 import ProgressTracker from "./ProgressTracker";
 import LocationMapSection from "./LocationMapSection";
 import EventDetailsSection from "./EventDetailsSection";
@@ -231,6 +232,40 @@ export default function CreateEventPage() {
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const additionalFileInputRef = useRef<HTMLInputElement>(null);
+
+  // AI-powered event creation state
+  const [aiPrompt, setAiPrompt] = useState<string>("");
+  const [aiLoading, setAiLoading] = useState<boolean>(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [showAiSection, setShowAiSection] = useState<boolean>(true);
+  const [aiGenerated, setAiGenerated] = useState<boolean>(false);
+  const [aiTicketSuggestions, setAiTicketSuggestions] = useState<
+    Array<{
+      id: string;
+      name: string;
+      price: number;
+      quantity: string;
+      type: string;
+      description: string;
+      perks: string[];
+    }>
+  >([]);
+
+  // AI Smart Assist state
+  const [aiSuggestions, setAiSuggestions] = useState<Record<string, any>>({});
+  const [aiQuestionSuggestions, setAiQuestionSuggestions] = useState<
+    Array<{
+      id: string;
+      type: string;
+      title: string;
+      required: boolean;
+      placeholder: string;
+      options: string[];
+    }>
+  >([]);
+  const [smartAssistLoading, setSmartAssistLoading] = useState(false);
+  const smartAssistTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(new Set());
 
   // Fetch event types from backend
   const fetchEventTypes = async () => {
@@ -459,6 +494,70 @@ export default function CreateEventPage() {
     lineupItems,
     schedules,
   ]);
+
+  // Clear all form data and reset to defaults
+  const clearAllData = () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to clear all data? This will reset the form and remove any saved draft."
+    );
+    if (!confirmed) return;
+
+    // Remove draft from localStorage
+    localStorage.removeItem(FORM_STORAGE_KEY);
+
+    // Reset all state to defaults
+    setCurrentStep(1);
+    setEventImage(null);
+    setEventImagePreview(null);
+    setAdditionalImages([]);
+    setTickets([]);
+    setQuestions([]);
+    setEditingQuestion(null);
+    setCardColor("#025a3a");
+    setLineupItems([]);
+    setSchedules([]);
+    setAiPrompt("");
+    setAiError(null);
+    setAiGenerated(false);
+    setAiTicketSuggestions([]);
+    setAiSuggestions({});
+    setAiQuestionSuggestions([]);
+    setDismissedSuggestions(new Set());
+    setShowAiSection(true);
+    setFormData({
+      eventName: "",
+      eventDescription: "",
+      eventType: "",
+      eventTimingType: "single" as "single" | "recurring",
+      startDate: "",
+      startTime: "",
+      endDate: "",
+      endTime: "",
+      timezone: getUserTimezone() || "",
+      repeatPattern: "",
+      repeatOnDays: [] as string[],
+      repeatOnMonthDays: [] as string[],
+      timeMode: "single" as "single" | "multiple",
+      timeSlots: [] as Array<{ id: string; startTime: string; endTime: string }>,
+      locationType: "venue" as "venue" | "virtual" | "tba",
+      address: "",
+      streetAddress: "",
+      landmark: "",
+      country: "",
+      city: "",
+      state: "",
+      meetingLink: "",
+      additionalDetails: "",
+      tags: ["Live music", "Conference", "Dance party", "Cultural festival"],
+      socialLinks: {
+        instagram: "",
+        youtube: "",
+        tiktok: "",
+      },
+      sections: [] as string[],
+      ticketButtonText: "Get Ticket",
+    });
+  };
 
   // Fetch event and customization data (including banner URL) when eventId is present
   const fetchEventAndCustomization = async () => {
@@ -845,6 +944,266 @@ export default function CreateEventPage() {
 
   const handleInputChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+
+    // Trigger AI Smart Assist when key fields are filled
+    const triggerFields = ['eventName', 'eventType', 'address', 'streetAddress', 'eventDescription'];
+    if (triggerFields.includes(field) && value && String(value).trim().length >= 3) {
+      debouncedSmartAssist(field, value);
+    }
+  };
+
+  // AbortController for cancelling in-flight requests
+  const smartAssistAbortRef = useRef<AbortController | null>(null);
+  // Context hash to skip redundant fetches
+  const lastContextHashRef = useRef<string>('');
+
+  // Debounced Smart Assist — 600ms for snappy response
+  const debouncedSmartAssist = useCallback((changedField: string, changedValue: string) => {
+    if (smartAssistTimerRef.current) {
+      clearTimeout(smartAssistTimerRef.current);
+    }
+    smartAssistTimerRef.current = setTimeout(() => {
+      fetchSmartSuggestions(changedField, changedValue);
+    }, 600);
+  }, []);
+
+  const fetchSmartSuggestions = async (changedField: string, changedValue: string) => {
+    try {
+      // Build context from current form data + the just-changed field
+      const currentContext: Record<string, string> = {};
+      const contextFields = ['eventName', 'eventDescription', 'eventType', 'address', 'streetAddress', 'city', 'state', 'country', 'locationType', 'startDate', 'endDate'];
+      contextFields.forEach(f => {
+        const val = (formData as any)[f];
+        if (val && String(val).trim()) currentContext[f] = String(val);
+      });
+      currentContext[changedField] = changedValue;
+
+      // Context hash check — skip if nothing meaningful changed
+      const contextHash = JSON.stringify(currentContext);
+      if (contextHash === lastContextHashRef.current) return;
+      lastContextHashRef.current = contextHash;
+
+      // Determine which fields need suggestions (truly empty ones)
+      const suggestableFields = [
+        { key: 'description', formKey: 'eventDescription' },
+        { key: 'tags', formKey: 'tags' },
+        { key: 'eventType', formKey: 'eventType' },
+        { key: 'country', formKey: 'country' },
+        { key: 'state', formKey: 'state' },
+        { key: 'city', formKey: 'city' },
+        { key: 'landmark', formKey: 'landmark' },
+        { key: 'additional_details', formKey: 'additionalDetails' },
+        { key: 'questions', formKey: null },
+      ];
+
+      const requestFields: string[] = [];
+      suggestableFields.forEach(({ key, formKey }) => {
+        if (dismissedSuggestions.has(key)) return;
+        if (key === 'questions') {
+          requestFields.push(key);
+          return;
+        }
+        const currentVal = formKey ? (formData as any)[formKey] : null;
+        // Only suggest for empty fields or default/placeholder tags
+        const isEmpty = !currentVal || 
+          (typeof currentVal === 'string' && currentVal.trim().length < 2) ||
+          (Array.isArray(currentVal) && (currentVal.length === 0 || (key === 'tags' && JSON.stringify(currentVal) === JSON.stringify(["Live music", "Conference", "Dance party", "Cultural festival"]))));
+        if (isEmpty) requestFields.push(key);
+      });
+
+      if (requestFields.length === 0) return;
+
+      // Cancel any previous in-flight request
+      if (smartAssistAbortRef.current) {
+        smartAssistAbortRef.current.abort();
+      }
+      smartAssistAbortRef.current = new AbortController();
+
+      setSmartAssistLoading(true);
+
+      const response: any = await authenticatedRequest(
+        `${API_BASE_URL}/ai/smart-assist/`,
+        'POST',
+        { context: currentContext, request_fields: requestFields, changed_field: changedField }
+      );
+
+      const rawResp = response?.data || response;
+      if (rawResp?.suggestions) {
+        const suggestions = { ...rawResp.suggestions };
+
+        // Extract question suggestions separately
+        if (suggestions.questions && Array.isArray(suggestions.questions)) {
+          const mappedQuestions = suggestions.questions.map((q: any) => ({
+            id: uuidv4(),
+            type: q.type || 'text',
+            title: q.title || '',
+            required: q.required || false,
+            placeholder: q.placeholder || '',
+            options: q.options || [],
+          }));
+          setAiQuestionSuggestions(mappedQuestions);
+          delete suggestions.questions;
+        }
+
+        // Merge new suggestions (don't overwrite existing accepted ones)
+        setAiSuggestions((prev) => ({ ...prev, ...suggestions }));
+      }
+    } catch (err: any) {
+      // Don't log aborted requests as errors
+      if (err?.name !== 'AbortError') {
+        console.error('Smart Assist error:', err);
+      }
+    } finally {
+      setSmartAssistLoading(false);
+    }
+  };
+
+  const acceptSuggestion = (fieldKey: string) => {
+    const value = aiSuggestions[fieldKey];
+    if (value === undefined) return;
+
+    // Map AI field keys to form field keys
+    const fieldMap: Record<string, string> = {
+      description: 'eventDescription',
+      tags: 'tags',
+      eventType: 'eventType',
+      country: 'country',
+      state: 'state',
+      city: 'city',
+      landmark: 'landmark',
+      additional_details: 'additionalDetails',
+    };
+    const formKey = fieldMap[fieldKey] || fieldKey;
+    setFormData((prev) => ({ ...prev, [formKey]: value }));
+    setAiSuggestions((prev) => {
+      const next = { ...prev };
+      delete next[fieldKey];
+      return next;
+    });
+  };
+
+  const dismissSuggestion = (fieldKey: string) => {
+    setAiSuggestions((prev) => {
+      const next = { ...prev };
+      delete next[fieldKey];
+      return next;
+    });
+    setDismissedSuggestions((prev) => new Set(prev).add(fieldKey));
+  };
+
+  // AI-powered event generation handler
+  const handleAiGenerate = async () => {
+    if (!aiPrompt.trim()) {
+      setAiError("Please describe your event first.");
+      return;
+    }
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const response = await authenticatedRequest<any>(
+        `${API_BASE_URL}/ai/create-event/`,
+        "POST",
+        { prompt: aiPrompt.trim() }
+      );
+
+      // The backend returns { success, message, event: {...}, ticket_suggestions: [...] }
+      const rawResponse: any = response?.data || response;
+      const eventData = rawResponse?.event || rawResponse;
+      const ticketSuggestions = rawResponse?.ticket_suggestions || [];
+
+      // Map AI response to formData
+      setFormData((prev) => ({
+        ...prev,
+        eventName: eventData.title || prev.eventName,
+        eventDescription: eventData.description || prev.eventDescription,
+        eventType: eventData.event_type || prev.eventType,
+        startDate: eventData.start_date
+          ? new Date(eventData.start_date).toISOString().slice(0, 10)
+          : prev.startDate,
+        startTime: eventData.start_date
+          ? new Date(eventData.start_date).toTimeString().slice(0, 5)
+          : prev.startTime,
+        endDate: eventData.end_date
+          ? new Date(eventData.end_date).toISOString().slice(0, 10)
+          : prev.endDate,
+        endTime: eventData.end_date
+          ? new Date(eventData.end_date).toTimeString().slice(0, 5)
+          : prev.endTime,
+        locationType:
+          eventData.location === "Virtual"
+            ? "virtual"
+            : eventData.location === "Physical"
+            ? "venue"
+            : prev.locationType,
+        address: eventData.address || prev.address,
+        streetAddress: eventData.street_address || eventData.address || prev.streetAddress,
+        city: eventData.city || prev.city,
+        state: eventData.state || prev.state,
+        country: eventData.country || prev.country,
+        landmark: eventData.landmark || prev.landmark,
+        meetingLink: eventData.meeting_link || prev.meetingLink,
+        tags: eventData.tags && eventData.tags.length > 0 ? eventData.tags : prev.tags,
+        additionalDetails: eventData.additional_details || prev.additionalDetails,
+      }));
+
+      // Map lineup
+      if (eventData.line_up && Array.isArray(eventData.line_up) && eventData.line_up.length > 0) {
+        const mappedLineup = eventData.line_up.map((item: any) => ({
+          id: item.id || uuidv4(),
+          name: item.name || "",
+          role: item.role || "",
+          description: item.description || "",
+          image: item.image || item.image_url || "",
+        }));
+        setLineupItems(mappedLineup);
+      }
+
+      // Map itinerary / schedules
+      if (eventData.itinerary && Array.isArray(eventData.itinerary) && eventData.itinerary.length > 0) {
+        const mappedSchedules = eventData.itinerary.map((item: any) => ({
+          id: item.id || uuidv4(),
+          name: item.title || item.name || "",
+          slots: [
+            {
+              id: uuidv4(),
+              title: item.activity || item.title || "",
+              startTime: item.start_time || "",
+              endTime: item.end_time || "",
+              hostName: item.host || "",
+              description: item.description || "",
+            },
+          ],
+        }));
+        setSchedules(mappedSchedules);
+      }
+
+      // Store ticket suggestions for user review (don't auto-add)
+      if (ticketSuggestions && Array.isArray(ticketSuggestions) && ticketSuggestions.length > 0) {
+        const mappedSuggestions = ticketSuggestions.map((ticket: any) => ({
+          id: ticket.id || uuidv4(),
+          name: ticket.name || "General Ticket",
+          price: parseFloat(ticket.category_price || ticket.price || "0"),
+          quantity:
+            ticket.quantity === null || ticket.quantity === undefined
+              ? "Unlimited"
+              : String(ticket.quantity),
+          type: ticket.category_name || ticket.type || "Paid",
+          description: ticket.description || "",
+          perks: ticket.perks || [],
+        }));
+        setAiTicketSuggestions(mappedSuggestions);
+      }
+
+      setAiGenerated(true);
+      setShowAiSection(false);
+    } catch (err: any) {
+      console.error("AI event generation failed:", err);
+      setAiError(
+        err.message || "AI generation failed. Please try again or fill the form manually."
+      );
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   // API Functions
@@ -1866,10 +2225,134 @@ export default function CreateEventPage() {
         isSubmitting={isSubmitting}
       />
 
+      {/* Clear All Data Button */}
+      <div className={styles.clearAllWrapper}>
+        <button
+          type="button"
+          className={styles.clearAllButton}
+          onClick={clearAllData}
+          title="Clear all form data and start fresh"
+        >
+          <IconTrash size={16} />
+          Clear All Data
+        </button>
+      </div>
+
       {/* Main Content */}
       <div className={styles.mainContent}>
         {currentStep === 1 && (
           <>
+            {/* AI Event Creation Section */}
+            {showAiSection && (
+              <div className={styles.aiSection}>
+                <div className={styles.aiSectionInner}>
+                  <div className={styles.aiSectionHeader}>
+                    <div className={styles.aiIconWrapper}>
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className={styles.aiSparkleIcon}
+                      >
+                        <path
+                          d="M12 2L14.09 8.26L20 9.27L15.55 13.97L16.91 20L12 16.9L7.09 20L8.45 13.97L4 9.27L9.91 8.26L12 2Z"
+                          fill="currentColor"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className={styles.aiTitle}>Create with AI</h2>
+                      <p className={styles.aiSubtitle}>
+                        Describe your event and let AI fill in all the details instantly
+                      </p>
+                    </div>
+                  </div>
+
+                  <textarea
+                    className={styles.aiTextarea}
+                    placeholder='e.g., "Create a tech conference in Lagos on April 15th for 500 people with panels on AI and cybersecurity, VIP and regular tickets"'
+                    value={aiPrompt}
+                    onChange={(e) => {
+                      setAiPrompt(e.target.value);
+                      if (aiError) setAiError(null);
+                    }}
+                    rows={3}
+                    disabled={aiLoading}
+                  />
+
+                  {aiError && (
+                    <p className={styles.aiError}>{aiError}</p>
+                  )}
+
+                  <div className={styles.aiActions}>
+                    <button
+                      type="button"
+                      className={`${styles.aiGenerateButton} ${aiLoading ? styles.aiGenerateButtonLoading : ""}`}
+                      onClick={handleAiGenerate}
+                      disabled={aiLoading || !aiPrompt.trim()}
+                    >
+                      {aiLoading ? (
+                        <>
+                          <span className={styles.aiSpinner} />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L14.09 8.26L20 9.27L15.55 13.97L16.91 20L12 16.9L7.09 20L8.45 13.97L4 9.27L9.91 8.26L12 2Z" fill="currentColor" />
+                          </svg>
+                          Generate Event
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.aiSkipLink}
+                      onClick={() => setShowAiSection(false)}
+                    >
+                      or fill in manually
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* AI Generated Success Badge */}
+            {aiGenerated && !showAiSection && (
+              <div className={styles.aiSuccessBadge}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor" />
+                </svg>
+                <span>AI filled your event details — review and edit below</span>
+                <button
+                  type="button"
+                  className={styles.aiRetryLink}
+                  onClick={() => {
+                    setShowAiSection(true);
+                    setAiGenerated(false);
+                  }}
+                >
+                  Try again
+                </button>
+              </div>
+            )}
+
+            {/* Show AI trigger when section is hidden and not yet generated */}
+            {!showAiSection && !aiGenerated && (
+              <button
+                type="button"
+                className={styles.aiReopenButton}
+                onClick={() => setShowAiSection(true)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L14.09 8.26L20 9.27L15.55 13.97L16.91 20L12 16.9L7.09 20L8.45 13.97L4 9.27L9.91 8.26L12 2Z" fill="currentColor" />
+                </svg>
+                Create with AI
+              </button>
+            )}
+
             {/* Event Image Section */}
             <div className={styles.section}>
               <div className={styles.sectionHeader}>
@@ -2019,15 +2502,22 @@ export default function CreateEventPage() {
                   <label className={styles.inputLabel}>
                     Event description*
                   </label>
-                  <textarea
+                  <AutocompleteInput
+                    as="textarea"
                     placeholder="Describe your event"
                     value={formData.eventDescription}
-                    onChange={(e) =>
-                      handleInputChange("eventDescription", e.target.value)
-                    }
+                    onChange={(val) => handleInputChange("eventDescription", val)}
+                    suggestion={aiSuggestions.description || null}
+                    onAcceptSuggestion={() => {
+                      if (aiSuggestions.description) {
+                        handleInputChange("eventDescription", aiSuggestions.description);
+                        setAiSuggestions((prev) => { const n = { ...prev }; delete n.description; return n; });
+                      }
+                    }}
                     required
                     rows={4}
                     className={styles.textarea}
+                    loading={smartAssistLoading}
                   />
                 </div>
 
@@ -2399,30 +2889,40 @@ export default function CreateEventPage() {
                         <label className={styles.inputLabel}>
                           Country<span className={styles.required}>*</span>
                         </label>
-                        <input
-                          type="text"
+                        <AutocompleteInput
                           placeholder="Enter country"
                           value={formData.country}
-                          onChange={(e) =>
-                            handleInputChange("country", e.target.value)
-                          }
+                          onChange={(val) => handleInputChange("country", val)}
+                          suggestion={aiSuggestions.country || null}
+                          onAcceptSuggestion={() => {
+                            if (aiSuggestions.country) {
+                              handleInputChange("country", aiSuggestions.country);
+                              setAiSuggestions((prev) => { const n = { ...prev }; delete n.country; return n; });
+                            }
+                          }}
                           required
                           className={styles.input}
+                          loading={smartAssistLoading}
                         />
                       </div>
                       <div className={styles.inputWrapper}>
                         <label className={styles.inputLabel}>
                           State<span className={styles.required}>*</span>
                         </label>
-                        <input
-                          type="text"
+                        <AutocompleteInput
                           placeholder="Enter state"
                           value={formData.state}
-                          onChange={(e) =>
-                            handleInputChange("state", e.target.value)
-                          }
+                          onChange={(val) => handleInputChange("state", val)}
+                          suggestion={aiSuggestions.state || null}
+                          onAcceptSuggestion={() => {
+                            if (aiSuggestions.state) {
+                              handleInputChange("state", aiSuggestions.state);
+                              setAiSuggestions((prev) => { const n = { ...prev }; delete n.state; return n; });
+                            }
+                          }}
                           required
                           className={styles.input}
+                          loading={smartAssistLoading}
                         />
                       </div>
                     </div>
@@ -2431,15 +2931,20 @@ export default function CreateEventPage() {
                       <label className={styles.inputLabel}>
                         City<span className={styles.required}>*</span>
                       </label>
-                      <input
-                        type="text"
+                      <AutocompleteInput
                         placeholder="Enter city"
                         value={formData.city}
-                        onChange={(e) =>
-                          handleInputChange("city", e.target.value)
-                        }
+                        onChange={(val) => handleInputChange("city", val)}
+                        suggestion={aiSuggestions.city || null}
+                        onAcceptSuggestion={() => {
+                          if (aiSuggestions.city) {
+                            handleInputChange("city", aiSuggestions.city);
+                            setAiSuggestions((prev) => { const n = { ...prev }; delete n.city; return n; });
+                          }
+                        }}
                         required
                         className={styles.input}
+                        loading={smartAssistLoading}
                       />
                     </div>
 
@@ -2455,6 +2960,20 @@ export default function CreateEventPage() {
                       onAdditionalDetailsChange={(value) =>
                         handleInputChange("additionalDetails", value)
                       }
+                      landmarkSuggestion={aiSuggestions.landmark || null}
+                      additionalDetailsSuggestion={aiSuggestions.additional_details || null}
+                      onAcceptLandmarkSuggestion={() => {
+                        if (aiSuggestions.landmark) {
+                          handleInputChange("landmark", aiSuggestions.landmark);
+                          setAiSuggestions((prev) => { const n = { ...prev }; delete n.landmark; return n; });
+                        }
+                      }}
+                      onAcceptAdditionalDetailsSuggestion={() => {
+                        if (aiSuggestions.additional_details) {
+                          handleInputChange("additionalDetails", aiSuggestions.additional_details);
+                          setAiSuggestions((prev) => { const n = { ...prev }; delete n.additional_details; return n; });
+                        }
+                      }}
                     />
                   </>
                 )}
@@ -2484,6 +3003,8 @@ export default function CreateEventPage() {
                   schedules={schedules}
                   onSchedulesChange={setSchedules}
                 />
+
+
 
                 {/* Save & Exit / Save & Continue Buttons */}
                 <div className={styles.saveButtonsContainer}>
@@ -2519,18 +3040,114 @@ export default function CreateEventPage() {
         )}
 
         {currentStep === 2 && (
-          <TicketsStep
-            tickets={tickets as any}
-            onAddTicket={() => setIsModalOpen(true)}
-            onRemoveTicket={removeTicket}
-            onBack={() => setCurrentStep(1)}
-            onNext={() => setCurrentStep(3)}
-            onAddQuestions={handleAddQuestion}
-            questions={questions}
-            onEditQuestion={handleEditQuestion}
-            onRemoveQuestion={handleRemoveQuestion}
-            saveDraft={saveDraft}
-          />
+          <>
+            {/* AI Ticket Suggestions Panel */}
+            {aiTicketSuggestions.length > 0 && (
+              <div className={styles.aiTicketSuggestionsPanel}>
+                <div className={styles.aiTicketSuggestionsHeader}>
+                  <div className={styles.aiTicketSuggestionsIcon}>✨</div>
+                  <div>
+                    <h3 className={styles.aiTicketSuggestionsTitle}>AI Ticket Suggestions</h3>
+                    <p className={styles.aiTicketSuggestionsSubtitle}>
+                      Review the AI-generated ticket tiers below. Accept the ones you like or dismiss to create your own.
+                    </p>
+                  </div>
+                </div>
+                <div className={styles.aiTicketSuggestionsList}>
+                  {aiTicketSuggestions.map((suggestion) => (
+                    <div key={suggestion.id} className={styles.aiTicketSuggestionCard}>
+                      <div className={styles.aiTicketSuggestionInfo}>
+                        <div className={styles.aiTicketSuggestionTop}>
+                          <span className={styles.aiTicketSuggestionName}>{suggestion.name}</span>
+                          <span className={styles.aiTicketSuggestionType}>{suggestion.type}</span>
+                        </div>
+                        <div className={styles.aiTicketSuggestionPrice}>
+                          {suggestion.price > 0 ? `₦${suggestion.price.toLocaleString()}` : 'Free'}
+                          <span className={styles.aiTicketSuggestionQty}> · Qty: {suggestion.quantity}</span>
+                        </div>
+                        {suggestion.description && (
+                          <p className={styles.aiTicketSuggestionDesc}>{suggestion.description}</p>
+                        )}
+                        {suggestion.perks && suggestion.perks.length > 0 && (
+                          <div className={styles.aiTicketSuggestionPerks}>
+                            {suggestion.perks.map((perk, i) => (
+                              <span key={i} className={styles.aiTicketSuggestionPerk}>✓ {perk}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className={styles.aiTicketSuggestionActions}>
+                        <button
+                          className={styles.aiTicketAcceptButton}
+                          onClick={() => {
+                            const newTicket = {
+                              id: uuidv4(),
+                              name: suggestion.name,
+                              price: suggestion.price,
+                              quantity: suggestion.quantity === 'Unlimited' ? 'Unlimited' : suggestion.quantity,
+                              type: suggestion.type === 'free' || suggestion.price === 0 ? 'Free' : 'Paid',
+                              description: suggestion.description,
+                              perks: suggestion.perks,
+                            };
+                            setTickets((prev) => [...prev, newTicket as any]);
+                            setAiTicketSuggestions((prev) => prev.filter((s) => s.id !== suggestion.id));
+                          }}
+                        >
+                          ✓ Accept
+                        </button>
+                        <button
+                          className={styles.aiTicketDismissButton}
+                          onClick={() => {
+                            setAiTicketSuggestions((prev) => prev.filter((s) => s.id !== suggestion.id));
+                          }}
+                        >
+                          ✕ Dismiss
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className={styles.aiTicketSuggestionsBulkActions}>
+                  <button
+                    className={styles.aiTicketAcceptAllButton}
+                    onClick={() => {
+                      const newTickets = aiTicketSuggestions.map((s) => ({
+                        id: uuidv4(),
+                        name: s.name,
+                        price: s.price,
+                        quantity: s.quantity === 'Unlimited' ? 'Unlimited' : s.quantity,
+                        type: s.type === 'free' || s.price === 0 ? 'Free' : 'Paid',
+                        description: s.description,
+                        perks: s.perks,
+                      }));
+                      setTickets((prev) => [...prev, ...newTickets as any]);
+                      setAiTicketSuggestions([]);
+                    }}
+                  >
+                    Accept All ({aiTicketSuggestions.length})
+                  </button>
+                  <button
+                    className={styles.aiTicketDismissAllButton}
+                    onClick={() => setAiTicketSuggestions([])}
+                  >
+                    Dismiss All
+                  </button>
+                </div>
+              </div>
+            )}
+            <TicketsStep
+              tickets={tickets as any}
+              onAddTicket={() => setIsModalOpen(true)}
+              onRemoveTicket={removeTicket}
+              onBack={() => setCurrentStep(1)}
+              onNext={() => setCurrentStep(3)}
+              onAddQuestions={handleAddQuestion}
+              questions={questions}
+              onEditQuestion={handleEditQuestion}
+              onRemoveQuestion={handleRemoveQuestion}
+              saveDraft={saveDraft}
+            />
+          </>
         )}
 
         {currentStep === 3 && (
