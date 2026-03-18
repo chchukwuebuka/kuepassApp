@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { Container, Text } from "@mantine/core";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import AnimatedCopy from "../AnimatedCopy";
 
 const HelpSection: React.FC = () => {
   const router = useRouter();
@@ -17,11 +18,15 @@ const HelpSection: React.FC = () => {
       <Container size="lg" px="sm">
         <HelpCard>
           <LeftContent>
-            <Heading>How Can We Help?</Heading>
-            <Description>
-              From your first question to your event day, our dedicated team is
-              here to ensure your success. Let us know how we can support you.
-            </Description>
+            <AnimatedCopy>
+              <Heading>How Can We Help?</Heading>
+            </AnimatedCopy>
+            <AnimatedCopy>
+              <Description>
+                From your first question to your event day, our dedicated team is
+                here to ensure your success. Let us know how we can support you.
+              </Description>
+            </AnimatedCopy>
             <ContactButton onClick={handleContactClick}>
               Contact Us
             </ContactButton>

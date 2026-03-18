@@ -3,6 +3,7 @@
 import React from "react";
 import { Button, Grid, Image } from "@mantine/core";
 import styled from "styled-components";
+import AnimatedCopy from "../AnimatedCopy";
 
 const AboutUs: React.FC = () => {
   return (
@@ -19,22 +20,24 @@ const AboutUs: React.FC = () => {
                 <MomentsTag>Moments Made</MomentsTag>
               </TagContainer>
 
-              <MainTagline>
-                <Image
-                  src="/images/tr3.png"
-                  alt="Spark"
-                  style={{
-                    position: "absolute",
-                    width: "35px",
-                    height: "35px",
-                    left: "-30px",
-                    top: "-10px",
-                  }}
-                />
-                We believe events inspire.{" "}
-                <ItalicKuepass>Kuepass</ItalicKuepass> helps you create, share,
-                and enjoy them effortlessly.
-              </MainTagline>
+              <AnimatedCopy>
+                <MainTagline>
+                  <Image
+                    src="/images/tr3.png"
+                    alt="Spark"
+                    style={{
+                      position: "absolute",
+                      width: "35px",
+                      height: "35px",
+                      left: "-30px",
+                      top: "-10px",
+                    }}
+                  />
+                  We believe events inspire.{" "}
+                  <ItalicKuepass>Kuepass</ItalicKuepass> helps you create, share,
+                  and enjoy them effortlessly.
+                </MainTagline>
+              </AnimatedCopy>
 
               <LearnMoreButtonContainer>
                 <LearnMoreButton>Learn More</LearnMoreButton>

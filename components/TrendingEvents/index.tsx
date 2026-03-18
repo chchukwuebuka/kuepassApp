@@ -14,6 +14,7 @@ import Link from "next/link";
 import EventCard, { EventCardProps } from "./cardsPromps";
 import { authenticatedRequest } from "@/app/services/auth";
 import { useLoadingState } from "@/store/loadingHook";
+import AnimatedCopy from "../AnimatedCopy";
 
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -27,8 +28,10 @@ interface FetchedEventData {
   end_date: string;
   location: string;
   address: string;
+  price?: string;
   customization?: { banner_url?: string | string[] };
   creator?: { username?: string };
+  tickets?: Array<{ category_price?: string; category_name?: string }>;
 }
 
 interface EventSectionProps {
@@ -52,10 +55,17 @@ export const EventSection: React.FC<EventSectionProps> = ({
       setError(null);
       try {
         await withLoading(async () => {
-          const response = await authenticatedRequest<any>(
-            `${API_BASE_URL}/events/?is_active=true&ordering=start_date&limit=10`,
-            "GET"
-          );
+          // Fetch events and tickets in parallel
+          const [response, ticketsResponse] = await Promise.all([
+            authenticatedRequest<any>(
+              `${API_BASE_URL}/events/?is_active=true&ordering=start_date&limit=10`,
+              "GET"
+            ),
+            authenticatedRequest<any>(
+              `${API_BASE_URL}/tickets/`,
+              "GET"
+            ).catch(() => []),
+          ]);
 
           let fetchedEventsData: FetchedEventData[] = [];
           if (Array.isArray(response)) {
@@ -70,6 +80,25 @@ export const EventSection: React.FC<EventSectionProps> = ({
               response
             );
           }
+
+          // Build a map of eventId -> hasPaidTickets
+          const ticketsList = Array.isArray(ticketsResponse)
+            ? ticketsResponse
+            : Array.isArray(ticketsResponse?.data)
+            ? ticketsResponse.data
+            : Array.isArray(ticketsResponse?.results)
+            ? ticketsResponse.results
+            : [];
+          
+          const paidEventsMap = new Map<string, boolean>();
+          ticketsList.forEach((ticket: any) => {
+            const eventId = ticket.event;
+            const ticketPrice = parseFloat(ticket.category_price || ticket.price || "0");
+            const categoryName = (ticket.category_name || "").toLowerCase();
+            if (ticketPrice > 0 || (categoryName === "paid")) {
+              paidEventsMap.set(eventId, true);
+            }
+          });
 
           // Force client-side sort by start_date (ascending)
           fetchedEventsData.sort((a, b) => {
@@ -102,6 +131,9 @@ export const EventSection: React.FC<EventSectionProps> = ({
                 }
               }
 
+              // Determine if event is Paid or Free based on its tickets
+              const isPaid = paidEventsMap.get(event.id) || false;
+
               return {
                 eventId: event.id,
                 image: bannerImage,
@@ -118,6 +150,7 @@ export const EventSection: React.FC<EventSectionProps> = ({
               organizer: event.creator?.username || "Kuepass Host",
               location: event.location,
               address: event.address,
+              price: isPaid ? "Paid" : "Free",
               category:
                 new Date(event.start_date) > now
                   ? "Upcoming"
@@ -150,15 +183,19 @@ export const EventSection: React.FC<EventSectionProps> = ({
         <SectionContent>
           <SectionHeader>
             <SectionSubtitle>Discover Events</SectionSubtitle>
-            <SectionTitle>
-              Discover Events That <HighlightedText>Inspire</HighlightedText>{" "}
-              You
-            </SectionTitle>
-            <SectionDescription>
-              From local meetups to big festivals, explore events created by
-              passionate hosts and communities. Find what excites you and be
-              part of the experience.
-            </SectionDescription>
+            <AnimatedCopy>
+              <SectionTitle>
+                Discover Events That <HighlightedText>Inspire</HighlightedText>{" "}
+                You
+              </SectionTitle>
+            </AnimatedCopy>
+            <AnimatedCopy>
+              <SectionDescription>
+                From local meetups to big festivals, explore events created by
+                passionate hosts and communities. Find what excites you and be
+                part of the experience.
+              </SectionDescription>
+            </AnimatedCopy>
           </SectionHeader>
 
           {error && (

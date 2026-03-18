@@ -1,0 +1,9 @@
+.word {
+      display: inline-block;
+      white-space: pre-wrap;
+}
+
+.char {
+      display: inline-block;
+      transition: color 150ms ease-out;
+}

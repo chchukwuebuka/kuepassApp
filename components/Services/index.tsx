@@ -673,6 +673,7 @@ import styled, { keyframes } from "styled-components";
 import { Container, Text, Group } from "@mantine/core";
 import { FaCheck } from "react-icons/fa";
 import Image from "next/image";
+import AnimatedCopy from "../AnimatedCopy";
 
 const ServicesSection: React.FC = () => {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -773,10 +774,12 @@ const ServicesSection: React.FC = () => {
               </LeftColumn>
             </LeftColumnContainer>
             <RightColumn>
-              <ServiceDescription>
-                Kuepass blends smart technology with simplicity, helping you
-                plan and manage events with ease.
-              </ServiceDescription>
+              <AnimatedCopy>
+                <ServiceDescription>
+                  Kuepass blends smart technology with simplicity, helping you
+                  plan and manage events with ease.
+                </ServiceDescription>
+              </AnimatedCopy>
               <LearnMoreButton>Learn More</LearnMoreButton>
               <FeaturesList>
                 <FeatureItem>
