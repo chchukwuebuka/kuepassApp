@@ -470,7 +470,7 @@ const AppearanceStep: React.FC<AppearanceStepProps> = ({
             alt="Event Banner"
             className={styles.bannerImage}
             fallbackSrc="/images/placeholder.png"
-            style={{ width: "100%", height: "220px", objectFit: "cover" }}
+            style={{ width: "100%", height: "280px", objectFit: "cover" }}
           />
           <Card
             className={styles.cardDetails}
