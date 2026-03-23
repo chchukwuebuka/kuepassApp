@@ -53,6 +53,11 @@ import {
   Twitter,
   Facebook,
   Link as LinkIcon,
+  MessageCircle,
+  Send,
+  Sparkles,
+  X,
+  Navigation,
 } from "lucide-react";
 import styles from "./styles.module.css";
 import CountdownTimer from "@/components/CountdownTimer";
@@ -275,6 +280,38 @@ function EventDetailsContent() {
   } | null>(null);
   const [mapUrl, setMapUrl] = useState<string>("");
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [currentPriceIndex, setCurrentPriceIndex] = useState(0);
+  const [similarEvents, setSimilarEvents] = useState<any[]>([]);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<{role: string; text: string}[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const [directionsTips, setDirectionsTips] = useState<string | null>(null);
+  const [directionsTipsLoading, setDirectionsTipsLoading] = useState(false);
+
+  // Build an array of ticket price labels for the carousel
+  const ticketPriceLabels = useMemo(() => {
+    if (tickets.length === 0) return ["N/A"];
+    return tickets.map((t) => {
+      const name = t.category_name || t.name || "Ticket";
+      const price = t.category_price
+        ? parseFloat(t.category_price.toString())
+        : 0;
+      const priceStr = price > 0 ? `₦${price.toLocaleString()}` : "Free";
+      return `${name} — ${priceStr}`;
+    });
+  }, [tickets]);
+
+  // Auto-cycle carousel when there are multiple tickets
+  useEffect(() => {
+    if (ticketPriceLabels.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentPriceIndex((prev) => (prev + 1) % ticketPriceLabels.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [ticketPriceLabels.length]);
 
   // Fetch current user on mount
   useEffect(() => {
@@ -554,6 +591,111 @@ function EventDetailsContent() {
 
     fetchCountdown();
   }, [event, id]);
+
+  // Fetch similar events
+  useEffect(() => {
+    if (!id || !event) return;
+    const fetchSimilar = async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/ai/similar-events/?event_id=${id}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          const events = data?.events || data?.data || [];
+          setSimilarEvents(events);
+        }
+      } catch (err) {
+        console.warn("Error fetching similar events:", err);
+      }
+    };
+    fetchSimilar();
+  }, [id, event]);
+
+  // Fetch AI summary for long descriptions
+  useEffect(() => {
+    if (!id || !event) return;
+    const desc = event.description || "";
+    if (desc.split(" ").length < 30) return;
+    setAiSummaryLoading(true);
+    const fetchSummary = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/ai/event-summary/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event_id: id }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.summary) setAiSummary(data.summary);
+        }
+      } catch (err) {
+        console.warn("Error fetching AI summary:", err);
+      } finally {
+        setAiSummaryLoading(false);
+      }
+    };
+    fetchSummary();
+  }, [id, event]);
+
+  // Fetch AI directions tips
+  useEffect(() => {
+    if (!id || !event) return;
+    setDirectionsTipsLoading(true);
+    const fetchTips = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/ai/directions-tips/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event_id: id }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.tips) setDirectionsTips(data.tips);
+        }
+      } catch (err) {
+        console.warn("Error fetching directions tips:", err);
+      } finally {
+        setDirectionsTipsLoading(false);
+      }
+    };
+    fetchTips();
+  }, [id, event]);
+
+  // AI Chat handler
+  const handleChatSend = async () => {
+    if (!chatInput.trim() || chatLoading) return;
+    const question = chatInput.trim();
+    setChatInput("");
+    setChatMessages((prev) => [...prev, { role: "user", text: question }]);
+    setChatLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/ai/event-chat/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id: id, question }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setChatMessages((prev) => [
+          ...prev,
+          { role: "ai", text: data.answer || "Sorry, I couldn't answer that." },
+        ]);
+      } else {
+        setChatMessages((prev) => [
+          ...prev,
+          { role: "ai", text: "Something went wrong. Please try again." },
+        ]);
+      }
+    } catch {
+      setChatMessages((prev) => [
+        ...prev,
+        { role: "ai", text: "Network error. Please try again." },
+      ]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (event && headerContentRef.current && event.customization?.card_color) {
@@ -1048,8 +1190,25 @@ function EventDetailsContent() {
                         }`}
                         prefetch={true}
                       >
-                        {event?.customization?.button_text || "Get Access Card"}{" "}
-                        @ {getLowestTicketPrice()}
+                        <span className={styles.ticketBtnContent}>
+                          <span className={styles.ticketBtnLabel}>
+                            {event?.customization?.button_text || "Get Access Card"} @
+                          </span>
+                          {ticketPriceLabels.length > 1 ? (
+                            <span className={styles.priceCarousel}>
+                              <span
+                                key={currentPriceIndex}
+                                className={styles.priceSlide}
+                              >
+                                {ticketPriceLabels[currentPriceIndex]}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className={styles.priceSingle}>
+                              {getLowestTicketPrice()}
+                            </span>
+                          )}
+                        </span>
                       </Button>
                       <Menu shadow="md" width={200}>
                         <Menu.Target>
@@ -1305,6 +1464,26 @@ function EventDetailsContent() {
                 </div>
               </div>
 
+              {/* AI Summary */}
+              {(aiSummary || aiSummaryLoading) && (
+                <div className={styles.aiSummaryCard}>
+                  <div className={styles.aiSummaryHeader}>
+                    <Sparkles size={16} />
+                    <Text fw={600} size="sm">AI Summary</Text>
+                  </div>
+                  {aiSummaryLoading ? (
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 0' }}>
+                      <Loader size="xs" />
+                      <Text size="sm" c="dimmed">Generating summary...</Text>
+                    </div>
+                  ) : (
+                    <Text size="sm" className={styles.aiSummaryText}>
+                      {aiSummary}
+                    </Text>
+                  )}
+                </div>
+              )}
+
               {/* Countdown Section */}
               {countdownDate && (
                 <div className={styles.section}>
@@ -1387,6 +1566,26 @@ function EventDetailsContent() {
                   )}
                 </div>
               </div>
+
+              {/* AI Directions Tips */}
+              {(directionsTips || directionsTipsLoading) && (
+                <div className={styles.aiDirectionsCard}>
+                  <div className={styles.aiDirectionsHeader}>
+                    <Navigation size={16} />
+                    <Text fw={600} size="sm">Getting There</Text>
+                  </div>
+                  {directionsTipsLoading ? (
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 0' }}>
+                      <Loader size="xs" />
+                      <Text size="sm" c="dimmed">Loading travel tips...</Text>
+                    </div>
+                  ) : (
+                    <Text size="sm" className={styles.aiDirectionsText} style={{ whiteSpace: 'pre-line' }}>
+                      {directionsTips}
+                    </Text>
+                  )}
+                </div>
+              )}
 
               {/* Contact Us Section */}
               {event?.social_links && event.social_links.length > 0 && (
@@ -1648,7 +1847,7 @@ function EventDetailsContent() {
                 {event?.start_date ? formatTime(event.start_date) : "TBD"} WAT
               </Text>
               <Text className={styles.sidebarPriceText}>
-                {formatPrice(event?.price)}
+                {getLowestTicketPrice()}
               </Text>
               <Button
                 className={styles.getTicketButton}
@@ -1663,6 +1862,135 @@ function EventDetailsContent() {
           </div>
         </div>
       </Container>
+
+      {/* Similar Events Section */}
+      {similarEvents.length > 0 && (
+        <Container size="xl" className={styles.similarSection}>
+          <Title order={2} className={styles.similarTitle}>
+            You Might Also Like
+          </Title>
+          <div className={styles.similarGrid}>
+            {similarEvents.map((simEvent: any) => {
+              const bannerUrl =
+                simEvent.customization?.banner_url?.[0] ||
+                simEvent.banner_url ||
+                "";
+              return (
+                <Link
+                  key={simEvent.id}
+                  href={`/eventSchedule/eventDetails/${simEvent.id}`}
+                  className={styles.similarCard}
+                >
+                  <div className={styles.similarCardImage}>
+                    {bannerUrl ? (
+                      <img
+                        src={bannerUrl}
+                        alt={simEvent.title}
+                        className={styles.similarCardImg}
+                      />
+                    ) : (
+                      <div className={styles.similarCardPlaceholder}>
+                        <Text size="xs" c="dimmed">
+                          No Image
+                        </Text>
+                      </div>
+                    )}
+                  </div>
+                  <div className={styles.similarCardBody}>
+                    <Text
+                      className={styles.similarCardTitle}
+                      lineClamp={2}
+                    >
+                      {simEvent.title}
+                    </Text>
+                    <Text className={styles.similarCardMeta}>
+                      <Calendar size={12} />
+                      {simEvent.start_date
+                        ? formatDateOnly(simEvent.start_date)
+                        : "TBD"}
+                    </Text>
+                    {simEvent.address && (
+                      <Text className={styles.similarCardMeta}>
+                        <MapPin size={12} />
+                        {extractStateAndCountry(simEvent.address)}
+                      </Text>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </Container>
+      )}
+
+      {/* Floating AI Chat Widget */}
+      <div className={styles.chatFab} onClick={() => setChatOpen(!chatOpen)}>
+        {chatOpen ? <X size={24} /> : <MessageCircle size={24} />}
+      </div>
+
+      {chatOpen && (
+        <div className={styles.chatWidget}>
+          <div className={styles.chatHeader}>
+            <div className={styles.chatHeaderLeft}>
+              <Sparkles size={16} />
+              <Text fw={700} size="sm">Ask about this event</Text>
+            </div>
+            <X size={18} style={{ cursor: 'pointer' }} onClick={() => setChatOpen(false)} />
+          </div>
+          <div className={styles.chatMessages}>
+            {chatMessages.length === 0 && (
+              <div className={styles.chatEmpty}>
+                <Sparkles size={24} color="#9ca3af" />
+                <Text size="sm" c="dimmed" ta="center">
+                  Ask me anything about this event!
+                </Text>
+                <div className={styles.chatSuggestions}>
+                  {["What time does it start?", "Is there parking?", "What should I wear?"].map((q) => (
+                    <button
+                      key={q}
+                      className={styles.chatSuggestionBtn}
+                      onClick={() => {
+                        setChatInput(q);
+                      }}
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {chatMessages.map((msg, i) => (
+              <div
+                key={i}
+                className={
+                  msg.role === "user"
+                    ? styles.chatBubbleUser
+                    : styles.chatBubbleAi
+                }
+              >
+                {msg.text}
+              </div>
+            ))}
+            {chatLoading && (
+              <div className={styles.chatBubbleAi}>
+                <Loader size="xs" />
+              </div>
+            )}
+          </div>
+          <div className={styles.chatInputArea}>
+            <input
+              className={styles.chatInput}
+              placeholder="Ask a question..."
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleChatSend()}
+            />
+            <button className={styles.chatSendBtn} onClick={handleChatSend} disabled={chatLoading}>
+              <Send size={18} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

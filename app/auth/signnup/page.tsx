@@ -161,16 +161,16 @@ const SignUp = () => {
     }
   }
 
-  // Google login hook with redirect flow to avoid disallowed_useragent error
+  // Google login hook using implicit flow (same as sign-in page)
+  // This directly returns an access_token which we send to /google-login/
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      console.log("Google redirect onSuccess:", tokenResponse);
-      // For auth-code flow, we need to handle the code exchange on the backend
-      if (tokenResponse.code) {
-        await handleGoogleAuthCode(tokenResponse.code);
+      console.log("Google useGoogleLogin onSuccess:", tokenResponse);
+      if (tokenResponse.access_token) {
+        await handleGoogleLogin(tokenResponse.access_token);
       } else {
-        console.error("Google auth code not found in redirect response");
-        setError("Failed to get authorization code from Google.");
+        console.error("Google access_token not found in tokenResponse");
+        setError("Failed to get access token from Google.");
         setGoogleLoading(false);
       }
     },
@@ -179,53 +179,7 @@ const SignUp = () => {
       setError("Google authentication failed. Please try again.");
       setGoogleLoading(false);
     },
-    flow: "auth-code",
-    scope: "openid email profile",
   });
-
-  // Handle auth code flow for Google OAuth
-  const handleGoogleAuthCode = async (code: string) => {
-    try {
-      const apiUrl = (
-        process.env.NEXT_PUBLIC_API_URL || "https://api.kuepass.com/api/"
-      ).replace(/\/$/, "");
-
-      // Exchange auth code for tokens
-      const response = await fetch(`${apiUrl}/google-auth-code/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
-      });
-
-      const data = await response.json();
-
-      if (data.success && data.access_token) {
-        await handleGoogleLogin(data.access_token);
-      } else {
-        throw new Error(data.message || "Failed to exchange auth code");
-      }
-    } catch (error) {
-      console.error("Error exchanging auth code:", error);
-      setError("Google authentication failed. Please try again.");
-      setGoogleLoading(false);
-    }
-  };
-
-  // Check for auth code in URL on component mount
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get("code");
-    const state = urlParams.get("state");
-
-    if (code && state) {
-      setGoogleLoading(true);
-      handleGoogleAuthCode(code);
-
-      // Clean up URL
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
-    }
-  }, []);
 
   // Check password requirements as user types
   useEffect(() => {
@@ -326,28 +280,10 @@ const SignUp = () => {
     }
   };
 
-  const handleGoogleSignUp = async () => {
+  const handleGoogleSignUp = () => {
     setGoogleLoading(true);
     setError(null);
-
-    try {
-      // Try the library approach first
-      googleLogin();
-    } catch (error) {
-      console.error("Library approach failed, trying direct URL:", error);
-
-      // Fallback: Direct Google OAuth URL
-      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-      const redirectUri = encodeURIComponent(
-        window.location.origin + window.location.pathname
-      );
-      const scope = encodeURIComponent("openid email profile");
-
-      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
-
-      // Redirect to Google OAuth
-      window.location.href = googleAuthUrl;
-    }
+    googleLogin(); // This initiates the Google popup
   };
 
   return (

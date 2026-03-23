@@ -8,7 +8,7 @@ import AnimatedCopy from "../AnimatedCopy";
 const AboutUs: React.FC = () => {
   return (
     <AboutUsContainer>
-      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 2rem" }}>
+      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 1rem" }}>
         <Grid gutter="xl" align="center">
           {/* Left Section - Text Content */}
           <Grid.Col span={{ base: 12, md: 6 }}>
@@ -85,9 +85,18 @@ export default AboutUs;
 const AboutUsContainer = styled.div`
   background-color: #ffffff;
   min-height: 80vh;
-  /* padding: 80px 0; */
   display: flex;
   align-items: center;
+  padding: 2rem 0;
+
+  @media (max-width: 768px) {
+    min-height: auto;
+    padding: 3rem 0;
+  }
+
+  @media (max-width: 480px) {
+    padding: 2rem 0;
+  }
 `;
 
 const LeftSection = styled.div`
@@ -99,25 +108,40 @@ const LeftSection = styled.div`
   @media (max-width: 768px) {
     padding-right: 0;
     text-align: center;
+    gap: 20px;
+  }
+
+  @media (max-width: 480px) {
+    gap: 16px;
   }
 `;
 
 const AboutUsLabel = styled.div`
-  font-size: 20px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 600;
   color: #606060;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    letter-spacing: 1.5px;
+  }
 `;
 
 const TagContainer = styled.div`
   display: flex;
   position: relative;
   width: fit-content;
+  margin-bottom: 8px;
 
   @media (max-width: 768px) {
     justify-content: center;
-    margin: 0 auto;
+    margin: 0 auto 8px;
+  }
+
+  @media (max-width: 480px) {
+    margin-bottom: 4px;
   }
 `;
 
@@ -129,8 +153,12 @@ const ExperienceTag = styled.div`
   font-size: 14px;
   font-weight: 600;
   position: relative;
-
   white-space: nowrap;
+
+  @media (max-width: 480px) {
+    padding: 5px 14px;
+    font-size: 12px;
+  }
 `;
 
 const MomentsTag = styled.div`
@@ -143,23 +171,44 @@ const MomentsTag = styled.div`
   position: absolute;
   top: 22px;
   left: 130px;
-
   white-space: nowrap;
+
+  @media (max-width: 480px) {
+    padding: 5px 14px;
+    font-size: 12px;
+    top: 18px;
+    left: 105px;
+  }
 `;
 
 const MainTagline = styled.h2`
   font-size: 40px;
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.35;
   color: #151515;
   margin: 0;
   max-width: 500px;
   position: relative;
+  letter-spacing: -0.01em;
+
+  @media (max-width: 1024px) {
+    font-size: 34px;
+  }
 
   @media (max-width: 768px) {
     font-size: 28px;
     text-align: center;
     max-width: 100%;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 22px;
+    line-height: 1.45;
+  }
+
+  @media (max-width: 360px) {
+    font-size: 20px;
   }
 `;
 
@@ -170,6 +219,11 @@ const ItalicKuepass = styled.span`
 
 const LearnMoreButtonContainer = styled.div`
   position: relative;
+
+  @media (max-width: 768px) {
+    display: flex;
+    justify-content: center;
+  }
 `;
 
 const LearnMoreButton = styled.button`
@@ -187,14 +241,23 @@ const LearnMoreButton = styled.button`
   transition: all 0.3s ease;
   align-self: flex-start;
   position: relative;
+  font-family: 'DM Sans', sans-serif;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+    box-shadow: 0 8px 25px rgba(245, 182, 69, 0.35);
+    background-color: #f0a830;
   }
 
   @media (max-width: 768px) {
     align-self: center;
+    padding: 14px 28px;
+    font-size: 15px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px 24px;
+    font-size: 14px;
   }
 `;
 
@@ -312,8 +375,16 @@ const RightSection = styled.div`
   min-height: 500px;
   position: relative;
 
+  @media (max-width: 1024px) {
+    min-height: 420px;
+  }
+
   @media (max-width: 768px) {
-    min-height: 400px;
+    min-height: 300px;
+  }
+
+  @media (max-width: 480px) {
+    min-height: 240px;
   }
 `;
 
@@ -324,4 +395,8 @@ const ImageContainer = styled.div`
   align-items: center;
   border-radius: 20px;
   overflow: hidden;
+
+  @media (max-width: 480px) {
+    border-radius: 14px;
+  }
 `;
