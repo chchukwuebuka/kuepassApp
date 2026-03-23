@@ -1224,6 +1224,21 @@ export default function CreateEventPage() {
       setAiGenerated(true);
       setShowAiSection(false);
 
+      // Capture the AI-created event ID so the form uses the update (PATCH) flow
+      // instead of creating a duplicate event when the user clicks "Publish"
+      const aiCreatedEventId = eventData.id || rawResponse?.event_id;
+      if (aiCreatedEventId) {
+        // Update the URL with the event ID so handleSubmit uses updateEvent (PATCH)
+        // instead of createEvent (POST). Use current pathname to support
+        // the component being mounted on different routes (e.g. /dashboard).
+        const currentPath = window.location.pathname;
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.set('eventId', aiCreatedEventId);
+        router.replace(`${currentPath}?${newUrl.searchParams.toString()}`, {
+          scroll: false,
+        });
+      }
+
       // Auto-navigate to step 2 so user sees the tickets and questions
       setTimeout(() => setCurrentStep(2), 500);
     } catch (err: any) {

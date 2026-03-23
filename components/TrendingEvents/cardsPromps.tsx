@@ -80,9 +80,7 @@ const EventCard: React.FC<EventCardProps> = ({
 
             <MetaItem>
               <MetaText>
-                {price && price !== "0" && price !== "free"
-                  ? `N${price}`
-                  : "Free"}
+                {price || "Free"}
               </MetaText>
             </MetaItem>
           </MetaInfo>

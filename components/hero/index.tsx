@@ -6,6 +6,7 @@ import Link from "next/link";
 import NextImage from "next/image";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
+import AnimatedCopy from "../AnimatedCopy";
 
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.kuepass.com/api/"
@@ -227,13 +228,17 @@ function HeroSection() {
       <ContentContainer>
         <HeroContent>
           <LeftContent>
-            <MainHeading>Find Events. Host Events. Effortlessly.</MainHeading>
+            <AnimatedCopy colorInitial="#666666" colorAccent="#F5B645" colorFinal="#ffffff">
+              <MainHeading>Find Events. Host Events. Effortlessly.</MainHeading>
+            </AnimatedCopy>
 
-            <SubtitleText>
-              Whether you&apos;re planning or attending an event, our platform
-              gives you everything from ticketing to entry control. all in one
-              place
-            </SubtitleText>
+            <AnimatedCopy colorInitial="#555555" colorAccent="#F5B645" colorFinal="#ffffff">
+              <SubtitleText>
+                Whether you&apos;re planning or attending an event, our platform
+                gives you everything from ticketing to entry control. all in one
+                place
+              </SubtitleText>
+            </AnimatedCopy>
 
             <ButtonGroup>
               <Link href="/dashboard?mode=createEvent">

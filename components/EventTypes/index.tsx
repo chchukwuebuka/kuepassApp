@@ -6,6 +6,7 @@ import { useState } from "react"
 import { Image } from "@mantine/core"
 import styled from "styled-components"
 import { useIsMobile } from "@/hooks/use-mobile"
+import AnimatedCopy from "../AnimatedCopy"
 
 const EventTypes: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -89,9 +90,11 @@ const EventTypes: React.FC = () => {
           <MainHeading>
             Powering Every Kind of <HighlightedEvent>Event</HighlightedEvent>
           </MainHeading>
-          <Subtitle>
-            Kuepass powers events of any size with seamless ticketing, secure access control, and real-time management
-          </Subtitle>
+          <AnimatedCopy>
+            <Subtitle>
+              Kuepass powers events of any size with seamless ticketing, secure access control, and real-time management
+            </Subtitle>
+          </AnimatedCopy>
         </HeaderSection>
 
         <CardsSection>

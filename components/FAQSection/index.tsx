@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { Container, Text } from "@mantine/core";
+import AnimatedCopy from "../AnimatedCopy";
 
 const FAQSection: React.FC = () => {
   const [openItems, setOpenItems] = useState<number[]>([]);
@@ -49,8 +50,12 @@ const FAQSection: React.FC = () => {
     <SectionWrapper>
       <Container size="xl" px="md">
         <Header>
-          <Title>Frequently Asked Questions</Title>
-          <Subtitle>Answers to commonly asked questions</Subtitle>
+          <AnimatedCopy>
+            <Title>Frequently Asked Questions</Title>
+          </AnimatedCopy>
+          <AnimatedCopy>
+            <Subtitle>Answers to commonly asked questions</Subtitle>
+          </AnimatedCopy>
         </Header>
 
         <FAQList>

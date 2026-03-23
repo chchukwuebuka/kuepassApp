@@ -8,16 +8,17 @@ const CustomFooter: React.FC = () => {
   return (
     <FooterWrapper>
       <Container size="xl" px="md">
+        <LogoContainer>
+          <Image
+            src="/images/Kuepass1.png"
+            alt="Kuepass"
+            width={170}
+            height={50}
+          />
+        </LogoContainer>
+
         <FooterGrid>
           {/* Download Kuepass Column */}
-          <LogoContainer>
-            <Image
-              src="/images/Kuepass1.png"
-              alt="Kuepass"
-              width={170}
-              height={50}
-            />
-          </LogoContainer>
           <FooterColumn>
             <ColumnTitle>DOWNLOAD KUEPASS</ColumnTitle>
             <DownloadOptions>
@@ -110,6 +111,10 @@ const CustomFooter: React.FC = () => {
             </PageOptions>
           </FooterColumn>
         </FooterGrid>
+
+        <FooterBottom>
+          <CopyrightText>© {new Date().getFullYear()} Kuepass. All rights reserved.</CopyrightText>
+        </FooterBottom>
       </Container>
     </FooterWrapper>
   );
@@ -118,87 +123,78 @@ const CustomFooter: React.FC = () => {
 // Styled Components
 const FooterWrapper = styled.footer`
   background-color: #15302b;
-  padding: 3rem 0;
+  padding: 3rem 0 2rem;
   color: white;
 
   @media (max-width: 768px) {
-    padding: 2rem 0;
+    padding: 2.5rem 0 1.5rem;
   }
+`;
 
-  @media (max-width: 480px) {
-    padding: 1.5rem 0;
+const LogoContainer = styled.div`
+  margin-bottom: 2.5rem;
+
+  @media (max-width: 768px) {
+    margin-bottom: 2rem;
+    text-align: center;
+    display: flex;
+    justify-content: center;
   }
 `;
 
 const FooterGrid = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 2rem;
 
   @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 2rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem 1.5rem;
   }
 
   @media (max-width: 480px) {
-    gap: 1.5rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem 1rem;
   }
 `;
 
 const FooterColumn = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-
-  @media (max-width: 768px) {
-    gap: 1rem;
-  }
-`;
-
-const LogoContainer = styled.div`
-  display: flex;
-  justify-content: flex-start;
-  margin-bottom: 1rem;
-
-  @media (max-width: 768px) {
-    justify-content: center;
-  }
+  gap: 1rem;
 `;
 
 const ColumnTitle = styled.h3`
-  font-size: 1.1rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: white;
+  color: rgba(255, 255, 255, 0.5);
   margin: 0;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-
-  @media (max-width: 768px) {
-    font-size: 1rem;
-  }
+  letter-spacing: 1.5px;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin-bottom: 0.25rem;
 
   @media (max-width: 480px) {
-    font-size: 0.9rem;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
   }
 `;
 
 const DownloadOptions = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 `;
 
 const DownloadOption = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.6rem;
   cursor: pointer;
   transition: opacity 0.2s ease;
 
   &:hover {
-    opacity: 0.8;
+    opacity: 0.7;
   }
 `;
 
@@ -211,31 +207,31 @@ const DownloadIcon = styled.div`
 `;
 
 const DownloadText = styled.span`
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 400;
-  color: white;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   @media (max-width: 480px) {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
 `;
 
 const SocialOptions = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 `;
 
 const SocialOption = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.6rem;
   cursor: pointer;
   transition: opacity 0.2s ease;
 
   &:hover {
-    opacity: 0.8;
+    opacity: 0.7;
   }
 `;
 
@@ -248,37 +244,57 @@ const SocialIcon = styled.div`
 `;
 
 const SocialText = styled.span`
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 400;
-  color: white;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   @media (max-width: 480px) {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
 `;
 
 const PageOptions = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.6rem;
 `;
 
 const PageLink = styled.span`
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 400;
-  color: white;
+  color: rgba(255, 255, 255, 0.85);
   cursor: pointer;
   transition: opacity 0.2s ease;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   &:hover {
-    opacity: 0.8;
+    opacity: 0.7;
+    text-decoration: underline;
   }
 
   @media (max-width: 480px) {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
+`;
+
+const FooterBottom = styled.div`
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+
+  @media (max-width: 768px) {
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+  }
+`;
+
+const CopyrightText = styled.p`
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 `;
 
 export default CustomFooter;
