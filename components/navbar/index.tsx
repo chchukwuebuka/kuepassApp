@@ -121,20 +121,23 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
               {/* Dashboard Navbar Layout */}
               <div className={styles.dashboardNavLeft}>
                 <Link href="/" className={styles.dashboardLogoContainer}>
-                  <Image
-                    src="/images/Kuepass.svg"
-                    alt="Kuepass"
-                    width={120}
-                    height={40}
-                    className={`${styles.kuepass} ${styles.desktopLogoOnly}`}
-                  />
-                  <Image
-                    src="/images/klogo.png"
-                    alt="Kuepass"
-                    width={39}
-                    height={60}
-                    className={styles.mobileLogoOnly}
-                  />
+                  <div className={styles.desktopLogoOnly}>
+                    <Image
+                      src="/images/Kuepass.svg"
+                      alt="Kuepass"
+                      width={120}
+                      height={40}
+                      className={styles.kuepass}
+                    />
+                  </div>
+                  <div className={styles.mobileLogoOnly}>
+                    <Image
+                      src="/images/klogo.png"
+                      alt="Kuepass"
+                      width={39}
+                      height={60}
+                    />
+                  </div>
                 </Link>
               </div>
 
@@ -230,24 +233,27 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
             <>
               {/* Regular Navbar Layout */}
               <Link href="/">
-                <Image
-                  src={
-                    alwaysDark || isOnServices || isScrolled
-                      ? "/images/Kuepass.svg"
-                      : "/images/Kuepass1.png"
-                  }
-                  alt="Kuepass"
-                  width={120}
-                  height={40}
-                  className={`${styles.kuepass} ${styles.desktopLogoOnly}`}
-                />
-                <Image
-                  src="/images/klogo.png"
-                  alt="Kuepass"
-                  width={39}
-                  height={60}
-                  className={styles.mobileLogoOnly}
-                />
+                <div className={styles.desktopLogoOnly}>
+                  <Image
+                    src={
+                      alwaysDark || isOnServices || isScrolled
+                        ? "/images/Kuepass.svg"
+                        : "/images/Kuepass1.png"
+                    }
+                    alt="Kuepass"
+                    width={120}
+                    height={40}
+                    className={styles.kuepass}
+                  />
+                </div>
+                <div className={styles.mobileLogoOnly}>
+                  <Image
+                    src="/images/klogo.png"
+                    alt="Kuepass"
+                    width={39}
+                    height={60}
+                  />
+                </div>
               </Link>
 
               <nav className={styles.navLinkEnhanced}>
