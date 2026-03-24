@@ -6,6 +6,7 @@ import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { Ticket, Question } from "@/store/types";
 import styles from "./styles.module.css";
 import { useRouter } from "next/navigation";
+import VendorRecommendations from "./VendorRecommendations";
 
 interface ExtendedTicket {
   id: string;
@@ -34,6 +35,10 @@ interface TicketsStepProps {
   onEditQuestion?: (question: Question) => void;
   onRemoveQuestion?: (questionId: string) => void;
   saveDraft: () => void;
+  eventType?: string;
+  eventLocation?: string;
+  guestCount?: string;
+  onVendorsSelected?: (vendorIds: (number | string)[]) => void;
 }
 
 export default function TicketsStep({
@@ -47,6 +52,10 @@ export default function TicketsStep({
   onEditQuestion,
   onRemoveQuestion,
   saveDraft,
+  eventType,
+  eventLocation,
+  guestCount,
+  onVendorsSelected,
 }: TicketsStepProps) {
   const router = useRouter();
 
@@ -297,6 +306,18 @@ export default function TicketsStep({
           </button>
         </div>
       </div>
+
+      {/* AI Vendor Recommendations */}
+      {eventType && (
+        <div className={styles.section}>
+          <VendorRecommendations
+            eventType={eventType}
+            eventLocation={eventLocation}
+            guestCount={guestCount}
+            onVendorsSelected={onVendorsSelected}
+          />
+        </div>
+      )}
 
       {/* Navigation Buttons */}
       <div className={styles.ticketsStepSaveButtonsContainer}>

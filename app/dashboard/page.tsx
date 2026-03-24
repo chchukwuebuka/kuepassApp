@@ -2,7 +2,7 @@
 
 import React, { Suspense } from "react";
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 import { Roboto } from "next/font/google";
@@ -70,6 +70,86 @@ const CreateEventPage = nextDynamic(
     ),
   }
 );
+const VendorMarketplace = nextDynamic(
+  () => import("@/components/VendorMarketplace"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
+const RefundDashboard = nextDynamic(
+  () => import("@/components/RefundDashboard"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
+const EventToolsDashboard = nextDynamic(
+  () => import("@/components/EventTools"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
+const SponsorDashboard = nextDynamic(
+  () => import("@/components/SponsorDashboard"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
+const SessionManager = nextDynamic(
+  () => import("@/components/SessionManager"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
+const SurveyDashboard = nextDynamic(
+  () => import("@/components/SurveyDashboard"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
+const SeatingDashboard = nextDynamic(
+  () => import("@/components/SeatingDashboard"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
+const AttendeeNetworking = nextDynamic(
+  () => import("@/components/AttendeeNetworking"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
 
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.kuepass.com/api/"
@@ -114,6 +194,7 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const eventId = searchParams.get("eventId");
   const mode = searchParams.get("mode");
+  const page = searchParams.get("page");
   const [activeEventId, setActiveEventId] = useState<string>(eventId || "");
   const [event, setEvent] = useState<EventData | null>(null);
   const [registeredUsers, setRegisteredUsers] = useState<number>(0);
@@ -121,9 +202,24 @@ function DashboardContent() {
   const [totalBalance, setTotalBalance] = useState<string>("₦0");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
   const [activePage, setActivePage] = useState<PageKey>(
-    mode === "createEvent" ? "createEvent" : "overview"
+    mode === "createEvent" ? "createEvent" : (page as PageKey) || "overview"
   );
+
+  // Sync activeEventId to URL if it changes and is not already in URL
+  useEffect(() => {
+    if (activeEventId && activeEventId !== eventId) {
+      const params = new URLSearchParams(searchParams?.toString() || "");
+      params.set("eventId", activeEventId);
+      if (mode) params.set("mode", mode);
+      if (page) params.set("page", page);
+      
+      const newUrl = `${pathname}?${params.toString()}`;
+      router.replace(newUrl, { scroll: false });
+    }
+  }, [activeEventId, eventId, searchParams, pathname, router, mode, page]);
 
   // Auto-fetch the most recent event when no eventId is in the URL
   useEffect(() => {
@@ -278,6 +374,13 @@ function DashboardContent() {
     userManagement: <TicketDashboard eventId={activeEventId} />,
     finance: <Finance />,
     salesAnalytics: <SalesAnalyticsPage eventId={activeEventId} />,
+    vendorMarketplace: <VendorMarketplace />,
+    refunds: <RefundDashboard eventId={activeEventId} />,
+    eventTools: <EventToolsDashboard eventId={activeEventId} />,
+    sponsors: <SponsorDashboard eventId={activeEventId} />,
+    sessions: <SessionManager eventId={activeEventId} />,
+    surveys: <SurveyDashboard eventId={activeEventId} />,
+    seating: <SeatingDashboard eventId={activeEventId} />,
     store: (
       <>
         <h1>Store</h1>

@@ -9,6 +9,14 @@ import {
   FaCog,
   FaSignOutAlt,
   FaChartLine,
+  FaHandshake,
+  FaUndo,
+  FaToolbox,
+  FaTrophy,
+  FaCalendarAlt,
+  FaClipboardList,
+  FaChair,
+  FaUserFriends,
 } from "react-icons/fa";
 import { ReactElement } from "react";
 
@@ -19,6 +27,13 @@ export type PageKey =
   | "finance"
   | "salesAnalytics"
   | "Generate Promotion Kit"
+  | "vendorMarketplace"
+  | "refunds"
+  | "eventTools"
+  | "sponsors"
+  | "sessions"
+  | "surveys"
+  | "seating"
   | "store"
   | "support"
   | "createEvent"
@@ -54,6 +69,17 @@ const menuItems: {
     icon: <FaStore />,
     label: "Generate Promotion Kit",
   },
+  {
+    key: "vendorMarketplace",
+    icon: <FaHandshake />,
+    label: "Vendor Hub",
+  },
+  { key: "refunds", icon: <FaUndo />, label: "Refunds" },
+  { key: "eventTools", icon: <FaToolbox />, label: "Event Tools" },
+  { key: "sponsors", icon: <FaTrophy />, label: "Sponsors" },
+  { key: "sessions", icon: <FaCalendarAlt />, label: "Sessions" },
+  { key: "surveys", icon: <FaClipboardList />, label: "Surveys" },
+  { key: "seating", icon: <FaChair />, label: "Seating" },
   { key: "store", icon: <FaStore />, label: "Store", disabled: true },
   {
     key: "support",

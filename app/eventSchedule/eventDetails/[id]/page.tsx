@@ -59,6 +59,7 @@ import {
   X,
   Navigation,
 } from "lucide-react";
+import { EventSessionsViewer, EventNetworking, EventSurveyForm, EventSponsorsDisplay, EventSeatPicker } from "@/components/EventAttendeeFeatures";
 import styles from "./styles.module.css";
 import CountdownTimer from "@/components/CountdownTimer";
 import QRCode from "qrcode";
@@ -1834,6 +1835,41 @@ function EventDetailsContent() {
                       );
                     })}
                   </div>
+                </div>
+              )}
+
+              {/* Attendee Sessions Viewer */}
+              {id && (
+                <div className={styles.section}>
+                  <EventSessionsViewer eventId={id} />
+                </div>
+              )}
+
+              {/* Sponsors Display */}
+              {id && (
+                <div className={styles.section}>
+                  <EventSponsorsDisplay eventId={id} />
+                </div>
+              )}
+
+              {/* Seat Picker */}
+              {id && (
+                <div className={styles.section}>
+                  <EventSeatPicker eventId={id} />
+                </div>
+              )}
+
+              {/* Attendee Networking */}
+              {id && (
+                <div className={styles.section}>
+                  <EventNetworking eventId={id} />
+                </div>
+              )}
+
+              {/* Attendee Feedback */}
+              {id && (
+                <div className={styles.section}>
+                  <EventSurveyForm eventId={id} />
                 </div>
               )}
             </Paper>

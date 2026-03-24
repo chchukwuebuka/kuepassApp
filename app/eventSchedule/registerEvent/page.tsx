@@ -33,6 +33,9 @@ import {
 } from "@tabler/icons-react";
 import { useLoadingState } from "@/store/loadingHook";
 import CountdownTimer from "@/components/CountdownTimer";
+import PromoCodeInput, { type PromoCodeResult } from "@/components/PromoCode";
+import WaitlistButton from "@/components/WaitlistButton";
+import GroupBookingForm from "@/components/GroupBooking";
 
 // --- INTERFACES ---
 interface EventData {
@@ -217,6 +220,7 @@ function RegisterEventContent() {
   >([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<string>("");
+  const [promoResult, setPromoResult] = useState<PromoCodeResult | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -237,9 +241,8 @@ function RegisterEventContent() {
 
   // const fees = 500.0; // Commented out - not needed for now
 
-  const calculateTotal = (): number => {
+  const calculateSubtotal = (): number => {
     let total = 0;
-    let totalTickets = 0;
 
     Object.entries(selectedTickets).forEach(([ticketId, quantity]) => {
       if (quantity > 0) {
@@ -247,15 +250,24 @@ function RegisterEventContent() {
         if (ticket) {
           const ticketPrice = Number.parseFloat(ticket.category_price) || 0;
           total += ticketPrice * quantity;
-          totalTickets += quantity;
         }
       }
     });
 
-    // Add fees multiplied by total number of tickets - commented out
-    // const totalFees = fees * totalTickets;
-    // return total > 0 ? total + totalFees : 0;
     return total > 0 ? total : 0;
+  };
+
+  const calculatePromoDiscount = (): number => {
+    if (!promoResult) return 0;
+    const subtotal = calculateSubtotal();
+    if (promoResult.discount_type === "percentage") {
+      return subtotal * (promoResult.discount_value / 100);
+    }
+    return Math.min(promoResult.discount_value, subtotal);
+  };
+
+  const calculateTotal = (): number => {
+    return Math.max(0, calculateSubtotal() - calculatePromoDiscount());
   };
 
   const handleQuantityChange = (ticketId: string, newQuantity: number) => {
@@ -1350,6 +1362,34 @@ function RegisterEventContent() {
                     </div>
                   )}
                 </div>
+
+                {/* Waitlist for sold-out tickets */}
+                {availableTickets.length === 0 && tickets.length > 0 && !loading && tickets.map((ticket) => (
+                  <div key={`waitlist-${ticket.id}`} style={{ marginTop: "12px" }}>
+                    <WaitlistButton
+                      eventId={eventId || ""}
+                      ticketTypeId={ticket.id}
+                      ticketName={ticket.name}
+                      apiBaseUrl={API_BASE_URL}
+                    />
+                  </div>
+                ))}
+
+                {/* Group booking option */}
+                {availableTickets.length > 0 && (
+                  <div style={{ marginTop: "16px" }}>
+                    {availableTickets.filter(t => Number.parseFloat(t.category_price) > 0).map((ticket) => (
+                      <GroupBookingForm
+                        key={`group-${ticket.id}`}
+                        eventId={eventId || ""}
+                        ticketTypeId={ticket.id}
+                        ticketName={ticket.name}
+                        ticketPrice={Number.parseFloat(ticket.category_price) || 0}
+                        apiBaseUrl={API_BASE_URL}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -1833,7 +1873,31 @@ function RegisterEventContent() {
                             );
                           }
                         )}
+                        {/* Promo Code Input */}
+                        <div style={{ margin: "12px 0" }}>
+                          <PromoCodeInput
+                            eventId={eventId || ""}
+                            orderAmount={calculateSubtotal()}
+                            email={contactForms[0]?.email}
+                            onPromoApplied={(result) => setPromoResult(result)}
+                            apiBaseUrl={API_BASE_URL}
+                          />
+                        </div>
+
                         <Divider my="md" />
+
+                        {/* Show discount line if promo applied */}
+                        {promoResult && calculatePromoDiscount() > 0 && (
+                          <div className={styles.summaryItem}>
+                            <Text size="sm" c="green">
+                              Promo: {promoResult.code}
+                            </Text>
+                            <Text fw={500} c="green">
+                              -₦{calculatePromoDiscount().toFixed(2)}
+                            </Text>
+                          </div>
+                        )}
+
                         <div className={styles.summaryTotal}>
                           <Text fw={700} size="lg">
                             Total
