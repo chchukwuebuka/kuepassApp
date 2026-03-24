@@ -75,6 +75,24 @@ const SignUp = () => {
    */
   async function handleGoogleLogin(accessToken: string) {
     try {
+      // Fetch Google profile info to get the profile picture
+      let googlePictureFromApi: string | undefined;
+      try {
+        const googleUserInfoResponse = await fetch(
+          "https://www.googleapis.com/oauth2/v3/userinfo",
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+        if (googleUserInfoResponse.ok) {
+          const googleUserInfo = await googleUserInfoResponse.json();
+          console.log("Google userinfo:", googleUserInfo);
+          googlePictureFromApi = googleUserInfo.picture || undefined;
+        }
+      } catch (googleInfoErr) {
+        console.warn("Could not fetch Google profile info:", googleInfoErr);
+      }
+
       const apiUrl = (
         process.env.NEXT_PUBLIC_API_URL || "https://api.kuepass.com/api/"
       ).replace(/\/$/, "");
@@ -86,7 +104,7 @@ const SignUp = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          access_token: accessToken, // This is the key - access_token needs to be named exactly like this
+          access_token: accessToken,
         }),
       });
 
@@ -100,8 +118,9 @@ const SignUp = () => {
         }
 
         if (data.data?.user) {
-          // Prioritize Google profile picture if available
+          // Prioritize Google profile picture: first from Google API, then from backend response
           const googleProfilePicture =
+            googlePictureFromApi ||
             data.data.user.picture ||
             data.data.user.image ||
             data.data.user.profile_url ||
@@ -109,18 +128,13 @@ const SignUp = () => {
 
           console.log("Google profile picture found:", googleProfilePicture);
 
-          // Use a default image if none is provided
-          const profileImage = googleProfilePicture || "/images/avatar.png";
-
           const userData = {
-            // For username, use existing username if available, otherwise use email or Google name
             username:
               data.data.user.username ||
               data.data.user.email?.split("@")[0] ||
               "",
             email: data.data.user.email || "",
             name: data.data.user.name || data.data.user.username || "",
-            // Set profile picture
             profile_url: googleProfilePicture || undefined,
             phone_number: data.data.user.phone_number,
           };
@@ -134,7 +148,6 @@ const SignUp = () => {
               name: userData.name,
               username: userData.username,
               email: userData.email || "",
-              // Ensure profile picture is set
               profile_url: googleProfilePicture || undefined,
               phone_number: userData.phone_number,
               active: data.data.user.active,
