@@ -93,6 +93,28 @@
   color: #ffffff;
 }
 
+/* Mobile/Desktop logo switching */
+.desktopLogoOnly {
+  display: block;
+}
+
+.mobileLogoOnly {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .desktopLogoOnly {
+    display: none !important;
+  }
+
+  .mobileLogoOnly {
+    display: block !important;
+    height: 42px !important;
+    width: auto !important;
+    object-fit: contain;
+  }
+}
+
 
 
 /* Navigation Links */

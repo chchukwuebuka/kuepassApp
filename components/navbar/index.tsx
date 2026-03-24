@@ -126,7 +126,14 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
                     alt="Kuepass"
                     width={120}
                     height={40}
-                    className={styles.kuepass}
+                    className={`${styles.kuepass} ${styles.desktopLogoOnly}`}
+                  />
+                  <Image
+                    src="/images/klogo.png"
+                    alt="Kuepass"
+                    width={39}
+                    height={60}
+                    className={styles.mobileLogoOnly}
                   />
                 </Link>
               </div>
@@ -176,6 +183,7 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
                           radius="xl"
                           size="sm"
                           className={styles.dashboardUserAvatar}
+                          imageProps={{ referrerPolicy: 'no-referrer' }}
                         />
                         <Text className={styles.dashboardUserName} truncate>
                           {userInfo?.username || "User"}
@@ -231,7 +239,14 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
                   alt="Kuepass"
                   width={120}
                   height={40}
-                  className={styles.kuepass}
+                  className={`${styles.kuepass} ${styles.desktopLogoOnly}`}
+                />
+                <Image
+                  src="/images/klogo.png"
+                  alt="Kuepass"
+                  width={39}
+                  height={60}
+                  className={styles.mobileLogoOnly}
                 />
               </Link>
 
@@ -284,6 +299,7 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
                               alt={userInfo?.username || "User Avatar"}
                               radius="xl"
                               className={styles.userAvatar}
+                              imageProps={{ referrerPolicy: 'no-referrer' }}
                             />
                             <div className={styles.userNameContainer}>
                               <Text className={styles.userName} truncate>
@@ -326,16 +342,10 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
         size="75%"
         title={
           <Image
-            src={
-              isOnDashboard
-                ? "/images/Kuepass.svg"
-                : alwaysDark || isOnServices || isScrolled
-                ? "/images/Kuepass.svg"
-                : "/images/Kuepass1.png"
-            }
+            src="/images/klogo.png"
             alt="Kuepass"
-            width={120}
-            height={40}
+            width={39}
+            height={60}
           />
         }
       >
@@ -412,6 +422,7 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
                     alt={userInfo?.username || "User Avatar"}
                     radius="xl"
                     className={styles.userAvatar}
+                    imageProps={{ referrerPolicy: 'no-referrer' }}
                   />
                   <div className={styles.userNameContainer}>
                     <Text className={styles.userName} truncate>

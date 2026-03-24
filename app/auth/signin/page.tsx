@@ -161,6 +161,24 @@ const SignIn: React.FC = () => {
     setGoogleLoading(true);
     setError(null);
     try {
+      // Fetch Google profile info to get the profile picture
+      let googleProfilePicture: string | undefined;
+      try {
+        const googleUserInfoResponse = await fetch(
+          "https://www.googleapis.com/oauth2/v3/userinfo",
+          {
+            headers: { Authorization: `Bearer ${googleAccessToken}` },
+          }
+        );
+        if (googleUserInfoResponse.ok) {
+          const googleUserInfo = await googleUserInfoResponse.json();
+          console.log("Google userinfo:", googleUserInfo);
+          googleProfilePicture = googleUserInfo.picture || undefined;
+        }
+      } catch (googleInfoErr) {
+        console.warn("Could not fetch Google profile info:", googleInfoErr);
+      }
+
       const API_BASE_URL = (
         process.env.NEXT_PUBLIC_API_BASE_URL ||
         process.env.NEXT_PUBLIC_API_URL ||
@@ -193,8 +211,18 @@ const SignIn: React.FC = () => {
         );
       }
 
+      // Inject Google profile picture into the backend response if backend didn't provide one
+      if (
+        googleProfilePicture &&
+        backendAuthResponse.data?.user &&
+        !backendAuthResponse.data.user.profile_url &&
+        !(backendAuthResponse.data.user as any).picture &&
+        !(backendAuthResponse.data.user as any).image
+      ) {
+        (backendAuthResponse.data.user as any).picture = googleProfilePicture;
+      }
+
       // Use the common processing function
-      // The email used for Google sign-in might come from backendAuthResponse.data.user.email
       processAuthResponse(
         backendAuthResponse,
         backendAuthResponse.data?.user?.email
