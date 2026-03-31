@@ -59,7 +59,7 @@ import {
   X,
   Navigation,
 } from "lucide-react";
-import { EventSessionsViewer, EventNetworking, EventSurveyForm, EventSponsorsDisplay, EventSeatPicker } from "@/components/EventAttendeeFeatures";
+import { EventSessionsViewer, EventSurveyForm, EventSponsorsDisplay, EventSeatPicker } from "@/components/EventAttendeeFeatures";
 import styles from "./styles.module.css";
 import CountdownTimer from "@/components/CountdownTimer";
 import QRCode from "qrcode";
@@ -123,6 +123,7 @@ interface EventData {
     email?: string;
   };
   customization?: Customization;
+  total_tickets_sold?: number;
 }
 
 interface CountdownData {
@@ -146,7 +147,7 @@ interface AttendeeData {
 
 interface TicketData {
   id: string;
-  event: string;
+  event: string | number;
   ticket_sold?: number;
   quantity?: number | "Unlimited" | null;
   category_price?: string | number;
@@ -535,7 +536,7 @@ function EventDetailsContent() {
 
         // Filter tickets for the current event
         const eventTickets = ticketsList.filter(
-          (ticket: TicketData) => ticket.event === id
+          (ticket: TicketData) => String(ticket.event) === String(id)
         );
 
         setTickets(eventTickets);
@@ -1239,17 +1240,21 @@ function EventDetailsContent() {
                     </Group>
                   </div>
                   <div className={styles.heroStats}>
-                    <span>
-                      View{" "}
-                      {tickets.reduce((sum, t) => {
-                        const qty =
-                          t.ticket_sold !== undefined
-                            ? t.ticket_sold
-                            : t.quantity === "Unlimited"
-                            ? 0
-                            : (t.quantity as number) || 0;
-                        return sum + qty;
-                      }, 0)}{" "}
+                    <span style={{ color: "#32cd32", fontWeight: 500 }}>
+                      Over{" "}
+                      {event?.total_tickets_sold !== undefined
+                        ? event.total_tickets_sold
+                        : attendees.length > 0
+                        ? attendees.length
+                        : tickets.reduce((sum, t) => {
+                            const qty =
+                              t.ticket_sold !== undefined
+                                ? t.ticket_sold
+                                : t.quantity === "Unlimited"
+                                ? 0
+                                : (t.quantity as number) || 0;
+                            return sum + qty;
+                          }, 0)}{" "}
                       tickets sold
                     </span>
                   </div>
@@ -1859,12 +1864,7 @@ function EventDetailsContent() {
                 </div>
               )}
 
-              {/* Attendee Networking */}
-              {id && (
-                <div className={styles.section}>
-                  <EventNetworking eventId={id} />
-                </div>
-              )}
+
 
               {/* Attendee Feedback */}
               {id && (

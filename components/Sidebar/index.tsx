@@ -37,7 +37,8 @@ export type PageKey =
   | "store"
   | "support"
   | "createEvent"
-  | "logout";
+  | "logout"
+  | "bulkPreRegister";
 
 interface SidebarProps {
   activePage: PageKey;
@@ -58,6 +59,7 @@ const menuItems: {
     label: "Customization",
   },
   { key: "userManagement", icon: <FaUsers />, label: "User Management" },
+  { key: "bulkPreRegister", icon: <FaUserFriends />, label: "Bulk Pre-Register" },
   { key: "finance", icon: <FaMoneyBill />, label: "Finance", disabled: true },
   {
     key: "salesAnalytics",

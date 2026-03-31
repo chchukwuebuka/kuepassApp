@@ -33,6 +33,16 @@ const TicketDashboard = nextDynamic(
     ),
   }
 );
+const BulkPreRegistration = nextDynamic(
+  () => import("@/components/BulkPreRegistration"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
 const Finance = nextDynamic(() => import("@/components/Finance"), {
   loading: () => (
     <Center>
@@ -140,16 +150,7 @@ const SeatingDashboard = nextDynamic(
     ),
   }
 );
-const AttendeeNetworking = nextDynamic(
-  () => import("@/components/AttendeeNetworking"),
-  {
-    loading: () => (
-      <Center>
-        <Loader />
-      </Center>
-    ),
-  }
-);
+
 
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.kuepass.com/api/"
@@ -372,6 +373,7 @@ function DashboardContent() {
     ),
     customization: <Customization />,
     userManagement: <TicketDashboard eventId={activeEventId} />,
+    bulkPreRegister: <BulkPreRegistration eventId={activeEventId} />,
     finance: <Finance />,
     salesAnalytics: <SalesAnalyticsPage eventId={activeEventId} />,
     vendorMarketplace: <VendorMarketplace />,
