@@ -40,6 +40,7 @@ interface QRCodeData {
   registration_date: string;
   is_validated: boolean;
   validated_at?: string;
+  seats?: string[];
 }
 
 interface QRCodePopupProps {
@@ -390,6 +391,15 @@ export default function QRCodePopup({
                   <Text fw={500}>Event:</Text>
                   <Text>{qrData.event_title}</Text>
                 </Group>
+
+                {qrData.seats && qrData.seats.length > 0 && (
+                  <Group justify="space-between">
+                    <Text fw={500}>Seat{qrData.seats.length > 1 ? 's' : ''}:</Text>
+                    <Badge color="grape" variant="light" size="lg">
+                      {qrData.seats.join(', ')}
+                    </Badge>
+                  </Group>
+                )}
 
                 <Group justify="space-between">
                   <Text fw={500}>Ticket Code:</Text>

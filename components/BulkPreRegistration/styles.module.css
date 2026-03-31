@@ -1,0 +1,60 @@
+.container {
+  padding: 24px 0;
+  width: 100%;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.header p {
+  color: #666;
+  font-size: 14px;
+  max-width: 800px;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 992px) {
+  .contentGrid {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.uploadArea {
+  border: 2px dashed var(--mantine-color-gray-4);
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #fafafa;
+}
+
+.uploadArea:hover {
+  border-color: var(--mantine-color-green-5);
+  background-color: var(--mantine-color-green-0);
+}
+
+.tableWrapper {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--mantine-color-gray-3);
+  border-radius: 6px;
+}

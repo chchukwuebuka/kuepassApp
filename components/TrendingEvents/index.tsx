@@ -100,6 +100,20 @@ export const EventSection: React.FC<EventSectionProps> = ({
             }
           });
 
+          // Deduplicate events by id and title (API may return duplicates or user may have submitted twice)
+          const seenIds = new Set<string>();
+          const seenTitles = new Set<string>();
+          fetchedEventsData = fetchedEventsData.filter((event) => {
+            const eventIdStr = String(event.id);
+            const titleLower = (event.title || "").toLowerCase().trim();
+            
+            if (seenIds.has(eventIdStr) || (titleLower && seenTitles.has(titleLower))) return false;
+            
+            seenIds.add(eventIdStr);
+            if (titleLower) seenTitles.add(titleLower);
+            return true;
+          });
+
           // Force client-side sort by start_date (ascending)
           fetchedEventsData.sort((a, b) => {
             const dateA = new Date(a.start_date).getTime();

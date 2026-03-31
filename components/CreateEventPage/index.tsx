@@ -266,6 +266,7 @@ export default function CreateEventPage() {
   const [smartAssistLoading, setSmartAssistLoading] = useState(false);
   const smartAssistTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(new Set());
+  const [selectedVendorIds, setSelectedVendorIds] = useState<(number | string)[]>([]);
 
   // Fetch event types from backend
   const fetchEventTypes = async () => {
@@ -2036,6 +2037,7 @@ export default function CreateEventPage() {
         ...(formData.additionalDetails && {
           additional_details: formData.additionalDetails,
         }),
+        ...(selectedVendorIds.length > 0 && { preferred_vendors: selectedVendorIds }),
       };
 
       // Add event timing type (always send, default to "single")
@@ -3097,6 +3099,9 @@ export default function CreateEventPage() {
               onEditQuestion={handleEditQuestion}
               onRemoveQuestion={handleRemoveQuestion}
               saveDraft={saveDraft}
+              eventType={formData.eventType}
+              eventLocation={formData.address || formData.city || formData.state}
+              onVendorsSelected={setSelectedVendorIds}
             />
           </>
         )}
