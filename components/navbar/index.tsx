@@ -76,12 +76,15 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
 
   const handleLogout = async () => {
     try {
+      // Clear event form drafts before logging out
+      localStorage.removeItem("kuepassCreateEventFormDraft");
       await clearAuth();
       dispatch(logout());
       await persistor.purge();
       router.push("/");
     } catch (error) {
       console.error("Logout failed:", error);
+      localStorage.removeItem("kuepassCreateEventFormDraft");
       dispatch(logout());
       await persistor.purge();
       router.push("/");

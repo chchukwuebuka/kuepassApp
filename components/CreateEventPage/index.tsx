@@ -558,6 +558,10 @@ export default function CreateEventPage() {
       sections: [] as string[],
       ticketButtonText: "Get Ticket",
     });
+
+    // Remove eventId from URL so it doesn't re-fetch the old event
+    const currentPath = window.location.pathname;
+    router.replace(currentPath, { scroll: false });
   };
 
   // Fetch event and customization data (including banner URL) when eventId is present
@@ -1459,12 +1463,28 @@ export default function CreateEventPage() {
     enable_dynamic_pricing?: boolean;
     min_price?: number | null;
     max_price?: number | null;
+    start_date?: string | null;
+    end_date?: string | null;
+    purchase_limit?: number | null;
+    description?: string | null;
+    perks?: string[] | null;
   }) => {
+    // Map category_name to backend's ticket_type enum: free, paid, donations, by_invite
+    let ticketTypeEnum = "paid";
+    if (data.category_name === "Free") {
+      ticketTypeEnum = "free";
+    } else if (data.category_name === "Invite") {
+      ticketTypeEnum = "by_invite";
+    } else {
+      ticketTypeEnum = "paid";
+    }
+
     const payload: any = {
       event: data.event,
       category_name: data.category_name,
       category_price: data.category_price.toFixed(2), // Send as decimal string
       name: data.name,
+      ticket_type: ticketTypeEnum,
       quantity:
         data.quantity === "Unlimited" || data.quantity === null
           ? null
@@ -1475,6 +1495,13 @@ export default function CreateEventPage() {
     if (data.valid_till) {
       payload.valid_till = data.valid_till;
     }
+
+    // Add optional fields if provided
+    if (data.start_date) payload.start_date = data.start_date;
+    if (data.end_date) payload.end_date = data.end_date;
+    if (data.purchase_limit) payload.purchase_limit = data.purchase_limit;
+    if (data.description) payload.description = data.description;
+    if (data.perks && data.perks.length > 0) payload.perks = data.perks;
 
     // Add dynamic pricing fields if enabled
     if (data.enable_dynamic_pricing) {
@@ -1487,7 +1514,13 @@ export default function CreateEventPage() {
       }
     }
 
-    await authenticatedRequest(`${API_BASE_URL}/tickets/`, "POST", payload);
+    console.log("Creating ticket with payload:", JSON.stringify(payload));
+    try {
+      await authenticatedRequest(`${API_BASE_URL}/tickets/`, "POST", payload);
+    } catch (err: any) {
+      console.error("Ticket creation failed. Response body:", err.data || err.message);
+      throw err;
+    }
   };
 
   const uploadImage = async (file: File): Promise<string> => {
@@ -2126,6 +2159,71 @@ export default function CreateEventPage() {
           console.error("Error updating customization:", error);
         }
 
+        // Sync questions for existing event
+        try {
+          // Fetch existing questions
+          const existingQRes = await authenticatedRequest(
+            `${API_BASE_URL}/event-forms/${eventId}/questions/`,
+            "GET"
+          );
+          const existingQuestions = Array.isArray((existingQRes as any)?.data)
+            ? (existingQRes as any).data
+            : Array.isArray(existingQRes)
+            ? existingQRes
+            : [];
+
+          // Delete questions that were removed
+          for (const eq of existingQuestions) {
+            const stillExists = questions.find((q: any) => q.id === eq.id);
+            if (!stillExists) {
+              try {
+                await authenticatedRequest(
+                  `${API_BASE_URL}/questions/${eq.id}/`,
+                  "DELETE"
+                );
+                console.log(`Deleted question: ${eq.title}`);
+              } catch (delErr) {
+                console.error(`Error deleting question "${eq.title}":`, delErr);
+              }
+            }
+          }
+
+          // Create new questions (ones that don't have a backend ID or are new)
+          for (const [qIndex, q] of questions.entries()) {
+            const existsOnBackend = existingQuestions.find(
+              (eq: any) => eq.id === q.id
+            );
+            if (!existsOnBackend) {
+              try {
+                const optionPayload =
+                  q.options?.map((opt: any, optIndex: number) => ({
+                    text: opt.text,
+                    order: optIndex,
+                  })) || [];
+
+                await authenticatedRequest(
+                  `${API_BASE_URL}/questions/`,
+                  "POST",
+                  {
+                    event: eventId,
+                    type: q.type || "text",
+                    title: q.title,
+                    required: q.required || false,
+                    placeholder: q.placeholder || null,
+                    order: qIndex,
+                    ...(optionPayload.length > 0 && { options: optionPayload }),
+                  }
+                );
+                console.log(`Question created: ${q.title}`);
+              } catch (qErr) {
+                console.error(`Error creating question "${q.title}":`, qErr);
+              }
+            }
+          }
+        } catch (qSyncErr) {
+          console.error("Error syncing questions:", qSyncErr);
+        }
+
         alert("Event updated successfully!");
       } else {
         // Create new event
@@ -2162,17 +2260,61 @@ export default function CreateEventPage() {
             validTill = t.validTill;
           }
 
+          // Map frontend ticket types to backend-accepted values
+          let apiCategoryName: "Paid" | "Free" | "Invite" = "Paid";
+          const ticketTypeStr = String(t.type || "Paid");
+          if (ticketTypeStr === "Donations" || ticketTypeStr === "By Invite" || ticketTypeStr === "Invite") {
+            apiCategoryName = "Invite";
+          } else if (ticketTypeStr === "Free") {
+            apiCategoryName = "Free";
+          } else {
+            apiCategoryName = "Paid";
+          }
+
           await createTicketType({
             event: finalEventId,
-            category_name: t.type,
-            category_price: t.type === "Free" ? 0 : Number(t.price),
+            category_name: apiCategoryName,
+            category_price: apiCategoryName === "Free" ? 0 : Number(t.price),
             name: t.name || "General Ticket",
             quantity: t.quantity,
             valid_till: validTill,
             enable_dynamic_pricing: t.enable_dynamic_pricing,
             min_price: t.min_price,
             max_price: t.max_price,
+            start_date: t.startDate || null,
+            end_date: t.endDate || null,
+            purchase_limit: t.purchaseLimit || null,
+            description: t.description || null,
+            perks: t.perks || null,
           });
+        }
+
+        // Create questions
+        for (const [qIndex, q] of questions.entries()) {
+          try {
+            const optionPayload =
+              q.options?.map((opt: any, optIndex: number) => ({
+                text: opt.text,
+                order: optIndex,
+              })) || [];
+
+            await authenticatedRequest(
+              `${API_BASE_URL}/questions/`,
+              "POST",
+              {
+                event: finalEventId,
+                type: q.type || "text",
+                title: q.title,
+                required: q.required || false,
+                placeholder: q.placeholder || null,
+                order: qIndex,
+                ...(optionPayload.length > 0 && { options: optionPayload }),
+              }
+            );
+            console.log(`Question ${qIndex + 1} created:`, q.title);
+          } catch (qErr) {
+            console.error(`Error creating question "${q.title}":`, qErr);
+          }
         }
 
         alert("Event created successfully!");

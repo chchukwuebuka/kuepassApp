@@ -223,9 +223,16 @@ function DashboardContent() {
   }, [activeEventId, eventId, searchParams, pathname, router, mode, page]);
 
   // Auto-fetch the most recent event when no eventId is in the URL
+  // But NOT when in createEvent mode — we want a fresh form
   useEffect(() => {
     if (eventId) {
       setActiveEventId(eventId);
+      return;
+    }
+
+    // Don't auto-set an eventId when creating a new event
+    if (mode === "createEvent") {
+      setActiveEventId("");
       return;
     }
 
@@ -249,7 +256,7 @@ function DashboardContent() {
       }
     };
     fetchLatestEvent();
-  }, [eventId]);
+  }, [eventId, mode]);
 
   useEffect(() => {
     if (!activeEventId) {

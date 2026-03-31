@@ -313,11 +313,14 @@ export default function CompleteRegistrationPage() {
               ...styles.card,
               textAlign: "center" as const,
               background: isUsed
-                ? "linear-gradient(135deg, rgba(34,197,94,0.08), rgba(34,197,94,0.03))"
-                : "linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.03))",
+                ? "linear-gradient(135deg, rgba(34,197,94,0.05), rgba(34,197,94,0.01))"
+                : "linear-gradient(135deg, rgba(239,68,68,0.05), rgba(239,68,68,0.01))",
               border: isUsed
-                ? "1px solid rgba(34,197,94,0.3)"
-                : "1px solid rgba(239,68,68,0.3)",
+                ? "1px solid rgba(34,197,94,0.2)"
+                : "1px solid rgba(239,68,68,0.2)",
+              boxShadow: isUsed 
+                ? "0 20px 60px rgba(34,197,94,0.1)"
+                : "0 20px 60px rgba(239,68,68,0.1)",
             }}
           >
             {isUsed ? (
@@ -326,38 +329,46 @@ export default function CompleteRegistrationPage() {
                   style={{
                     ...styles.iconCircle,
                     background:
-                      "linear-gradient(135deg, rgba(34,197,94,0.2), rgba(99,102,241,0.1))",
+                      "linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05))",
+                    boxShadow: "0 8px 32px rgba(34, 197, 94, 0.2)",
                   }}
                 >
-                  <CheckCircle size={32} color="#22c55e" />
+                  <CheckCircle size={40} color="#22c55e" />
                 </div>
                 <Text size="xl" fw={700} c="white" mb="sm">
                   Already Completed
                 </Text>
-                <Text size="sm" c="dimmed" mb="lg">
+                <Text size="md" c="dimmed" mb="xl">
                   You&apos;ve already completed your registration. Check your
                   email for your confirmation and QR code.
                 </Text>
               </>
             ) : (
               <>
-                <XCircle
-                  size={48}
-                  color="#ef4444"
-                  style={{ margin: "0 auto 16px" }}
-                />
+                <div
+                  style={{
+                    ...styles.iconCircle,
+                    background:
+                      "linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05))",
+                    boxShadow: "0 8px 32px rgba(239, 68, 68, 0.2)",
+                  }}
+                >
+                  <XCircle size={40} color="#ef4444" />
+                </div>
                 <Text size="xl" fw={700} c="white" mb="sm">
                   Invalid Link
                 </Text>
-                <Text size="sm" c="dimmed" mb="lg">
+                <Text size="md" c="dimmed" mb="xl">
                   {pageError}
                 </Text>
               </>
             )}
             <Button
               color={isUsed ? "green" : "gray"}
-              mt="md"
+              size="lg"
+              radius="xl"
               onClick={() => router.push("/")}
+              style={{ fontWeight: 600, padding: "0 32px" }}
             >
               Go to Home
             </Button>
@@ -390,31 +401,35 @@ export default function CompleteRegistrationPage() {
               ...styles.card,
               textAlign: "center" as const,
               background:
-                "linear-gradient(135deg, rgba(34,197,94,0.08), rgba(34,197,94,0.03))",
-              border: "1px solid rgba(34,197,94,0.3)",
+                "linear-gradient(135deg, rgba(34,197,94,0.05), rgba(34,197,94,0.01))",
+              border: "1px solid rgba(34,197,94,0.2)",
+              boxShadow: "0 20px 60px rgba(34,197,94,0.1)",
+              marginTop: bannerUrl ? "-40px" : "0", 
+              zIndex: 10,
             }}
           >
             <div
               style={{
                 ...styles.iconCircle,
                 background:
-                  "linear-gradient(135deg, rgba(34,197,94,0.2), rgba(99,102,241,0.1))",
+                  "linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05))",
+                boxShadow: "0 8px 32px rgba(34, 197, 94, 0.2)",
               }}
             >
-              <CheckCircle size={32} color="#22c55e" />
+              <CheckCircle size={40} color="#22c55e" />
             </div>
             <Text size="xl" fw={700} c="white" mb="xs">
               Registration Complete! 🎉
             </Text>
-            <Text size="sm" c="dimmed" mb="md">
+            <Text size="md" c="dimmed" mb="lg">
               Your registration for{" "}
               <strong style={{ color: "#F5B645" }}>
                 {data?.event.title}
               </strong>{" "}
               is confirmed.
             </Text>
-            <Text size="xs" c="dimmed" mb="xl">
-              A confirmation email with your QR code has been sent to{" "}
+            <Text size="sm" c="gray.5" mb="xl">
+              A confirmation email with your ticket has been sent to{" "}
               <strong style={{ color: "white" }}>
                 {data?.attendee.email}
               </strong>
@@ -422,15 +437,15 @@ export default function CompleteRegistrationPage() {
             </Text>
 
             <div style={styles.ticketCodeBox}>
-              <Text size="xs" c="dimmed" mb={4}>
+              <Text size="sm" c="dimmed" mb={8} style={{ textTransform: "uppercase", letterSpacing: "1px" }}>
                 Ticket Code
               </Text>
               <Text
-                size="lg"
-                fw={700}
+                size="xl"
+                fw={800}
                 style={{
                   fontFamily: "'Courier New', monospace",
-                  letterSpacing: "3px",
+                  letterSpacing: "4px",
                   background: "linear-gradient(135deg, #F5B645, #f59e0b)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
@@ -442,15 +457,16 @@ export default function CompleteRegistrationPage() {
 
             <Button
               color="green"
-              size="md"
+              size="lg"
+              radius="xl"
               onClick={() => router.push("/")}
-              style={{ borderRadius: "12px" }}
+              style={{ fontWeight: 600, padding: "0 40px" }}
             >
               Go to Home
             </Button>
           </div>
 
-          <Text size="xs" c="dimmed" ta="center" mt="xl">
+          <Text size="sm" c="dimmed" ta="center" mt="xl" style={{ opacity: 0.6 }}>
             Powered by{" "}
             <a
               href="https://kuepass.com"
@@ -498,6 +514,7 @@ export default function CompleteRegistrationPage() {
                   background: "rgba(245,182,69,0.9)",
                   color: "#000",
                   fontWeight: 600,
+                  backdropFilter: "blur(10px)",
                 }}
               >
                 Pre-Registration
@@ -510,25 +527,27 @@ export default function CompleteRegistrationPage() {
         <div
           style={{
             ...styles.card,
-            marginBottom: "16px",
-            borderTop: `3px solid ${cardColor}`,
+            marginBottom: "24px",
+            borderTop: `4px solid ${cardColor}`,
+            marginTop: bannerUrl ? "-40px" : "0", 
+            zIndex: 10,
           }}
         >
-          <div style={{ textAlign: "center" as const, marginBottom: "20px" }}>
+          <div style={{ textAlign: "center" as const, marginBottom: "32px" }}>
             {!bannerUrl && (
               <Badge
                 size="sm"
                 variant="light"
                 color="yellow"
-                style={{ marginBottom: "12px" }}
+                style={{ marginBottom: "16px" }}
               >
                 Pre-Registration
               </Badge>
             )}
-            <Text size="xl" fw={700} c="white" mb="xs">
+            <Text size="xl" fw={800} c="white" mb="sm" style={{ letterSpacing: "-0.5px" }}>
               {data.event.title}
             </Text>
-            <Text size="sm" c="dimmed">
+            <Text size="md" c="dimmed">
               Hello{" "}
               <strong style={{ color: "white" }}>{data.attendee.name}</strong>,
               complete your registration below.
@@ -538,26 +557,32 @@ export default function CompleteRegistrationPage() {
           <div
             style={{
               borderTop: "1px solid rgba(255,255,255,0.06)",
-              paddingTop: "12px",
+              paddingTop: "16px",
             }}
           >
             <div style={styles.infoRow}>
-              <Calendar size={16} color="#F5B645" />
-              <Text size="sm" c="dimmed">
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(245, 182, 69, 0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Calendar size={18} color="#F5B645" />
+              </div>
+              <Text size="sm" c="gray.4" style={{ flex: 1, lineHeight: 1.4 }}>
                 {formatDate(data.event.start_date)}
               </Text>
             </div>
             <div style={styles.infoRow}>
-              <MapPin size={16} color="#F5B645" />
-              <Text size="sm" c="dimmed">
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(245, 182, 69, 0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <MapPin size={18} color="#F5B645" />
+              </div>
+              <Text size="sm" c="gray.4" style={{ flex: 1, lineHeight: 1.4 }}>
                 {data.event.address || data.event.location || "TBA"}
               </Text>
             </div>
-            <div style={{ ...styles.infoRow, borderBottom: "none" }}>
-              <Ticket size={16} color="#F5B645" />
-              <Text size="sm" c="dimmed">
+            <div style={{ ...styles.infoRow, borderBottom: "none", paddingBottom: 0 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(245, 182, 69, 0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Ticket size={18} color="#F5B645" />
+              </div>
+              <Text size="sm" c="gray.4" style={{ flex: 1 }}>
                 Ticket:{" "}
-                <strong style={{ color: "white" }}>
+                <strong style={{ color: "white", letterSpacing: "1px", fontFamily: "monospace", fontSize: "16px" }}>
                   {data.attendee.ticket_code}
                 </strong>
               </Text>
@@ -567,34 +592,34 @@ export default function CompleteRegistrationPage() {
 
         {/* Questions Form Card */}
         {hasQuestions ? (
-          <div style={styles.card}>
+          <div style={{ ...styles.card, padding: "32px 24px" }}>
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "10px",
-                marginBottom: "24px",
+                gap: "12px",
+                marginBottom: "20px",
               }}
             >
-              <ClipboardList size={20} color="#F5B645" />
-              <Text size="lg" fw={600} c="white">
+              <div style={{ padding: "8px", background: "rgba(245, 182, 69, 0.1)", borderRadius: "10px" }}>
+                <ClipboardList size={22} color="#F5B645" />
+              </div>
+              <Text size="xl" fw={700} c="white">
                 Follow-up Questions
               </Text>
             </div>
-            <Text size="xs" c="dimmed" mb="lg">
+            <Text size="sm" c="gray.4" mb="xl">
               The event organizer requires the following information to complete
               your registration.
             </Text>
 
-            <Stack gap="lg">
+            <Stack gap="xl">
               {data.questions.map((q, index) => (
                 <div key={q.id} style={styles.questionBlock}>
-                  <Text size="sm" fw={500} c="white" mb={6}>
+                  <Text size="md" fw={600} c="white" mb={12}>
                     {index + 1}. {q.title}
                     {q.required && (
-                      <span style={{ color: "#ef4444", marginLeft: "4px" }}>
-                        *
-                      </span>
+                      <span style={{ color: "#ef4444", marginLeft: "4px" }}>*</span>
                     )}
                   </Text>
 
@@ -610,15 +635,17 @@ export default function CompleteRegistrationPage() {
                       onChange={(e) =>
                         updateResponse(q.id, e.currentTarget.value)
                       }
-                      size="md"
+                      size="lg"
                       styles={{
                         input: {
-                          background: "rgba(255,255,255,0.06)",
-                          borderColor: "rgba(255,255,255,0.15)",
+                          background: "rgba(0,0,0,0.15)",
+                          borderColor: "rgba(255,255,255,0.08)",
                           color: "white",
-                          borderRadius: "10px",
+                          borderRadius: "12px",
+                          transition: "border-color 0.2s ease, box-shadow 0.2s ease",
                           "&:focus": {
                             borderColor: "#F5B645",
+                            boxShadow: "0 0 0 4px rgba(245, 182, 69, 0.1)",
                           },
                         },
                       }}
@@ -636,13 +663,18 @@ export default function CompleteRegistrationPage() {
                         updateResponse(q.id, e.currentTarget.value)
                       }
                       minRows={3}
-                      size="md"
+                      size="lg"
                       styles={{
                         input: {
-                          background: "rgba(255,255,255,0.06)",
-                          borderColor: "rgba(255,255,255,0.15)",
+                          background: "rgba(0,0,0,0.15)",
+                          borderColor: "rgba(255,255,255,0.08)",
                           color: "white",
-                          borderRadius: "10px",
+                          borderRadius: "12px",
+                          transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+                          "&:focus": {
+                            borderColor: "#F5B645",
+                            boxShadow: "0 0 0 4px rgba(245, 182, 69, 0.1)",
+                          },
                         },
                       }}
                     />
@@ -658,21 +690,28 @@ export default function CompleteRegistrationPage() {
                       }))}
                       value={responses[q.id] || null}
                       onChange={(val) => updateResponse(q.id, val)}
-                      size="md"
+                      size="lg"
                       styles={{
                         input: {
-                          background: "rgba(255,255,255,0.06)",
-                          borderColor: "rgba(255,255,255,0.15)",
+                          background: "rgba(0,0,0,0.15)",
+                          borderColor: "rgba(255,255,255,0.08)",
                           color: "white",
-                          borderRadius: "10px",
+                          borderRadius: "12px",
+                          transition: "border-color 0.2s ease",
+                          "&:focus": {
+                            borderColor: "#F5B645",
+                          },
                         },
                         dropdown: {
-                          background: "#1a1a2e",
-                          border: "1px solid rgba(255,255,255,0.15)",
+                          background: "#10101A",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          borderRadius: "12px",
                         },
                         option: {
                           color: "white",
-                          "&[data-selected]": { background: "#F5B645" },
+                          borderRadius: "8px",
+                          "&[data-selected]": { background: "rgba(245, 182, 69, 0.2)", color: "#F5B645" },
+                          "&[data-hovered]": { background: "rgba(255,255,255,0.05)" },
                         },
                       }}
                     />
@@ -684,19 +723,19 @@ export default function CompleteRegistrationPage() {
                       value={responses[q.id] || ""}
                       onChange={(val) => updateResponse(q.id, val)}
                     >
-                      <Stack gap="xs" mt={4}>
+                      <Stack gap="sm" mt={8}>
                         {q.options.map((o) => (
                           <Radio
                             key={o.id}
                             value={o.id}
                             label={
-                              <Text size="sm" c="dimmed">
+                              <Text size="md" c="gray.3">
                                 {o.text}
                               </Text>
                             }
                             styles={{
                               radio: {
-                                background: "rgba(255,255,255,0.05)",
+                                background: "rgba(0,0,0,0.2)",
                                 borderColor: "rgba(255,255,255,0.2)",
                               },
                             }}
@@ -712,16 +751,22 @@ export default function CompleteRegistrationPage() {
                       value={responses[q.id] || []}
                       onChange={(val) => updateResponse(q.id, val)}
                     >
-                      <Stack gap="xs" mt={4}>
+                      <Stack gap="sm" mt={8}>
                         {q.options.map((o) => (
                           <Checkbox
                             key={o.id}
                             value={o.id}
                             label={
-                              <Text size="sm" c="dimmed">
+                              <Text size="md" c="gray.3">
                                 {o.text}
                               </Text>
                             }
+                            styles={{
+                              input: {
+                                background: "rgba(0,0,0,0.2)",
+                                borderColor: "rgba(255,255,255,0.2)",
+                              },
+                            }}
                           />
                         ))}
                       </Stack>
@@ -735,16 +780,16 @@ export default function CompleteRegistrationPage() {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "8px",
+                    gap: "10px",
                     justifyContent: "center",
-                    padding: "12px",
+                    padding: "16px",
                     background: "rgba(239,68,68,0.1)",
-                    borderRadius: "10px",
+                    borderRadius: "12px",
                     border: "1px solid rgba(239,68,68,0.2)",
                   }}
                 >
-                  <AlertCircle size={16} color="#ef4444" />
-                  <Text size="sm" c="red">
+                  <AlertCircle size={18} color="#ef4444" />
+                  <Text size="sm" c="red" fw={500}>
                     {error}
                   </Text>
                 </div>
@@ -752,19 +797,19 @@ export default function CompleteRegistrationPage() {
 
               <Button
                 fullWidth
-                size="lg"
+                size="xl"
+                radius="xl"
                 onClick={handleSubmit}
                 loading={submitting}
-                leftSection={<CheckCircle size={18} />}
+                leftSection={<CheckCircle size={20} />}
                 style={{
-                  borderRadius: "12px",
                   background: `linear-gradient(135deg, ${cardColor}, ${cardColor}dd)`,
                   color: "#fff",
                   fontWeight: 600,
-                  height: "52px",
                   fontSize: "16px",
-                  border: "none",
-                  transition: "all 0.2s ease",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+                  transition: "transform 0.2s ease, box-shadow 0.2s ease",
                 }}
               >
                 Complete Registration
@@ -778,34 +823,35 @@ export default function CompleteRegistrationPage() {
               ...styles.card,
               textAlign: "center" as const,
               background:
-                "linear-gradient(135deg, rgba(34,197,94,0.08), rgba(34,197,94,0.03))",
-              border: "1px solid rgba(34,197,94,0.3)",
+                "linear-gradient(135deg, rgba(34,197,94,0.05), rgba(34,197,94,0.01))",
+              border: "1px solid rgba(34,197,94,0.2)",
             }}
           >
             <div
               style={{
                 ...styles.iconCircle,
                 background:
-                  "linear-gradient(135deg, rgba(34,197,94,0.2), rgba(99,102,241,0.1))",
+                  "linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05))",
+                boxShadow: "0 8px 32px rgba(34, 197, 94, 0.2)",
               }}
             >
-              <CheckCircle size={32} color="#22c55e" />
+              <CheckCircle size={40} color="#22c55e" />
             </div>
-            <Text size="xl" fw={700} c="white" mb="sm">
+            <Text size="xl" fw={700} c="white" mb="xs">
               You&apos;re All Set!
             </Text>
-            <Text size="sm" c="dimmed" mb="md">
+            <Text size="md" c="dimmed" mb="lg">
               No additional information is needed. Your registration is
               complete.
             </Text>
-            <Text size="xs" c="dimmed">
-              Check your email for your confirmation and QR code.
+            <Text size="sm" c="gray.5">
+              Check your email for your confirmation and ticket QR code.
             </Text>
           </div>
         )}
 
         {/* Footer */}
-        <Text size="xs" c="dimmed" ta="center" mt="xl">
+        <Text size="sm" c="dimmed" ta="center" mt="xl" style={{ opacity: 0.6 }}>
           Powered by{" "}
           <a
             href="https://kuepass.com"
@@ -823,46 +869,58 @@ export default function CompleteRegistrationPage() {
   );
 }
 
+
 // ─── Inline Styles ─────────────────────────────
 const styles: { [key: string]: React.CSSProperties } = {
   page: {
     minHeight: "100vh",
     background:
-      "linear-gradient(180deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%)",
-    padding: "40px 20px",
+      "linear-gradient(180deg, #05050A 0%, #10101A 50%, #0a0a1a 100%)",
+    padding: "60px 20px",
     fontFamily: "'Inter', 'Segoe UI', sans-serif",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
   },
   container: {
+    width: "100%",
     maxWidth: "580px",
     margin: "0 auto",
   },
   card: {
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: "16px",
-    padding: "32px",
-    backdropFilter: "blur(20px)",
+    background: "rgba(255, 255, 255, 0.03)",
+    border: "1px solid rgba(255, 255, 255, 0.08)",
+    borderRadius: "24px",
+    padding: "40px",
+    backdropFilter: "blur(40px)",
+    WebkitBackdropFilter: "blur(40px)",
+    boxShadow: "0 24px 80px rgba(0,0,0,0.4)",
+    position: "relative",
+    overflow: "hidden",
   },
   backLink: {
     display: "inline-flex",
     alignItems: "center",
-    gap: "6px",
-    color: "rgba(255,255,255,0.5)",
+    gap: "8px",
+    color: "rgba(255,255,255,0.6)",
     textDecoration: "none",
-    fontSize: "14px",
-    marginBottom: "20px",
-    transition: "color 0.2s ease",
+    fontSize: "15px",
+    fontWeight: 500,
+    marginBottom: "24px",
+    transition: "color 0.2s ease, transform 0.2s ease",
   },
   bannerWrapper: {
-    borderRadius: "16px",
+    borderRadius: "20px",
     overflow: "hidden",
-    marginBottom: "16px",
+    marginBottom: "24px",
     position: "relative" as const,
-    height: "220px",
+    height: "240px",
+    boxShadow: "0 12px 30px rgba(0,0,0,0.3)",
+    border: "1px solid rgba(255,255,255,0.05)",
   },
   bannerImage: {
     width: "100%",
-    height: "220px",
+    height: "240px",
     objectFit: "cover" as const,
     display: "block",
   },
@@ -871,43 +929,46 @@ const styles: { [key: string]: React.CSSProperties } = {
     bottom: 0,
     left: 0,
     right: 0,
-    height: "80px",
+    height: "120px",
     background:
-      "linear-gradient(to top, rgba(10,10,26,0.9), transparent)",
+      "linear-gradient(to top, rgba(5,5,10,0.95), transparent)",
     pointerEvents: "none" as const,
   },
   bannerContent: {
     position: "absolute" as const,
-    bottom: "16px",
-    left: "20px",
+    bottom: "20px",
+    left: "24px",
     zIndex: 2,
   },
   infoRow: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    padding: "10px 0",
+    gap: "14px",
+    padding: "14px 0",
     borderBottom: "1px solid rgba(255,255,255,0.06)",
   },
   iconCircle: {
-    width: "64px",
-    height: "64px",
+    width: "80px",
+    height: "80px",
     borderRadius: "50%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    margin: "0 auto 16px",
+    margin: "0 auto 24px",
+    boxShadow: "0 8px 32px rgba(34, 197, 94, 0.2)",
   },
   ticketCodeBox: {
-    background: "rgba(255,255,255,0.03)",
-    borderRadius: "12px",
-    padding: "16px",
-    marginBottom: "20px",
+    background: "rgba(0, 0, 0, 0.3)",
+    borderRadius: "16px",
+    padding: "24px",
+    marginBottom: "32px",
+    border: "1px dashed rgba(255,255,255,0.15)",
+    boxShadow: "inset 0 4px 12px rgba(0,0,0,0.2)",
   },
   questionBlock: {
-    padding: "16px",
-    background: "rgba(255,255,255,0.02)",
-    borderRadius: "12px",
-    border: "1px solid rgba(255,255,255,0.05)",
+    padding: "20px",
+    background: "rgba(255, 255, 255, 0.015)",
+    borderRadius: "16px",
+    border: "1px solid rgba(255, 255, 255, 0.04)",
   },
 };

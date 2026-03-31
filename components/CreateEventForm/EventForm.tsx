@@ -154,7 +154,7 @@ export default function CreateEventForm() {
 
   const createEventCustomization = async (data: {
     event: string;
-    banner_url: string;
+    banner_url: string[];
     font: string;
     card_color: string;
     is_active: boolean;
@@ -386,7 +386,7 @@ export default function CreateEventForm() {
 
         await createEventCustomization({
           event: eventId,
-          banner_url: finalBannerUrl,
+          banner_url: finalBannerUrl ? [finalBannerUrl] : [],
           font: "Arial",
           card_color: formData.cardColor,
           is_active: true,

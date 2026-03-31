@@ -30,7 +30,7 @@ const DEFAULT_BANNER_URL = "https://via.placeholder.com/150";
 interface CustomizationData {
   id: string;
   event: string;
-  banner_url: string;
+  banner_url: string | string[];
   font: string;
   card_color: string;
   is_active: boolean;
@@ -141,8 +141,12 @@ const Customization: React.FC = () => {
         endDate: end.toISOString().slice(0, 10) || "",
         endTime: end.toTimeString().slice(0, 5) || "",
         tickets: event.tickets || [],
-        appearance:
-          existing?.banner_url || event.banner_url || DEFAULT_BANNER_URL,
+        appearance: (() => {
+          const raw = existing?.banner_url || event.banner_url;
+          if (Array.isArray(raw) && raw.length > 0) return raw[0];
+          if (typeof raw === "string" && raw) return raw;
+          return DEFAULT_BANNER_URL;
+        })(),
         cardColor,
         questions: event.questions || [],
         eventURL:
@@ -245,7 +249,9 @@ const Customization: React.FC = () => {
       // Upsert customization
       const customizationPayload = {
         event: eventId,
-        banner_url: banner,
+        banner_url: Array.isArray(banner)
+          ? banner.filter((u: string) => u && typeof u === "string")
+          : banner ? [banner] : [],
         font: "Arial",
         card_color: formData.cardColor,
         is_active: true,
