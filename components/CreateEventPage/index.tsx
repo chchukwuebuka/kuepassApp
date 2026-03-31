@@ -2017,6 +2017,7 @@ export default function CreateEventPage() {
         start_date: `${formData.startDate}T${formData.startTime}:00Z`,
         end_date: `${formData.endDate}T${formData.endTime}:00Z`,
         price: "0.00",
+        is_active: true,
         address:
           formData.locationType === "venue"
             ? formData.streetAddress || formData.address

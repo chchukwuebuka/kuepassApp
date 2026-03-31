@@ -31,7 +31,7 @@ import {
 } from "@tabler/icons-react";
 import Navbar from "@/components/navbar";
 import styles from "./styles.module.css";
-import { getAuthToken, isAuthenticated } from "@/app/services/auth";
+import { getAuthToken, isAuthenticated, authenticatedRequest } from "@/app/services/auth";
 import Footer from "@/components/Footer";
 import TextReveal from "@/components/TextReveal";
 
@@ -319,104 +319,68 @@ const ExploreEvents: React.FC = () => {
       setError(null);
 
       try {
-        // Fetch all data in parallel from the start for maximum performance
+        // Fetch all data in parallel using authenticatedRequest (same as EventSection)
         const token = getAuthToken();
 
-        // Prepare fetch requests
-        const fetchPromises: Promise<any>[] = [
-          // Always fetch events
-          fetch(`${API_BASE_URL}/events/`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-          })
-            .then(async (res) => {
-              if (!res.ok) {
-                if (res.status === 502 || res.status === 503) {
-                  throw new Error(
-                    "Server is temporarily unavailable. Please try again later."
-                  );
-                }
-                throw new Error(`Failed to fetch events: ${res.status}`);
-              }
-              return res.json();
-            })
-            .catch((err) => {
-              if (
-                err.message.includes("Failed to fetch") ||
-                err.message.includes("NetworkError")
-              ) {
-                throw new Error(
-                  "Unable to connect to the server. Please check your internet connection and try again."
-                );
-              }
-              throw err;
-            }),
-          // Always fetch tickets to determine paid/free
-          fetch(`${API_BASE_URL}/tickets/`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-          })
-            .then((res) => (res.ok ? res.json() : []))
-            .catch(() => []),
-        ];
+        // Use authenticatedRequest for events & tickets (same approach as EventSection)
+        // This properly sends cookies, CSRF tokens, and Bearer auth
+        const [eventsJson, ticketsJson, userJson, attendeeJson] = await Promise.all([
+          // Fetch events
+          authenticatedRequest<any>(
+            `${API_BASE_URL}/events/?is_active=true&ordering=start_date`,
+            "GET"
+          ).catch((err: any) => {
+            if (
+              err.message?.includes("Failed to fetch") ||
+              err.message?.includes("NetworkError") ||
+              err.message?.includes("Network error")
+            ) {
+              throw new Error(
+                "Unable to connect to the server. Please check your internet connection and try again."
+              );
+            }
+            throw err;
+          }),
+          // Fetch tickets
+          authenticatedRequest<any>(
+            `${API_BASE_URL}/tickets/`,
+            "GET"
+          ).catch(() => []),
+          // Fetch user data
+          token
+            ? authenticatedRequest<any>(
+                `${API_BASE_URL}/users/me/`,
+                "GET"
+              ).catch(() => null)
+            : Promise.resolve(null),
+          // Fetch attendees
+          token
+            ? authenticatedRequest<any>(
+                `${API_BASE_URL}/attendees/`,
+                "GET"
+              ).catch(() => null)
+            : Promise.resolve(null),
+        ]);
 
-        // Conditionally add authenticated requests
-        if (token) {
-          fetchPromises.push(
-            fetch(`${API_BASE_URL}/users/me/`, {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-            })
-              .then((res) => (res.ok ? res.json() : null))
-              .catch(() => null), // Silently fail for user data
-            fetch(`${API_BASE_URL}/attendees/`, {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-            })
-              .then((res) => (res.ok ? res.json() : null))
-              .catch(() => null) // Silently fail for attendee data
-          );
-        } else {
-          // Add nulls to maintain array structure
-          fetchPromises.push(Promise.resolve(null), Promise.resolve(null));
-        }
-
-        // Fetch all data in parallel
-        const [eventsJson, ticketsJson, userJson, attendeeJson] = await Promise.all(
-          fetchPromises
-        );
-
-        // Process events response (fast path - show events immediately)
+        // Process events response (same parsing as EventSection)
         let rawEvents: any[] = [];
         if (Array.isArray(eventsJson)) {
           rawEvents = eventsJson;
-        } else if (Array.isArray(eventsJson?.data)) {
+        } else if (eventsJson?.success && Array.isArray(eventsJson.data)) {
+          rawEvents = eventsJson.data;
+        } else if (eventsJson?.data && Array.isArray(eventsJson.data)) {
           rawEvents = eventsJson.data;
         } else if (Array.isArray(eventsJson?.results)) {
           rawEvents = eventsJson.results;
+        } else {
+          console.warn("ExploreEvents: Unexpected events response format", eventsJson);
         }
 
         // Filter and map events efficiently
         const allEvents: EventData[] = rawEvents
           .filter((e: any) => {
-            // Only include events that are active (or is_active is undefined/null, which we treat as active)
-            const isActive = e.is_active !== false;
             const hasRequiredFields = e.id != null && e.title;
-            return isActive && hasRequiredFields;
+            return hasRequiredFields;
           })
           .map((e: any) => ({
             id: String(e.id),
