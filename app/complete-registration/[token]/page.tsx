@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   TextInput,
@@ -25,6 +25,9 @@ import {
   MapPin,
   Ticket,
   AlertCircle,
+  Clock,
+  User,
+  ListChecks,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -43,6 +46,16 @@ interface Question {
   order?: number;
 }
 
+interface ItineraryItem {
+  host: string;
+  title: string;
+  activity?: string;
+  end_time: string;
+  start_time: string;
+  description?: string;
+  image?: string;
+}
+
 interface PreRegData {
   attendee: {
     id: string;
@@ -59,6 +72,7 @@ interface PreRegData {
     end_date: string | null;
     location: string;
     address: string;
+    itinerary?: ItineraryItem[];
     customization?: {
       banner_url?: string | string[];
       card_color?: string;
@@ -87,6 +101,29 @@ export default function CompleteRegistrationPage() {
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [cardColor, setCardColor] = useState<string>("#025a3a");
+  const [selectedItinerary, setSelectedItinerary] = useState<ItineraryItem[]>([]);
+
+  const toggleItineraryItem = useCallback((item: ItineraryItem) => {
+    setSelectedItinerary((prev) => {
+      const exists = prev.some(
+        (i) => i.title === item.title && i.start_time === item.start_time
+      );
+      if (exists) {
+        return prev.filter(
+          (i) => !(i.title === item.title && i.start_time === item.start_time)
+        );
+      }
+      return [...prev, item];
+    });
+  }, []);
+
+  const isItinerarySelected = useCallback(
+    (item: ItineraryItem) =>
+      selectedItinerary.some(
+        (i) => i.title === item.title && i.start_time === item.start_time
+      ),
+    [selectedItinerary]
+  );
 
   // Fetch pre-registration data, then also fetch full event details for banner + questions
   useEffect(() => {
@@ -246,7 +283,10 @@ export default function CompleteRegistrationPage() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ responses: responsePayload }),
+          body: JSON.stringify({
+            responses: responsePayload,
+            selected_itinerary: selectedItinerary.length > 0 ? selectedItinerary : [],
+          }),
         }
       );
 
@@ -589,6 +629,173 @@ export default function CompleteRegistrationPage() {
             </div>
           </div>
         </div>
+
+        {/* Itinerary Selection Card */}
+        {data.event.itinerary && data.event.itinerary.length > 0 && (
+          <div style={{ ...styles.card, padding: "32px 24px", marginBottom: "24px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                marginBottom: "20px",
+              }}
+            >
+              <div style={{ padding: "8px", background: "rgba(139, 92, 246, 0.1)", borderRadius: "10px" }}>
+                <ListChecks size={22} color="#8b5cf6" />
+              </div>
+              <Text size="xl" fw={700} c="white">
+                Event Itinerary
+              </Text>
+            </div>
+            <Text size="sm" c="gray.4" mb="xl">
+              Select the sessions you plan to attend. This helps the organizer plan accordingly.
+            </Text>
+
+            <Stack gap="md">
+              {data.event.itinerary.map((item, index) => {
+                const selected = isItinerarySelected(item);
+                return (
+                  <div
+                    key={`${item.title}-${item.start_time}-${index}`}
+                    onClick={() => toggleItineraryItem(item)}
+                    style={{
+                      padding: "20px",
+                      background: selected
+                        ? "rgba(139, 92, 246, 0.08)"
+                        : "rgba(255, 255, 255, 0.015)",
+                      borderRadius: "16px",
+                      border: selected
+                        ? "1.5px solid rgba(139, 92, 246, 0.4)"
+                        : "1px solid rgba(255, 255, 255, 0.04)",
+                      cursor: "pointer",
+                      transition: "all 0.25s ease",
+                      boxShadow: selected
+                        ? "0 4px 20px rgba(139, 92, 246, 0.15)"
+                        : "none",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: "16px",
+                      }}
+                    >
+                      {/* Checkbox indicator */}
+                      <div
+                        style={{
+                          width: "24px",
+                          height: "24px",
+                          borderRadius: "8px",
+                          border: selected
+                            ? "2px solid #8b5cf6"
+                            : "2px solid rgba(255,255,255,0.15)",
+                          background: selected
+                            ? "linear-gradient(135deg, #8b5cf6, #7c3aed)"
+                            : "rgba(0,0,0,0.2)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                          marginTop: "2px",
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        {selected && (
+                          <CheckCircle size={14} color="white" />
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div style={{ flex: 1 }}>
+                        <Text size="md" fw={600} c="white" mb={4}>
+                          {item.title}
+                        </Text>
+                        {item.description && (
+                          <Text size="sm" c="gray.4" mb={8} style={{ lineHeight: 1.5 }}>
+                            {item.description}
+                          </Text>
+                        )}
+
+                        <div
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap" as const,
+                            gap: "12px",
+                            marginTop: "8px",
+                          }}
+                        >
+                          {/* Time badge */}
+                          <div
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              padding: "4px 10px",
+                              background: "rgba(245, 182, 69, 0.08)",
+                              borderRadius: "8px",
+                              border: "1px solid rgba(245, 182, 69, 0.15)",
+                            }}
+                          >
+                            <Clock size={13} color="#F5B645" />
+                            <Text size="xs" c="gray.3" fw={500}>
+                              {item.start_time} — {item.end_time}
+                            </Text>
+                          </div>
+
+                          {/* Host badge */}
+                          {item.host && (
+                            <div
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                padding: "4px 10px",
+                                background: "rgba(139, 92, 246, 0.08)",
+                                borderRadius: "8px",
+                                border: "1px solid rgba(139, 92, 246, 0.15)",
+                              }}
+                            >
+                              <User size={13} color="#8b5cf6" />
+                              <Text size="xs" c="gray.3" fw={500}>
+                                {item.host}
+                              </Text>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Activity detail */}
+                        {item.activity && (
+                          <Text size="xs" c="gray.5" mt={8} style={{ fontStyle: "italic", lineHeight: 1.4 }}>
+                            {item.activity}
+                          </Text>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </Stack>
+
+            {selectedItinerary.length > 0 && (
+              <div
+                style={{
+                  marginTop: "16px",
+                  padding: "12px 16px",
+                  background: "rgba(139, 92, 246, 0.06)",
+                  borderRadius: "12px",
+                  border: "1px solid rgba(139, 92, 246, 0.15)",
+                  textAlign: "center" as const,
+                }}
+              >
+                <Text size="sm" c="gray.3" fw={500}>
+                  {selectedItinerary.length} session{selectedItinerary.length !== 1 ? "s" : ""} selected
+                </Text>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Questions Form Card */}
         {hasQuestions ? (
