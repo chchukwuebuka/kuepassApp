@@ -79,6 +79,8 @@ interface PreRegData {
     };
   };
   questions: Question[];
+  existing_responses?: any[];
+  selected_itinerary?: ItineraryItem[];
   token: string;
 }
 
@@ -136,6 +138,11 @@ export default function CompleteRegistrationPage() {
 
         if (res.ok && json.success) {
           const preRegData = json.data as PreRegData;
+          setIsUsed(json.is_used || false);
+
+          if (preRegData.selected_itinerary) {
+            setSelectedItinerary(preRegData.selected_itinerary);
+          }
 
           // Try to fetch full event details (to get banner_url from customization)
           try {
@@ -201,11 +208,24 @@ export default function CompleteRegistrationPage() {
               initial[q.id] = "";
             }
           });
+
+          if (preRegData.existing_responses) {
+            preRegData.existing_responses.forEach((resp) => {
+              const qType = questions.find((q: Question) => q.id === resp.question)?.type;
+              if (qType === "checkbox") {
+                initial[resp.question] = resp.selected_options.map((o: any) => o.option);
+              } else if (qType === "radio" || qType === "select") {
+                initial[resp.question] = resp.selected_options[0]?.option || "";
+              } else {
+                initial[resp.question] = resp.text_response || "";
+              }
+            });
+          }
+
           setResponses(initial);
         } else if (res.status === 410) {
-          setIsUsed(true);
           setPageError(
-            json.error || "This registration has already been completed."
+            json.error || "This registration link has expired."
           );
         } else {
           setPageError(json.error || "Invalid registration link.");
@@ -294,6 +314,9 @@ export default function CompleteRegistrationPage() {
 
       if (res.ok && json.success) {
         setSuccess(true);
+        setIsUsed(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setTimeout(() => setSuccess(false), 8000);
       } else {
         setError(
           json.error || "Failed to complete registration. Please try again."
@@ -352,59 +375,31 @@ export default function CompleteRegistrationPage() {
             style={{
               ...styles.card,
               textAlign: "center" as const,
-              background: isUsed
-                ? "linear-gradient(135deg, rgba(34,197,94,0.05), rgba(34,197,94,0.01))"
-                : "linear-gradient(135deg, rgba(239,68,68,0.05), rgba(239,68,68,0.01))",
-              border: isUsed
-                ? "1px solid rgba(34,197,94,0.2)"
-                : "1px solid rgba(239,68,68,0.2)",
-              boxShadow: isUsed 
-                ? "0 20px 60px rgba(34,197,94,0.1)"
-                : "0 20px 60px rgba(239,68,68,0.1)",
+              background: "linear-gradient(135deg, rgba(239,68,68,0.05), rgba(239,68,68,0.01))",
+              border: "1px solid rgba(239,68,68,0.2)",
+              boxShadow: "0 20px 60px rgba(239,68,68,0.1)",
             }}
           >
-            {isUsed ? (
-              <>
-                <div
-                  style={{
-                    ...styles.iconCircle,
-                    background:
-                      "linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05))",
-                    boxShadow: "0 8px 32px rgba(34, 197, 94, 0.2)",
-                  }}
-                >
-                  <CheckCircle size={40} color="#22c55e" />
-                </div>
-                <Text size="xl" fw={700} c="white" mb="sm">
-                  Already Completed
-                </Text>
-                <Text size="md" c="dimmed" mb="xl">
-                  You&apos;ve already completed your registration. Check your
-                  email for your confirmation and QR code.
-                </Text>
-              </>
-            ) : (
-              <>
-                <div
-                  style={{
-                    ...styles.iconCircle,
-                    background:
-                      "linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05))",
-                    boxShadow: "0 8px 32px rgba(239, 68, 68, 0.2)",
-                  }}
-                >
-                  <XCircle size={40} color="#ef4444" />
-                </div>
-                <Text size="xl" fw={700} c="white" mb="sm">
-                  Invalid Link
-                </Text>
-                <Text size="md" c="dimmed" mb="xl">
-                  {pageError}
-                </Text>
-              </>
-            )}
+            <>
+              <div
+                style={{
+                  ...styles.iconCircle,
+                  background:
+                    "linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05))",
+                  boxShadow: "0 8px 32px rgba(239, 68, 68, 0.2)",
+                }}
+              >
+                <XCircle size={40} color="#ef4444" />
+              </div>
+              <Text size="xl" fw={700} c="white" mb="sm">
+                Unavailable
+              </Text>
+              <Text size="md" c="dimmed" mb="xl">
+                {pageError}
+              </Text>
+            </>
             <Button
-              color={isUsed ? "green" : "gray"}
+              color="gray"
               size="lg"
               radius="xl"
               onClick={() => router.push("/")}
@@ -418,111 +413,7 @@ export default function CompleteRegistrationPage() {
     );
   }
 
-  // ─── SUCCESS ─────────────────────────────────
-  if (success) {
-    return (
-      <div style={styles.page}>
-        <div style={styles.container}>
-          {/* Banner on success */}
-          {bannerUrl && (
-            <div style={styles.bannerWrapper}>
-              <Image
-                src={bannerUrl}
-                alt={data?.event.title || "Event"}
-                style={styles.bannerImage}
-                fallbackSrc="/images/placeholder.jpg"
-              />
-              <div style={styles.bannerOverlay} />
-            </div>
-          )}
 
-          <div
-            style={{
-              ...styles.card,
-              textAlign: "center" as const,
-              background:
-                "linear-gradient(135deg, rgba(34,197,94,0.05), rgba(34,197,94,0.01))",
-              border: "1px solid rgba(34,197,94,0.2)",
-              boxShadow: "0 20px 60px rgba(34,197,94,0.1)",
-              marginTop: bannerUrl ? "-40px" : "0", 
-              zIndex: 10,
-            }}
-          >
-            <div
-              style={{
-                ...styles.iconCircle,
-                background:
-                  "linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05))",
-                boxShadow: "0 8px 32px rgba(34, 197, 94, 0.2)",
-              }}
-            >
-              <CheckCircle size={40} color="#22c55e" />
-            </div>
-            <Text size="xl" fw={700} c="white" mb="xs">
-              Registration Complete! 🎉
-            </Text>
-            <Text size="md" c="dimmed" mb="lg">
-              Your registration for{" "}
-              <strong style={{ color: "#F5B645" }}>
-                {data?.event.title}
-              </strong>{" "}
-              is confirmed.
-            </Text>
-            <Text size="sm" c="gray.5" mb="xl">
-              A confirmation email with your ticket has been sent to{" "}
-              <strong style={{ color: "white" }}>
-                {data?.attendee.email}
-              </strong>
-              .
-            </Text>
-
-            <div style={styles.ticketCodeBox}>
-              <Text size="sm" c="dimmed" mb={8} style={{ textTransform: "uppercase", letterSpacing: "1px" }}>
-                Ticket Code
-              </Text>
-              <Text
-                size="xl"
-                fw={800}
-                style={{
-                  fontFamily: "'Courier New', monospace",
-                  letterSpacing: "4px",
-                  background: "linear-gradient(135deg, #F5B645, #f59e0b)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                {data?.attendee.ticket_code}
-              </Text>
-            </div>
-
-            <Button
-              color="green"
-              size="lg"
-              radius="xl"
-              onClick={() => router.push("/")}
-              style={{ fontWeight: 600, padding: "0 40px" }}
-            >
-              Go to Home
-            </Button>
-          </div>
-
-          <Text size="sm" c="dimmed" ta="center" mt="xl" style={{ opacity: 0.6 }}>
-            Powered by{" "}
-            <a
-              href="https://kuepass.com"
-              style={{
-                color: "#F5B645",
-                textDecoration: "none",
-                fontWeight: 600,
-              }}
-            >
-              Kuepass
-            </a>
-          </Text>
-        </div>
-      </div>
-    );
-  }
 
   // ─── MAIN FORM ───────────────────────────────
   if (!data) return null;
@@ -563,18 +454,48 @@ export default function CompleteRegistrationPage() {
           </div>
         )}
 
+        {/* Success Banner */}
+        {success && (
+          <div
+            style={{
+              padding: "20px 24px",
+              background: "linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05))",
+              borderRadius: "16px",
+              border: "1px solid rgba(34,197,94,0.3)",
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+              marginBottom: "24px",
+              boxShadow: "0 12px 40px rgba(34, 197, 94, 0.15)",
+              marginTop: bannerUrl ? "24px" : "0", 
+            }}
+          >
+            <div style={{ padding: "8px", background: "rgba(34,197,94,0.2)", borderRadius: "50%" }}>
+              <CheckCircle size={24} color="#22c55e" />
+            </div>
+            <div>
+              <Text size="lg" fw={700} c="white">
+                {isUsed ? "Registration Updated Successfully!" : "Registration Complete! 🎉"}
+              </Text>
+              <Text size="sm" c="gray.3" mt={4}>
+                Your event details have been {isUsed ? "updated" : "saved"}. You can revisit this page anytime.
+              </Text>
+            </div>
+          </div>
+        )}
+
         {/* Event Info Card */}
         <div
           style={{
             ...styles.card,
             marginBottom: "24px",
             borderTop: `4px solid ${cardColor}`,
-            marginTop: bannerUrl ? "-40px" : "0", 
+            marginTop: (bannerUrl && !success) ? "-40px" : "0", 
             zIndex: 10,
           }}
         >
           <div style={{ textAlign: "center" as const, marginBottom: "32px" }}>
-            {!bannerUrl && (
+            {!bannerUrl && !success && (
               <Badge
                 size="sm"
                 variant="light"
@@ -1019,7 +940,7 @@ export default function CompleteRegistrationPage() {
                   transition: "transform 0.2s ease, box-shadow 0.2s ease",
                 }}
               >
-                Complete Registration
+                {isUsed ? "Update Details" : "Complete Registration"}
               </Button>
             </Stack>
           </div>
