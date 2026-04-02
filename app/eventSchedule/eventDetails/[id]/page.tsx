@@ -114,6 +114,7 @@ interface EventData {
   price?: string;
   event_type?: string;
   tags?: string[];
+  services?: any[];
   social_links?: SocialLink[];
   line_up?: LineUpItem[];
   itinerary?: ItineraryItem[];
@@ -463,7 +464,19 @@ function EventDetailsContent() {
 
         const resData = JSON.parse(responseBodyForDebug);
         const eventData = resData?.data || resData;
+        
         if (eventData && eventData.id) {
+          // Safely parse JSON fields if they arrive as strings
+          ['services', 'itinerary', 'line_up', 'social_links'].forEach(field => {
+            if (typeof eventData[field] === 'string') {
+              try {
+                eventData[field] = JSON.parse(eventData[field]);
+              } catch (e) {
+                console.warn(`Failed to parse ${field}:`, e);
+                eventData[field] = [];
+              }
+            }
+          });
           setEvent(eventData as EventData);
         } else {
           throw new Error(
@@ -1842,6 +1855,57 @@ function EventDetailsContent() {
                   </div>
                 </div>
               )}
+
+              {/* Event Services Section */}
+              {(() => {
+                let parsedServices: any[] = [];
+                if (event?.services) {
+                  if (typeof event.services === 'string') {
+                    try { parsedServices = JSON.parse(event.services); } catch (e) {}
+                  } else if (Array.isArray(event.services)) {
+                    parsedServices = event.services;
+                  }
+                }
+                
+                if (parsedServices.length === 0) return null;
+
+                return (
+                  <div className={styles.section}>
+                    <Title order={2} className={styles.sectionTitle}>
+                      Event Services & Gifts
+                    </Title>
+                    <div style={{ display: 'grid', gap: '12px', marginTop: '16px' }}>
+                      {parsedServices.map((service: any, index: number) => {
+                        const linkedTicket = service.linkedTicketId && service.linkedTicketId !== "all" 
+                          ? tickets.find(t => String(t.id) === String(service.linkedTicketId)) 
+                          : null;
+
+                        return (
+                          <Paper key={index} p="md" radius="md" withBorder>
+                            <Flex direction="column" gap={4}>
+                              <Text fw={600} size="lg" c="dark.9">{service.name}</Text>
+                              <Box mt={4}>
+                                {linkedTicket ? (
+                                  <Badge color="green" variant="light" size="sm">
+                                    Available with: {linkedTicket.name || linkedTicket.category_name || "Ticket"}
+                                  </Badge>
+                                ) : (
+                                  <Badge color="gray" variant="light" size="sm">
+                                    General Service
+                                  </Badge>
+                                )}
+                              </Box>
+                              {service.description && (
+                                <Text size="sm" c="dimmed" mt="xs">{service.description}</Text>
+                              )}
+                            </Flex>
+                          </Paper>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Attendee Sessions Viewer */}
               {id && (

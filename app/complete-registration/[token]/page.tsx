@@ -26,8 +26,8 @@ import {
   Ticket,
   AlertCircle,
   Clock,
-  User,
   ListChecks,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -56,6 +56,12 @@ interface ItineraryItem {
   image?: string;
 }
 
+interface ServiceItem {
+  id: string;
+  name: string;
+  description?: string;
+}
+
 interface PreRegData {
   attendee: {
     id: string;
@@ -73,6 +79,7 @@ interface PreRegData {
     location: string;
     address: string;
     itinerary?: ItineraryItem[];
+    services?: ServiceItem[];
     customization?: {
       banner_url?: string | string[];
       card_color?: string;
@@ -81,6 +88,7 @@ interface PreRegData {
   questions: Question[];
   existing_responses?: any[];
   selected_itinerary?: ItineraryItem[];
+  selected_services?: ServiceItem[];
   token: string;
 }
 
@@ -104,6 +112,7 @@ export default function CompleteRegistrationPage() {
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [cardColor, setCardColor] = useState<string>("#025a3a");
   const [selectedItinerary, setSelectedItinerary] = useState<ItineraryItem[]>([]);
+  const [selectedServices, setSelectedServices] = useState<ServiceItem[]>([]);
 
   const toggleItineraryItem = useCallback((item: ItineraryItem) => {
     setSelectedItinerary((prev) => {
@@ -127,6 +136,22 @@ export default function CompleteRegistrationPage() {
     [selectedItinerary]
   );
 
+  const toggleServiceItem = useCallback((item: ServiceItem) => {
+    setSelectedServices((prev) => {
+      const exists = prev.some((i) => i.id === item.id);
+      if (exists) {
+        return prev.filter((i) => i.id !== item.id);
+      }
+      return [...prev, item];
+    });
+  }, []);
+
+  const isServiceSelected = useCallback(
+    (item: ServiceItem) =>
+      selectedServices.some((i) => i.id === item.id),
+    [selectedServices]
+  );
+
   // Fetch pre-registration data, then also fetch full event details for banner + questions
   useEffect(() => {
     if (!token) return;
@@ -142,6 +167,9 @@ export default function CompleteRegistrationPage() {
 
           if (preRegData.selected_itinerary) {
             setSelectedItinerary(preRegData.selected_itinerary);
+          }
+          if (preRegData.selected_services) {
+            setSelectedServices(preRegData.selected_services);
           }
 
           // Try to fetch full event details (to get banner_url from customization)
@@ -306,6 +334,7 @@ export default function CompleteRegistrationPage() {
           body: JSON.stringify({
             responses: responsePayload,
             selected_itinerary: selectedItinerary.length > 0 ? selectedItinerary : [],
+            selected_services: selectedServices.length > 0 ? selectedServices : [],
           }),
         }
       );
@@ -712,6 +741,119 @@ export default function CompleteRegistrationPage() {
               >
                 <Text size="sm" c="gray.3" fw={500}>
                   {selectedItinerary.length} session{selectedItinerary.length !== 1 ? "s" : ""} selected
+                </Text>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Services Selection Card */}
+        {data.event.services && data.event.services.length > 0 && (
+          <div style={{ ...styles.card, padding: "32px 24px", marginBottom: "24px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                marginBottom: "20px",
+              }}
+            >
+              <div style={{ padding: "8px", background: "rgba(34, 197, 94, 0.1)", borderRadius: "10px" }}>
+                <Sparkles size={22} color="#22c55e" />
+              </div>
+              <Text size="xl" fw={700} c="white">
+                Event Services & Gifts
+              </Text>
+            </div>
+            <Text size="sm" c="gray.4" mb="xl">
+              Select the special services or complimentary gifts you would like to opt-in for.
+            </Text>
+
+            <Stack gap="md">
+              {data.event.services.map((item, index) => {
+                const selected = isServiceSelected(item);
+                return (
+                  <div
+                    key={`${item.id}-${index}`}
+                    onClick={() => toggleServiceItem(item)}
+                    style={{
+                      padding: "20px",
+                      background: selected
+                        ? "rgba(34, 197, 94, 0.08)"
+                        : "rgba(255, 255, 255, 0.015)",
+                      borderRadius: "16px",
+                      border: selected
+                        ? "1.5px solid rgba(34, 197, 94, 0.4)"
+                        : "1px solid rgba(255, 255, 255, 0.04)",
+                      cursor: "pointer",
+                      transition: "all 0.25s ease",
+                      boxShadow: selected
+                        ? "0 4px 20px rgba(34, 197, 94, 0.15)"
+                        : "none",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: "16px",
+                      }}
+                    >
+                      {/* Checkbox indicator */}
+                      <div
+                        style={{
+                          width: "24px",
+                          height: "24px",
+                          borderRadius: "8px",
+                          border: selected
+                            ? "2px solid #22c55e"
+                            : "2px solid rgba(255,255,255,0.15)",
+                          background: selected
+                            ? "linear-gradient(135deg, #22c55e, #16a34a)"
+                            : "rgba(0,0,0,0.2)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                          marginTop: "2px",
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        {selected && (
+                          <CheckCircle size={14} color="white" />
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div style={{ flex: 1 }}>
+                        <Text size="md" fw={600} c="white" mb={4}>
+                          {item.name}
+                        </Text>
+                        {item.description && (
+                          <Text size="sm" c="gray.4" style={{ lineHeight: 1.5 }}>
+                            {item.description}
+                          </Text>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </Stack>
+
+            {selectedServices.length > 0 && (
+              <div
+                style={{
+                  marginTop: "16px",
+                  padding: "12px 16px",
+                  background: "rgba(34, 197, 94, 0.06)",
+                  borderRadius: "12px",
+                  border: "1px solid rgba(34, 197, 94, 0.15)",
+                  textAlign: "center" as const,
+                }}
+              >
+                <Text size="sm" c="gray.3" fw={500}>
+                  {selectedServices.length} service{selectedServices.length !== 1 ? "s" : ""} selected
                 </Text>
               </div>
             )}

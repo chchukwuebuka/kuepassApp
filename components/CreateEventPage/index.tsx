@@ -39,6 +39,11 @@ const QuestionModal = dynamic(() => import("./QuestionModal"), {
   ssr: false,
 });
 
+const EventServiceModal = dynamic(() => import("./EventServiceModal"), {
+  ssr: false,
+});
+import { EventService } from "./EventServiceModal";
+
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.kuepass.com/api/"
 ).replace(/\/$/, "");
@@ -196,6 +201,17 @@ export default function CreateEventPage() {
       }>;
     }>
   >([]);
+  const [services, setServices] = useState<EventService[]>([]);
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState<boolean>(false);
+  const [editingService, setEditingService] = useState<EventService | null>(null);
+
+  const handleSaveService = (service: EventService) => {
+    if (editingService) {
+      setServices(services.map((s) => (s.id === service.id ? service : s)));
+    } else {
+      setServices([...services, service]);
+    }
+  };
   const [eventTypes, setEventTypes] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     eventName: "",
@@ -425,6 +441,9 @@ export default function CreateEventPage() {
               if (parsedDraft.schedules) {
                 setSchedules(parsedDraft.schedules);
               }
+              if (parsedDraft.services) {
+                setServices(parsedDraft.services);
+              }
             }
           } catch (error) {
             console.error("Error parsing saved draft:", error);
@@ -474,6 +493,7 @@ export default function CreateEventPage() {
       questions,
       lineupItems,
       schedules,
+      services,
     };
     localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(draftToSave));
   };
@@ -517,6 +537,7 @@ export default function CreateEventPage() {
     setCardColor("#025a3a");
     setLineupItems([]);
     setSchedules([]);
+    setServices([]);
     setAiPrompt("");
     setAiError(null);
     setAiGenerated(false);
@@ -784,6 +805,16 @@ export default function CreateEventPage() {
           ],
         }));
         setSchedules(mappedSchedules);
+      }
+
+      // Process services from backend
+      if (event.services && Array.isArray(event.services)) {
+        setServices(event.services.map((s: any) => ({
+          id: s.id || uuidv4(),
+          name: s.name || "",
+          description: s.description || "",
+          linkedTicketId: s.linkedTicketId || undefined
+        })));
       }
 
       // Process and set tickets
@@ -2063,6 +2094,7 @@ export default function CreateEventPage() {
         ...(socialLinksArray.length > 0 && { social_links: socialLinksArray }),
         ...(lineUpArray.length > 0 && { line_up: lineUpArray }),
         ...(itineraryArray.length > 0 && { itinerary: itineraryArray }),
+        ...(services.length > 0 && { services: services }),
         // Additional fields that may be supported
         ...(formData.timezone && { timezone: formData.timezone }),
         ...(formData.city && { city: formData.city }),
@@ -3245,6 +3277,16 @@ export default function CreateEventPage() {
               eventType={formData.eventType}
               eventLocation={formData.address || formData.city || formData.state}
               onVendorsSelected={setSelectedVendorIds}
+              services={services}
+              onAddServiceClick={() => {
+                setEditingService(null);
+                setIsServiceModalOpen(true);
+              }}
+              onEditServiceClick={(srv) => {
+                setEditingService(srv);
+                setIsServiceModalOpen(true);
+              }}
+              onRemoveService={(id) => setServices(services.filter((s) => s.id !== id))}
             />
           </>
         )}
@@ -3274,6 +3316,7 @@ export default function CreateEventPage() {
             tickets={tickets as any}
             lineupItems={lineupItems as any}
             schedules={schedules as any}
+            services={services as any}
             ticketButtonText={formData.ticketButtonText}
             eventTimingType={formData.eventTimingType}
             repeatPattern={formData.repeatPattern}
@@ -3319,6 +3362,18 @@ export default function CreateEventPage() {
         }}
         onSave={handleSaveQuestion}
         question={editingQuestion}
+      />
+
+      {/* Event Service Modal */}
+      <EventServiceModal
+        isOpen={isServiceModalOpen}
+        onClose={() => {
+          setIsServiceModalOpen(false);
+          setEditingService(null);
+        }}
+        onSave={handleSaveService}
+        service={editingService}
+        tickets={tickets as any}
       />
     </form>
   );
