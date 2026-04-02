@@ -28,6 +28,7 @@ import {
   Clock,
   ListChecks,
   Sparkles,
+  User,
 } from "lucide-react";
 import Link from "next/link";
 
