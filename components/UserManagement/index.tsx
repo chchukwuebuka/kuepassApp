@@ -7,6 +7,7 @@ import SearchBar from "../SearchBar";
 import ExportButton from "../ExportButton";
 import TabFilter from "../TabFilter";
 import UserTable from "../UserTable";
+import AttendeeDetailsTable from "../AttendeeDetailsTable";
 import Image from "next/image";
 import { Text } from "@mantine/core";
 import TicketModal from "../Ticket/ticketModal";
@@ -227,7 +228,12 @@ const TicketDashboard: React.FC<TicketDashboardProps> = ({ eventId }) => {
         totalAttendees={totalAttendees}
         validatedAttendees={validatedAttendees}
       />
-      <UserTable searchQuery={searchQuery} filter={filter} eventId={eventId} />
+
+      {filter === "details" ? (
+        <AttendeeDetailsTable searchQuery={searchQuery} eventId={eventId} />
+      ) : (
+        <UserTable searchQuery={searchQuery} filter={filter as any} eventId={eventId} />
+      )}
 
       <TicketModal
         isModalOpen={isModalOpen}

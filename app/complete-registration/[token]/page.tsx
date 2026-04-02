@@ -114,6 +114,7 @@ export default function CompleteRegistrationPage() {
   const [cardColor, setCardColor] = useState<string>("#025a3a");
   const [selectedItinerary, setSelectedItinerary] = useState<ItineraryItem[]>([]);
   const [selectedServices, setSelectedServices] = useState<ServiceItem[]>([]);
+  const [qrBase64, setQrBase64] = useState<string | null>(null);
 
   const toggleItineraryItem = useCallback((item: ItineraryItem) => {
     setSelectedItinerary((prev) => {
@@ -343,10 +344,16 @@ export default function CompleteRegistrationPage() {
       const json = await res.json();
 
       if (res.ok && json.success) {
+        if (json.data && json.data.qr_code_base64) {
+          setQrBase64(json.data.qr_code_base64);
+        }
         setSuccess(true);
         setIsUsed(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        setTimeout(() => setSuccess(false), 8000);
+        // Only auto-hide success if there's no QR code to view
+        if (!json.data?.qr_code_base64) {
+          setTimeout(() => setSuccess(false), 8000);
+        }
       } else {
         setError(
           json.error || "Failed to complete registration. Please try again."
@@ -488,29 +495,67 @@ export default function CompleteRegistrationPage() {
         {success && (
           <div
             style={{
-              padding: "20px 24px",
+              padding: "32px 24px",
               background: "linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05))",
               borderRadius: "16px",
               border: "1px solid rgba(34,197,94,0.3)",
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
+              justifyContent: "center",
               gap: "16px",
               marginBottom: "24px",
               boxShadow: "0 12px 40px rgba(34, 197, 94, 0.15)",
               marginTop: bannerUrl ? "24px" : "0", 
+              textAlign: "center"
             }}
           >
             <div style={{ padding: "8px", background: "rgba(34,197,94,0.2)", borderRadius: "50%" }}>
-              <CheckCircle size={24} color="#22c55e" />
+              <CheckCircle size={32} color="#22c55e" />
             </div>
             <div>
-              <Text size="lg" fw={700} c="white">
-                {isUsed ? "Registration Updated Successfully!" : "Registration Complete! 🎉"}
+              <Text size="xl" fw={700} c="white">
+                {isUsed && !qrBase64 ? "Registration Updated Successfully!" : "Registration Complete! 🎉"}
               </Text>
               <Text size="sm" c="gray.3" mt={4}>
-                Your event details have been {isUsed ? "updated" : "saved"}. You can revisit this page anytime.
+                Your event details have been {isUsed && !qrBase64 ? "updated" : "saved"}.
               </Text>
             </div>
+            {qrBase64 && (
+              <div style={{ 
+                marginTop: '16px', 
+                padding: '24px', 
+                background: '#fff', 
+                borderRadius: '16px', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center',
+                boxShadow: "0 8px 32px rgba(0,0,0,0.2)"
+              }}>
+                <img 
+                  src={`data:image/png;base64,${qrBase64}`} 
+                  alt="Entry QR Code" 
+                  style={{ width: '220px', height: '220px', display: 'block' }} 
+                />
+                <Text size="md" c="dark.9" fw={700} mt="lg" style={{ letterSpacing: '0.5px' }}>
+                  YOUR ENTRY TICKET
+                </Text>
+                <Text size="sm" c="dimmed" mt={4}>
+                  Take a screenshot or present this at check-in
+                </Text>
+                <div style={{ 
+                  marginTop: '16px', 
+                  padding: '8px 16px', 
+                  background: '#f8f9fa', 
+                  borderRadius: '8px',
+                  border: '1px dashed #ced4da' 
+                }}>
+                  <Text size="xs" c="dark.4" fw={600} style={{ fontFamily: 'monospace', letterSpacing: '1px' }}>
+                    {data.attendee.ticket_code}
+                  </Text>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
