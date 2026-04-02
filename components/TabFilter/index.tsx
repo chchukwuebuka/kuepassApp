@@ -32,6 +32,14 @@ const TabFilter: React.FC<TabFilterProps> = ({
       >
         Validated {validatedAttendees}
       </button>
+      <button
+        className={`${styles.tabButton} ${
+          filter === "details" ? styles.activeTab : ""
+        }`}
+        onClick={() => setFilter("details")}
+      >
+        Registration Details
+      </button>
     </div>
   );
 };
