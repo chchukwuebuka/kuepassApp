@@ -61,6 +61,7 @@ interface ServiceItem {
   id: string;
   name: string;
   description?: string;
+  linkedTicketId?: string;
 }
 
 interface PreRegData {
@@ -70,6 +71,7 @@ interface PreRegData {
     email: string;
     phone_number: string;
     ticket_code: string;
+    ticket_type_id?: string;
   };
   event: {
     id: string;
@@ -108,6 +110,7 @@ export default function CompleteRegistrationPage() {
   const [error, setError] = useState<string | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
   const [isUsed, setIsUsed] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
   const [success, setSuccess] = useState(false);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
@@ -166,6 +169,7 @@ export default function CompleteRegistrationPage() {
         if (res.ok && json.success) {
           const preRegData = json.data as PreRegData;
           setIsUsed(json.is_used || false);
+          setIsLocked(json.is_locked || false);
 
           if (preRegData.selected_itinerary) {
             setSelectedItinerary(preRegData.selected_itinerary);
@@ -816,7 +820,14 @@ export default function CompleteRegistrationPage() {
             </Text>
 
             <Stack gap="md">
-              {data.event.services.map((item, index) => {
+              {data.event.services
+                .filter(
+                  (svc) =>
+                    !svc.linkedTicketId ||
+                    svc.linkedTicketId === "all" ||
+                    svc.linkedTicketId === data.attendee.ticket_type_id
+                )
+                .map((item, index) => {
                 const selected = isServiceSelected(item);
                 return (
                   <div
@@ -1111,25 +1122,67 @@ export default function CompleteRegistrationPage() {
                 </div>
               )}
 
-              <Button
-                fullWidth
-                size="xl"
-                radius="xl"
-                onClick={handleSubmit}
-                loading={submitting}
-                leftSection={<CheckCircle size={20} />}
-                style={{
-                  background: `linear-gradient(135deg, ${cardColor}, ${cardColor}dd)`,
-                  color: "#fff",
-                  fontWeight: 600,
-                  fontSize: "16px",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
-                  transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                }}
-              >
-                {isUsed ? "Update Details" : "Complete Registration"}
-              </Button>
+              {isLocked ? (
+                <div
+                  style={{
+                    padding: "32px 24px",
+                    background: "rgba(220, 38, 38, 0.05)",
+                    border: "1px solid rgba(220, 38, 38, 0.2)",
+                    borderRadius: "16px",
+                    textAlign: "center",
+                  }}
+                >
+                  <div style={{ display: "inline-flex", padding: "12px", background: "rgba(220, 38, 38, 0.1)", borderRadius: "50%", marginBottom: "16px" }}>
+                    <AlertCircle size={32} color="#dc2626" />
+                  </div>
+                  <Text size="lg" fw={700} c="red.7" mb={8}>
+                    Editing Locked
+                  </Text>
+                  <Text size="sm" c="gray.4">
+                    Registration changes are securely locked less than 24 hours prior to the event to finalize headcount.
+                  </Text>
+                </div>
+              ) : (
+                <>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "12px",
+                      padding: "16px",
+                      background: "rgba(245, 182, 69, 0.08)",
+                      borderRadius: "12px",
+                      border: "1px solid rgba(245, 182, 69, 0.2)",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <AlertCircle size={20} color="#F5B645" style={{ flexShrink: 0, marginTop: "2px" }} />
+                    <Text size="sm" c="gray.3" style={{ lineHeight: 1.5 }}>
+                      <strong>Note:</strong> You can edit your choices at any time, but editing will be permanently locked <strong>24 hours before the event starts</strong> to finalize headcounts.
+                    </Text>
+                  </div>
+                  
+                  <Button
+                  fullWidth
+                  size="xl"
+                  radius="xl"
+                  onClick={handleSubmit}
+                  loading={submitting}
+                  leftSection={<CheckCircle size={20} />}
+                  style={{
+                    background: `linear-gradient(135deg, ${cardColor}, ${cardColor}dd)`,
+                    color: "#fff",
+                    fontWeight: 600,
+                    fontSize: "16px",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                  }}
+                >
+                  {isUsed ? "Update Details" : "Complete Registration"}
+                  </Button>
+                </>
+              )}
             </Stack>
           </div>
         ) : (

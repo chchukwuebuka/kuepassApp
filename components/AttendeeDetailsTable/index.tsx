@@ -212,9 +212,11 @@ const AttendeeDetailsTable: React.FC<AttendeeDetailsTableProps> = ({
                                   <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                                     {attendee.responses?.map((r: any, idx: number) => (
                                       <div key={idx} style={{ background: "#fff", padding: "12px", borderRadius: "8px", border: "1px solid #e9ecef" }}>
-                                        <Text size="xs" fw={600} c="dimmed">{r.question_title || "Question"}</Text>
+                                        <Text size="xs" fw={600} c="dimmed">
+                                          {r.question_text || r.question_title || "Question"}
+                                        </Text>
                                         <Text size="sm" mt={4}>
-                                          {r.text_response || r.selected_options?.map((opt: any) => opt.text || opt.option).join(", ") || "-"}
+                                          {r.text_response || r.selected_options?.map((opt: any) => opt.option_text || opt.text || opt.option || opt.id).join(", ") || "-"}
                                         </Text>
                                       </div>
                                     ))}
@@ -233,8 +235,12 @@ const AttendeeDetailsTable: React.FC<AttendeeDetailsTableProps> = ({
                                       <div key={idx} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
                                         <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#025a3a", marginTop: "8px" }} />
                                         <div>
-                                          <Text size="sm" fw={500}>{item.selected_session || item.selected_track || item.id || "Session"}</Text>
-                                          {item.date && <Text size="xs" c="dimmed">{item.date}</Text>}
+                                          <Text size="sm" fw={500}>{item.title || item.selected_session || item.selected_track || item.id || "Activity"}</Text>
+                                          {(item.date || item.start_time) && (
+                                            <Text size="xs" c="dimmed">
+                                              {[item.date, item.start_time, item.end_time ? `- ${item.end_time}` : ""].filter(Boolean).join(" ")}
+                                            </Text>
+                                          )}
                                         </div>
                                       </div>
                                     ))}
@@ -248,11 +254,23 @@ const AttendeeDetailsTable: React.FC<AttendeeDetailsTableProps> = ({
                                     <Gift size={16} color="#868e96" />
                                     <Text fw={600} size="sm" c="dark.6">Services & Gifts</Text>
                                   </Group>
-                                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", flexDirection: "column" }}>
                                     {attendee.selected_services?.map((svc: any, idx: number) => (
-                                      <Badge key={idx} color="grape" variant="light" size="lg" radius="sm">
-                                        {svc.name || svc.id || "Provided Service"}
-                                      </Badge>
+                                      <div key={idx} style={{ 
+                                        padding: "10px", 
+                                        background: "rgba(139, 92, 246, 0.05)", 
+                                        borderRadius: "8px", 
+                                        border: "1px solid rgba(139, 92, 246, 0.15)" 
+                                      }}>
+                                        <Badge color="grape" variant="light" size="lg" radius="sm" mb={svc.description ? 4 : 0}>
+                                          {svc.name || svc.id || "Provided Service"}
+                                        </Badge>
+                                        {svc.description && (
+                                          <Text size="xs" c="dimmed" mt={4} style={{ fontStyle: "italic", lineHeight: 1.4 }}>
+                                            {svc.description}
+                                          </Text>
+                                        )}
+                                      </div>
                                     ))}
                                   </div>
                                 </div>
