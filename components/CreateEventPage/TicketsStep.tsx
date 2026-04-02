@@ -7,6 +7,7 @@ import { Ticket, Question } from "@/store/types";
 import styles from "./styles.module.css";
 import { useRouter } from "next/navigation";
 import VendorRecommendations from "./VendorRecommendations";
+import { EventService } from "./EventServiceModal";
 
 interface ExtendedTicket {
   id: string;
@@ -34,6 +35,10 @@ interface TicketsStepProps {
   questions?: Question[];
   onEditQuestion?: (question: Question) => void;
   onRemoveQuestion?: (questionId: string) => void;
+  services?: EventService[];
+  onAddServiceClick?: () => void;
+  onEditServiceClick?: (service: EventService) => void;
+  onRemoveService?: (id: string) => void;
   saveDraft: () => void;
   eventType?: string;
   eventLocation?: string;
@@ -56,6 +61,10 @@ export default function TicketsStep({
   eventLocation,
   guestCount,
   onVendorsSelected,
+  services = [],
+  onAddServiceClick,
+  onEditServiceClick,
+  onRemoveService,
 }: TicketsStepProps) {
   const router = useRouter();
 
@@ -303,6 +312,67 @@ export default function TicketsStep({
           >
             <IconPlus size={20} />
             Add Questions
+          </button>
+        </div>
+      </div>
+
+      {/* Event Services Section */}
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>Event Services & Add-ons</h2>
+          <p className={styles.sectionSubtitle}>
+            Add optional services or items attendees can select during registration (like souvenirs, meals, VIP kits etc.)
+          </p>
+        </div>
+
+        <div className={styles.questionsStepContainer}>
+          {services.length > 0 && (
+            <div className={styles.questionsInputList} style={{ marginBottom: "20px" }}>
+              {services.map((service) => {
+                const linkedTicket = service.linkedTicketId && service.linkedTicketId !== "all" 
+                  ? tickets.find(t => t.id === service.linkedTicketId) 
+                  : null;
+
+                return (
+                <div key={service.id} className={styles.questionInputItem} style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '12px', cursor: 'pointer' }} onClick={() => onEditServiceClick && onEditServiceClick(service)}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ fontWeight: 600 }}>{service.name}</span>
+                      {linkedTicket ? (
+                        <span style={{ fontSize: '11px', backgroundColor: '#e2f5ec', color: '#025a3a', padding: '2px 6px', borderRadius: '4px', width: 'fit-content', fontWeight: 600 }}>
+                          Linked to: {linkedTicket.name || "Ticket"}
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '11px', backgroundColor: '#f5f5f5', color: '#666', padding: '2px 6px', borderRadius: '4px', width: 'fit-content', fontWeight: 500 }}>
+                          General Event Service
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.removeQuestionInputButton}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onRemoveService) onRemoveService(service.id);
+                      }}
+                    >
+                      <IconTrash size={18} />
+                    </button>
+                  </div>
+                  {service.description && (
+                    <span style={{ fontSize: '13px', color: '#666', marginTop: '6px' }}>{service.description}</span>
+                  )}
+                </div>
+              );
+              })}
+            </div>
+          )}
+          <button
+            type="button"
+            className={styles.addQuestionsButton}
+            onClick={onAddServiceClick}
+          >
+            <IconPlus size={20} /> Add Service
           </button>
         </div>
       </div>

@@ -41,6 +41,7 @@ interface EventData {
   end_date: string;
   location: string;
   customization?: Customization;
+  services?: any[];
 }
 
 const API_BASE_URL = (
@@ -63,7 +64,17 @@ export default function EventPage() {
       `${API_BASE_URL}/events/${id}/`,
       "GET"
     )
-      .then((res) => setEvent(res.data))
+      .then((res) => {
+        const data = res.data as any;
+        if (typeof data.services === 'string') {
+          try {
+            data.services = JSON.parse(data.services);
+          } catch (e) {
+            data.services = [];
+          }
+        }
+        setEvent(data);
+      })
       .catch((err) => {
         console.error("Fetch error:", err);
         setErrorMessage(err.message || "Failed to load event");
@@ -203,6 +214,28 @@ export default function EventPage() {
           <div className={styles.divider}></div>
           <Text className={styles.descriptionText}>{event.description}</Text>
         </Paper>
+
+        {/* Event Services */}
+        {event?.services && Array.isArray(event.services) && event.services.length > 0 && (
+          <Paper className={styles.descriptionSection} style={{ marginTop: "24px" }}>
+            <Title order={2} className={styles.descriptionHeader}>
+              Event Services & Gifts
+            </Title>
+            <div className={styles.divider}></div>
+            <div style={{ display: 'grid', gap: '16px', marginTop: '16px' }}>
+              {event.services.map((service, index) => (
+                <Paper key={index} p="md" radius="md" withBorder>
+                  <Flex direction="column" gap={4}>
+                    <Text fw={600} size="lg" c="dark.9">{service.name}</Text>
+                    {service.description && (
+                      <Text size="sm" c="dimmed" mt="xs">{service.description}</Text>
+                    )}
+                  </Flex>
+                </Paper>
+              ))}
+            </div>
+          </Paper>
+        )}
 
         {/* Other Events */}
         <div className={styles.otherEventsSection}>

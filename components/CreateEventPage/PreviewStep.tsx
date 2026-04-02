@@ -792,6 +792,7 @@ interface PreviewStepProps {
   tickets: ExtendedTicket[];
   lineupItems: LineUpItem[];
   schedules: Schedule[];
+  services?: any[];
   ticketButtonText?: string;
   eventTimingType?: "single" | "recurring";
   repeatPattern?: string;
@@ -829,6 +830,7 @@ export default function PreviewStep({
   tickets,
   lineupItems,
   schedules,
+  services = [],
   ticketButtonText = "Get Ticket",
   eventTimingType = "single",
   repeatPattern = "",
@@ -1555,6 +1557,53 @@ export default function PreviewStep({
                 </div>
               </div>
             )}
+
+            {/* Event Services Section */}
+            {(() => {
+              let parsedServices: any[] = [];
+              if (services) {
+                if (typeof services === 'string') {
+                  try { parsedServices = JSON.parse(services); } catch (e) {}
+                } else if (Array.isArray(services)) {
+                  parsedServices = services;
+                }
+              }
+              
+              if (parsedServices.length === 0) return null;
+
+              return (
+                <div className={styles.previewStepSection}>
+                  <h2 className={styles.previewStepSectionTitle}>Event Services</h2>
+                  <div style={{ display: 'grid', gap: '12px' }}>
+                    {parsedServices.map((service: any) => {
+                    const linkedTicket = service.linkedTicketId && service.linkedTicketId !== "all" 
+                      ? tickets.find(t => t.id === service.linkedTicketId) 
+                      : null;
+
+                    return (
+                      <div key={service.id} style={{ padding: '16px', border: '1px solid #e5e7eb', borderRadius: '10px', background: '#fff' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span style={{ fontWeight: 600, fontSize: '15px', color: '#111827' }}>{service.name}</span>
+                          {linkedTicket ? (
+                            <span style={{ fontSize: '12px', color: '#025a3a', background: '#e2f5ec', padding: '2px 8px', borderRadius: '6px', width: 'fit-content', fontWeight: 600 }}>
+                              Available with: {linkedTicket.name}
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: '12px', color: '#6b7280', background: '#f3f4f6', padding: '2px 8px', borderRadius: '6px', width: 'fit-content', fontWeight: 500 }}>
+                              General Service
+                            </span>
+                          )}
+                        </div>
+                        {service.description && (
+                          <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#4b5563', lineHeight: 1.5 }}>{service.description}</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              );
+            })()}
 
             {/* Virtual Meeting Link Section - For Virtual Events */}
             {locationType === "virtual" && meetingLink && (
