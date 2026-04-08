@@ -144,6 +144,8 @@ interface AttendeeData {
   is_validated?: boolean;
   payment_status?: string;
   validated_at?: string | null;
+  ticket_type_id?: string;
+  ticket?: string;
 }
 
 interface TicketData {
@@ -1869,13 +1871,34 @@ function EventDetailsContent() {
                 
                 if (parsedServices.length === 0) return null;
 
+                // Determine the current user's ticket type to filter services
+                const userEmail = currentUser?.email || (typeof window !== 'undefined' ? localStorage.getItem('kuepass_guest_email') : null);
+                const userAttendee = attendees.find(
+                  (att) =>
+                    (currentUser && String(att.user) === String(currentUser.userId)) ||
+                    (att.email && userEmail && att.email.toLowerCase() === userEmail.toLowerCase())
+                );
+                const userTicketTypeId = userAttendee?.ticket_type_id || userAttendee?.ticket;
+
+                // Filter services: show only those linked to the user's ticket type, or general (no linked ticket / "all")
+                const filteredServices = userTicketTypeId
+                  ? parsedServices.filter(
+                      (svc: any) =>
+                        !svc.linkedTicketId ||
+                        svc.linkedTicketId === "all" ||
+                        String(svc.linkedTicketId) === String(userTicketTypeId)
+                    )
+                  : parsedServices; // If we can't determine ticket type, show all
+
+                if (filteredServices.length === 0) return null;
+
                 return (
                   <div className={styles.section}>
                     <Title order={2} className={styles.sectionTitle}>
                       Event Services & Gifts
                     </Title>
                     <div style={{ display: 'grid', gap: '12px', marginTop: '16px' }}>
-                      {parsedServices.map((service: any, index: number) => {
+                      {filteredServices.map((service: any, index: number) => {
                         const linkedTicket = service.linkedTicketId && service.linkedTicketId !== "all" 
                           ? tickets.find(t => String(t.id) === String(service.linkedTicketId)) 
                           : null;
