@@ -150,6 +150,16 @@ const SeatingDashboard = nextDynamic(
     ),
   }
 );
+const AIEventPlanning = nextDynamic(
+  () => import("@/components/AIEventPlanning"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
 
 
 const API_BASE_URL = (
@@ -390,6 +400,7 @@ function DashboardContent() {
     sessions: <SessionManager eventId={activeEventId} />,
     surveys: <SurveyDashboard eventId={activeEventId} />,
     seating: <SeatingDashboard eventId={activeEventId} />,
+    aiPlanning: <AIEventPlanning eventId={activeEventId} />,
     store: (
       <>
         <h1>Store</h1>

@@ -31,6 +31,7 @@ import {
   User,
 } from "lucide-react";
 import Link from "next/link";
+import classes from "./styles.module.css";
 
 interface QuestionOption {
   id: string;
@@ -114,7 +115,7 @@ export default function CompleteRegistrationPage() {
   const [success, setSuccess] = useState(false);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
-  const [cardColor, setCardColor] = useState<string>("#025a3a");
+  const [cardColor, setCardColor] = useState<string>("#f5bc45");
   const [selectedItinerary, setSelectedItinerary] = useState<ItineraryItem[]>([]);
   const [selectedServices, setSelectedServices] = useState<ServiceItem[]>([]);
   const [qrBase64, setQrBase64] = useState<string | null>(null);
@@ -391,10 +392,10 @@ export default function CompleteRegistrationPage() {
   // ─── LOADING ─────────────────────────────────
   if (loading) {
     return (
-      <div style={styles.page}>
+      <div className={classes.page}>
         <Center style={{ minHeight: "80vh" }}>
           <Stack align="center" gap="md">
-            <Loader color="white" size="lg" />
+            <Loader color="#15302B" size="lg" />
             <Text c="dimmed" size="sm">
               Loading your registration...
             </Text>
@@ -407,15 +408,13 @@ export default function CompleteRegistrationPage() {
   // ─── ERROR / USED TOKEN ──────────────────────
   if (pageError) {
     return (
-      <div style={styles.page}>
-        <div style={styles.container}>
-          <Link href="/" style={styles.backLink}>
+      <div className={classes.page}>
+        <div className={classes.container}>
+          <Link href="/" className={classes.backLink}>
             <ArrowLeft size={16} /> Back to Home
           </Link>
           <div
-            style={{
-              ...styles.card,
-              textAlign: "center" as const,
+            className={classes.card} style={{textAlign: "center" as const,
               background: "linear-gradient(135deg, rgba(239,68,68,0.05), rgba(239,68,68,0.01))",
               border: "1px solid rgba(239,68,68,0.2)",
               boxShadow: "0 20px 60px rgba(239,68,68,0.1)",
@@ -423,16 +422,14 @@ export default function CompleteRegistrationPage() {
           >
             <>
               <div
-                style={{
-                  ...styles.iconCircle,
-                  background:
+                className={classes.iconCircle} style={{background:
                     "linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05))",
                   boxShadow: "0 8px 32px rgba(239, 68, 68, 0.2)",
                 }}
               >
                 <XCircle size={40} color="#ef4444" />
               </div>
-              <Text size="xl" fw={700} c="white" mb="sm">
+              <Text size="xl" fw={700} c="#111827" mb="sm">
                 Unavailable
               </Text>
               <Text size="md" c="dimmed" mb="xl">
@@ -462,29 +459,29 @@ export default function CompleteRegistrationPage() {
   const hasQuestions = data.questions.length > 0;
 
   return (
-    <div style={styles.page}>
-      <div style={styles.container}>
-        <Link href="/" style={styles.backLink}>
+    <div className={classes.page}>
+      <div className={classes.container}>
+        <Link href="/" className={classes.backLink}>
           <ArrowLeft size={16} /> Back to Home
         </Link>
 
         {/* Banner Image */}
         {bannerUrl && (
-          <div style={styles.bannerWrapper}>
+          <div className={classes.bannerWrapper}>
             <Image
               src={bannerUrl}
               alt={data.event.title}
-              style={styles.bannerImage}
+              className={classes.bannerImage}
               fallbackSrc="/images/placeholder.jpg"
             />
-            <div style={styles.bannerOverlay} />
-            <div style={styles.bannerContent}>
+            <div className={classes.bannerOverlay} />
+            <div className={classes.bannerContent}>
               <Badge
                 size="sm"
                 variant="filled"
                 style={{
-                  background: "rgba(245,182,69,0.9)",
-                  color: "#000",
+                  background: "#1c1c1c",
+                  color: "#f2f2f2",
                   fontWeight: 600,
                   backdropFilter: "blur(10px)",
                 }}
@@ -518,10 +515,10 @@ export default function CompleteRegistrationPage() {
               <CheckCircle size={32} color="#22c55e" />
             </div>
             <div>
-              <Text size="xl" fw={700} c="white">
+              <Text size="xl" fw={700} c="#111827">
                 {isUsed && !qrBase64 ? "Registration Updated Successfully!" : "Registration Complete! 🎉"}
               </Text>
-              <Text size="sm" c="gray.3" mt={4}>
+              <Text size="sm" c="gray.7" mt={4}>
                 Your event details have been {isUsed && !qrBase64 ? "updated" : "saved"}.
               </Text>
             </div>
@@ -565,9 +562,7 @@ export default function CompleteRegistrationPage() {
 
         {/* Event Info Card */}
         <div
-          style={{
-            ...styles.card,
-            marginBottom: "24px",
+          className={classes.card} style={{marginBottom: "24px",
             borderTop: `4px solid ${cardColor}`,
             marginTop: (bannerUrl && !success) ? "-40px" : "0", 
             zIndex: 10,
@@ -584,12 +579,12 @@ export default function CompleteRegistrationPage() {
                 Pre-Registration
               </Badge>
             )}
-            <Text size="xl" fw={800} c="white" mb="sm" style={{ letterSpacing: "-0.5px" }}>
+            <Text size="xl" fw={800} c="#111827" mb="sm" style={{ letterSpacing: "-0.5px" }}>
               {data.event.title}
             </Text>
             <Text size="md" c="dimmed">
               Hello{" "}
-              <strong style={{ color: "white" }}>{data.attendee.name}</strong>,
+              <strong style={{ color: "#111827" }}>{data.attendee.name}</strong>,
               complete your registration below.
             </Text>
           </div>
@@ -600,29 +595,29 @@ export default function CompleteRegistrationPage() {
               paddingTop: "16px",
             }}
           >
-            <div style={styles.infoRow}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(245, 182, 69, 0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Calendar size={18} color="#F5B645" />
+            <div className={classes.infoRow}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#f2f2f2", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Calendar size={18} color="#1c1c1c" />
               </div>
-              <Text size="sm" c="gray.4" style={{ flex: 1, lineHeight: 1.4 }}>
+              <Text size="sm" c="gray.6" style={{ flex: 1, lineHeight: 1.4 }}>
                 {formatDate(data.event.start_date)}
               </Text>
             </div>
-            <div style={styles.infoRow}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(245, 182, 69, 0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <MapPin size={18} color="#F5B645" />
+            <div className={classes.infoRow}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#f2f2f2", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <MapPin size={18} color="#1c1c1c" />
               </div>
-              <Text size="sm" c="gray.4" style={{ flex: 1, lineHeight: 1.4 }}>
+              <Text size="sm" c="gray.6" style={{ flex: 1, lineHeight: 1.4 }}>
                 {data.event.address || data.event.location || "TBA"}
               </Text>
             </div>
-            <div style={{ ...styles.infoRow, borderBottom: "none", paddingBottom: 0 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(245, 182, 69, 0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Ticket size={18} color="#F5B645" />
+            <div className={classes.infoRow} style={{borderBottom: "none", paddingBottom: 0 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#f2f2f2", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Ticket size={18} color="#1c1c1c" />
               </div>
-              <Text size="sm" c="gray.4" style={{ flex: 1 }}>
+              <Text size="sm" c="gray.6" style={{ flex: 1 }}>
                 Ticket:{" "}
-                <strong style={{ color: "white", letterSpacing: "1px", fontFamily: "monospace", fontSize: "16px" }}>
+                <strong style={{ color: "#111827", letterSpacing: "1px", fontFamily: "monospace", fontSize: "16px" }}>
                   {data.attendee.ticket_code}
                 </strong>
               </Text>
@@ -632,7 +627,7 @@ export default function CompleteRegistrationPage() {
 
         {/* Itinerary Selection Card */}
         {data.event.itinerary && data.event.itinerary.length > 0 && (
-          <div style={{ ...styles.card, padding: "32px 24px", marginBottom: "24px" }}>
+          <div className={classes.card} style={{padding: "32px 24px", marginBottom: "24px" }}>
             <div
               style={{
                 display: "flex",
@@ -641,14 +636,14 @@ export default function CompleteRegistrationPage() {
                 marginBottom: "20px",
               }}
             >
-              <div style={{ padding: "8px", background: "rgba(139, 92, 246, 0.1)", borderRadius: "10px" }}>
-                <ListChecks size={22} color="#8b5cf6" />
+              <div style={{ padding: "8px", background: "#f2f2f2", borderRadius: "10px" }}>
+                <ListChecks size={22} color="#1c1c1c" />
               </div>
-              <Text size="xl" fw={700} c="white">
+              <Text size="xl" fw={700} c="#111827">
                 Event Itinerary
               </Text>
             </div>
-            <Text size="sm" c="gray.4" mb="xl">
+            <Text size="sm" c="gray.6" mb="xl">
               Select the sessions you plan to attend. This helps the organizer plan accordingly.
             </Text>
 
@@ -662,16 +657,16 @@ export default function CompleteRegistrationPage() {
                     style={{
                       padding: "20px",
                       background: selected
-                        ? "rgba(139, 92, 246, 0.08)"
-                        : "rgba(255, 255, 255, 0.015)",
+                        ? "rgba(16, 185, 129, 0.08)"
+                        : "rgba(0, 0, 0, 0.015)",
                       borderRadius: "16px",
                       border: selected
-                        ? "1.5px solid rgba(139, 92, 246, 0.4)"
-                        : "1px solid rgba(255, 255, 255, 0.04)",
+                        ? "1.5px solid rgba(16, 185, 129, 0.4)"
+                        : "1px solid rgba(0, 0, 0, 0.04)",
                       cursor: "pointer",
                       transition: "all 0.25s ease",
                       boxShadow: selected
-                        ? "0 4px 20px rgba(139, 92, 246, 0.15)"
+                        ? "0 4px 20px rgba(16, 185, 129, 0.15)"
                         : "none",
                     }}
                   >
@@ -689,11 +684,11 @@ export default function CompleteRegistrationPage() {
                           height: "24px",
                           borderRadius: "8px",
                           border: selected
-                            ? "2px solid #8b5cf6"
-                            : "2px solid rgba(255,255,255,0.15)",
+                            ? "2px solid #10b981"
+                            : "2px solid rgba(0,0,0,0.15)",
                           background: selected
-                            ? "linear-gradient(135deg, #8b5cf6, #7c3aed)"
-                            : "rgba(0,0,0,0.2)",
+                            ? "linear-gradient(135deg, #10b981, #059669)"
+                            : "rgba(255,255,255,0.8)",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -709,11 +704,11 @@ export default function CompleteRegistrationPage() {
 
                       {/* Content */}
                       <div style={{ flex: 1 }}>
-                        <Text size="md" fw={600} c="white" mb={4}>
+                        <Text size="md" fw={600} c="#111827" mb={4}>
                           {item.title}
                         </Text>
                         {item.description && (
-                          <Text size="sm" c="gray.4" mb={8} style={{ lineHeight: 1.5 }}>
+                          <Text size="sm" c="gray.6" mb={8} style={{ lineHeight: 1.5 }}>
                             {item.description}
                           </Text>
                         )}
@@ -739,7 +734,7 @@ export default function CompleteRegistrationPage() {
                             }}
                           >
                             <Clock size={13} color="#F5B645" />
-                            <Text size="xs" c="gray.3" fw={500}>
+                            <Text size="xs" c="gray.7" fw={500}>
                               {item.start_time} — {item.end_time}
                             </Text>
                           </div>
@@ -752,13 +747,13 @@ export default function CompleteRegistrationPage() {
                                 alignItems: "center",
                                 gap: "6px",
                                 padding: "4px 10px",
-                                background: "rgba(139, 92, 246, 0.08)",
+                                background: "rgba(16, 185, 129, 0.08)",
                                 borderRadius: "8px",
-                                border: "1px solid rgba(139, 92, 246, 0.15)",
+                                border: "1px solid rgba(16, 185, 129, 0.15)",
                               }}
                             >
-                              <User size={13} color="#8b5cf6" />
-                              <Text size="xs" c="gray.3" fw={500}>
+                              <User size={13} color="#10b981" />
+                              <Text size="xs" c="gray.7" fw={500}>
                                 {item.host}
                               </Text>
                             </div>
@@ -783,13 +778,13 @@ export default function CompleteRegistrationPage() {
                 style={{
                   marginTop: "16px",
                   padding: "12px 16px",
-                  background: "rgba(139, 92, 246, 0.06)",
+                  background: "rgba(16, 185, 129, 0.06)",
                   borderRadius: "12px",
-                  border: "1px solid rgba(139, 92, 246, 0.15)",
+                  border: "1px solid rgba(16, 185, 129, 0.15)",
                   textAlign: "center" as const,
                 }}
               >
-                <Text size="sm" c="gray.3" fw={500}>
+                <Text size="sm" c="gray.7" fw={500}>
                   {selectedItinerary.length} session{selectedItinerary.length !== 1 ? "s" : ""} selected
                 </Text>
               </div>
@@ -799,7 +794,7 @@ export default function CompleteRegistrationPage() {
 
         {/* Services Selection Card */}
         {data.event.services && data.event.services.length > 0 && (
-          <div style={{ ...styles.card, padding: "32px 24px", marginBottom: "24px" }}>
+          <div className={classes.card} style={{padding: "32px 24px", marginBottom: "24px" }}>
             <div
               style={{
                 display: "flex",
@@ -808,14 +803,14 @@ export default function CompleteRegistrationPage() {
                 marginBottom: "20px",
               }}
             >
-              <div style={{ padding: "8px", background: "rgba(34, 197, 94, 0.1)", borderRadius: "10px" }}>
-                <Sparkles size={22} color="#22c55e" />
+              <div style={{ padding: "8px", background: "#f2f2f2", borderRadius: "10px" }}>
+                <Sparkles size={22} color="#1c1c1c" />
               </div>
-              <Text size="xl" fw={700} c="white">
+              <Text size="xl" fw={700} c="#111827">
                 Event Services & Gifts
               </Text>
             </div>
-            <Text size="sm" c="gray.4" mb="xl">
+            <Text size="sm" c="gray.6" mb="xl">
               Select the special services or complimentary gifts you would like to opt-in for.
             </Text>
 
@@ -837,11 +832,11 @@ export default function CompleteRegistrationPage() {
                       padding: "20px",
                       background: selected
                         ? "rgba(34, 197, 94, 0.08)"
-                        : "rgba(255, 255, 255, 0.015)",
+                        : "rgba(0, 0, 0, 0.015)",
                       borderRadius: "16px",
                       border: selected
                         ? "1.5px solid rgba(34, 197, 94, 0.4)"
-                        : "1px solid rgba(255, 255, 255, 0.04)",
+                        : "1px solid rgba(0, 0, 0, 0.04)",
                       cursor: "pointer",
                       transition: "all 0.25s ease",
                       boxShadow: selected
@@ -864,10 +859,10 @@ export default function CompleteRegistrationPage() {
                           borderRadius: "8px",
                           border: selected
                             ? "2px solid #22c55e"
-                            : "2px solid rgba(255,255,255,0.15)",
+                            : "2px solid rgba(0,0,0,0.15)",
                           background: selected
                             ? "linear-gradient(135deg, #22c55e, #16a34a)"
-                            : "rgba(0,0,0,0.2)",
+                            : "rgba(255,255,255,0.8)",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -883,11 +878,11 @@ export default function CompleteRegistrationPage() {
 
                       {/* Content */}
                       <div style={{ flex: 1 }}>
-                        <Text size="md" fw={600} c="white" mb={4}>
+                        <Text size="md" fw={600} c="#111827" mb={4}>
                           {item.name}
                         </Text>
                         {item.description && (
-                          <Text size="sm" c="gray.4" style={{ lineHeight: 1.5 }}>
+                          <Text size="sm" c="gray.6" style={{ lineHeight: 1.5 }}>
                             {item.description}
                           </Text>
                         )}
@@ -909,7 +904,7 @@ export default function CompleteRegistrationPage() {
                   textAlign: "center" as const,
                 }}
               >
-                <Text size="sm" c="gray.3" fw={500}>
+                <Text size="sm" c="gray.7" fw={500}>
                   {selectedServices.length} service{selectedServices.length !== 1 ? "s" : ""} selected
                 </Text>
               </div>
@@ -919,7 +914,7 @@ export default function CompleteRegistrationPage() {
 
         {/* Questions Form Card */}
         {hasQuestions ? (
-          <div style={{ ...styles.card, padding: "32px 24px" }}>
+          <div className={classes.card} style={{padding: "32px 24px" }}>
             <div
               style={{
                 display: "flex",
@@ -928,22 +923,22 @@ export default function CompleteRegistrationPage() {
                 marginBottom: "20px",
               }}
             >
-              <div style={{ padding: "8px", background: "rgba(245, 182, 69, 0.1)", borderRadius: "10px" }}>
-                <ClipboardList size={22} color="#F5B645" />
+              <div style={{ padding: "8px", background: "#f2f2f2", borderRadius: "10px" }}>
+                <ClipboardList size={22} color="#1c1c1c" />
               </div>
-              <Text size="xl" fw={700} c="white">
+              <Text size="xl" fw={700} c="#111827">
                 Follow-up Questions
               </Text>
             </div>
-            <Text size="sm" c="gray.4" mb="xl">
+            <Text size="sm" c="gray.6" mb="xl">
               The event organizer requires the following information to complete
               your registration.
             </Text>
 
             <Stack gap="xl">
               {data.questions.map((q, index) => (
-                <div key={q.id} style={styles.questionBlock}>
-                  <Text size="md" fw={600} c="white" mb={12}>
+                <div key={q.id} className={classes.questionBlock}>
+                  <Text size="md" fw={600} c="#111827" mb={12}>
                     {index + 1}. {q.title}
                     {q.required && (
                       <span style={{ color: "#ef4444", marginLeft: "4px" }}>*</span>
@@ -965,9 +960,9 @@ export default function CompleteRegistrationPage() {
                       size="lg"
                       styles={{
                         input: {
-                          background: "rgba(0,0,0,0.15)",
-                          borderColor: "rgba(255,255,255,0.08)",
-                          color: "white",
+                          background: "#ffffff",
+                          borderColor: "rgba(0,0,0,0.1)",
+                          color: "#111827",
                           borderRadius: "12px",
                           transition: "border-color 0.2s ease, box-shadow 0.2s ease",
                           "&:focus": {
@@ -993,9 +988,9 @@ export default function CompleteRegistrationPage() {
                       size="lg"
                       styles={{
                         input: {
-                          background: "rgba(0,0,0,0.15)",
-                          borderColor: "rgba(255,255,255,0.08)",
-                          color: "white",
+                          background: "#ffffff",
+                          borderColor: "rgba(0,0,0,0.1)",
+                          color: "#111827",
                           borderRadius: "12px",
                           transition: "border-color 0.2s ease, box-shadow 0.2s ease",
                           "&:focus": {
@@ -1020,9 +1015,9 @@ export default function CompleteRegistrationPage() {
                       size="lg"
                       styles={{
                         input: {
-                          background: "rgba(0,0,0,0.15)",
-                          borderColor: "rgba(255,255,255,0.08)",
-                          color: "white",
+                          background: "#ffffff",
+                          borderColor: "rgba(0,0,0,0.1)",
+                          color: "#111827",
                           borderRadius: "12px",
                           transition: "border-color 0.2s ease",
                           "&:focus": {
@@ -1030,15 +1025,15 @@ export default function CompleteRegistrationPage() {
                           },
                         },
                         dropdown: {
-                          background: "#10101A",
-                          border: "1px solid rgba(255,255,255,0.08)",
+                          background: "#ffffff",
+                          border: "1px solid rgba(0,0,0,0.1)",
                           borderRadius: "12px",
                         },
                         option: {
-                          color: "white",
+                          color: "#111827",
                           borderRadius: "8px",
                           "&[data-selected]": { background: "rgba(245, 182, 69, 0.2)", color: "#F5B645" },
-                          "&[data-hovered]": { background: "rgba(255,255,255,0.05)" },
+                          "&[data-hovered]": { background: "rgba(0,0,0,0.05)" },
                         },
                       }}
                     />
@@ -1056,14 +1051,14 @@ export default function CompleteRegistrationPage() {
                             key={o.id}
                             value={o.id}
                             label={
-                              <Text size="md" c="gray.3">
+                              <Text size="md" c="gray.7">
                                 {o.text}
                               </Text>
                             }
                             styles={{
                               radio: {
-                                background: "rgba(0,0,0,0.2)",
-                                borderColor: "rgba(255,255,255,0.2)",
+                                background: "transparent",
+                                borderColor: "rgba(0,0,0,0.3)",
                               },
                             }}
                           />
@@ -1084,14 +1079,14 @@ export default function CompleteRegistrationPage() {
                             key={o.id}
                             value={o.id}
                             label={
-                              <Text size="md" c="gray.3">
+                              <Text size="md" c="gray.7">
                                 {o.text}
                               </Text>
                             }
                             styles={{
                               input: {
-                                background: "rgba(0,0,0,0.2)",
-                                borderColor: "rgba(255,255,255,0.2)",
+                                background: "transparent",
+                                borderColor: "rgba(0,0,0,0.3)",
                               },
                             }}
                           />
@@ -1138,7 +1133,7 @@ export default function CompleteRegistrationPage() {
                   <Text size="lg" fw={700} c="red.7" mb={8}>
                     Editing Locked
                   </Text>
-                  <Text size="sm" c="gray.4">
+                  <Text size="sm" c="gray.6">
                     Registration changes are securely locked less than 24 hours prior to the event to finalize headcount.
                   </Text>
                 </div>
@@ -1157,7 +1152,7 @@ export default function CompleteRegistrationPage() {
                     }}
                   >
                     <AlertCircle size={20} color="#F5B645" style={{ flexShrink: 0, marginTop: "2px" }} />
-                    <Text size="sm" c="gray.3" style={{ lineHeight: 1.5 }}>
+                    <Text size="sm" c="gray.7" style={{ lineHeight: 1.5 }}>
                       <strong>Note:</strong> You can edit your choices at any time, but editing will be permanently locked <strong>24 hours before the event starts</strong> to finalize headcounts.
                     </Text>
                   </div>
@@ -1188,25 +1183,21 @@ export default function CompleteRegistrationPage() {
         ) : (
           /* No questions — auto-completion message */
           <div
-            style={{
-              ...styles.card,
-              textAlign: "center" as const,
+            className={classes.card} style={{textAlign: "center" as const,
               background:
                 "linear-gradient(135deg, rgba(34,197,94,0.05), rgba(34,197,94,0.01))",
               border: "1px solid rgba(34,197,94,0.2)",
             }}
           >
             <div
-              style={{
-                ...styles.iconCircle,
-                background:
+              className={classes.iconCircle} style={{background:
                   "linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05))",
                 boxShadow: "0 8px 32px rgba(34, 197, 94, 0.2)",
               }}
             >
               <CheckCircle size={40} color="#22c55e" />
             </div>
-            <Text size="xl" fw={700} c="white" mb="xs">
+            <Text size="xl" fw={700} c="#111827" mb="xs">
               You&apos;re All Set!
             </Text>
             <Text size="md" c="dimmed" mb="lg">
@@ -1239,105 +1230,3 @@ export default function CompleteRegistrationPage() {
 }
 
 
-// ─── Inline Styles ─────────────────────────────
-const styles: { [key: string]: React.CSSProperties } = {
-  page: {
-    minHeight: "100vh",
-    background:
-      "linear-gradient(180deg, #05050A 0%, #10101A 50%, #0a0a1a 100%)",
-    padding: "60px 20px",
-    fontFamily: "'Inter', 'Segoe UI', sans-serif",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-  },
-  container: {
-    width: "100%",
-    maxWidth: "580px",
-    margin: "0 auto",
-  },
-  card: {
-    background: "rgba(255, 255, 255, 0.03)",
-    border: "1px solid rgba(255, 255, 255, 0.08)",
-    borderRadius: "24px",
-    padding: "40px",
-    backdropFilter: "blur(40px)",
-    WebkitBackdropFilter: "blur(40px)",
-    boxShadow: "0 24px 80px rgba(0,0,0,0.4)",
-    position: "relative",
-    overflow: "hidden",
-  },
-  backLink: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "8px",
-    color: "rgba(255,255,255,0.6)",
-    textDecoration: "none",
-    fontSize: "15px",
-    fontWeight: 500,
-    marginBottom: "24px",
-    transition: "color 0.2s ease, transform 0.2s ease",
-  },
-  bannerWrapper: {
-    borderRadius: "20px",
-    overflow: "hidden",
-    marginBottom: "24px",
-    position: "relative" as const,
-    height: "240px",
-    boxShadow: "0 12px 30px rgba(0,0,0,0.3)",
-    border: "1px solid rgba(255,255,255,0.05)",
-  },
-  bannerImage: {
-    width: "100%",
-    height: "240px",
-    objectFit: "cover" as const,
-    display: "block",
-  },
-  bannerOverlay: {
-    position: "absolute" as const,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: "120px",
-    background:
-      "linear-gradient(to top, rgba(5,5,10,0.95), transparent)",
-    pointerEvents: "none" as const,
-  },
-  bannerContent: {
-    position: "absolute" as const,
-    bottom: "20px",
-    left: "24px",
-    zIndex: 2,
-  },
-  infoRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: "14px",
-    padding: "14px 0",
-    borderBottom: "1px solid rgba(255,255,255,0.06)",
-  },
-  iconCircle: {
-    width: "80px",
-    height: "80px",
-    borderRadius: "50%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    margin: "0 auto 24px",
-    boxShadow: "0 8px 32px rgba(34, 197, 94, 0.2)",
-  },
-  ticketCodeBox: {
-    background: "rgba(0, 0, 0, 0.3)",
-    borderRadius: "16px",
-    padding: "24px",
-    marginBottom: "32px",
-    border: "1px dashed rgba(255,255,255,0.15)",
-    boxShadow: "inset 0 4px 12px rgba(0,0,0,0.2)",
-  },
-  questionBlock: {
-    padding: "20px",
-    background: "rgba(255, 255, 255, 0.015)",
-    borderRadius: "16px",
-    border: "1px solid rgba(255, 255, 255, 0.04)",
-  },
-};
