@@ -278,8 +278,9 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
         budget: parseInt(formData.budget) || 500000,
         description: formData.description,
         vendor_plan_data: { 
-          breakdown: vendorPlan?.budget_breakdown, 
-          selected_vendors: selectedVendors 
+          budget_breakdown: vendorPlan?.budget_breakdown || [], 
+          vendor_suggestions: Object.keys(selectedVendors).length > 0 ? selectedVendors : (vendorPlan?.vendor_suggestions || {}),
+          ticket_suggestions: vendorPlan?.ticket_suggestions || []
         },
         timeline_data: flowPlan?.timeline_data || []
       };
@@ -318,16 +319,38 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative", marginBottom: "1rem" }}>
+        <div className={styles.headerTop}>
           <h1 className={styles.headerTitle} style={{ margin: 0 }}>AI Event Build Flow</h1>
           {isPreviewMode && (
-            <button 
-              className={styles.secondaryBtn} 
-              style={{ position: "absolute", right: 0, padding: "8px 16px" }}
-              onClick={() => setShowSavedPlansModal(true)}
-            >
-              <FaFolderOpen /> My Saved Plans
-            </button>
+            <div className={styles.headerActions}>
+              {(step > 1 || formData.title) && step !== 4 && (
+                <button 
+                  className={styles.secondaryBtn} 
+                  style={{ borderColor: "#ef4444", color: "#ef4444" }}
+                  onClick={() => {
+                    if (confirm("Reset current draft and start a new plan?")) {
+                      localStorage.removeItem("kuepass_ai_planner_draft");
+                      setStep(1);
+                      setFormData({
+                        title: "", event_type: "conference", description: "", location: "Lagos",
+                        start_date: "", end_date: "", guest_count: "100", budget: "500000",
+                      });
+                      setVendorPlan(null);
+                      setSelectedVendors({});
+                      setFlowPlan(null);
+                    }
+                  }}
+                >
+                  <FaPlus /> New Event
+                </button>
+              )}
+              <button 
+                className={styles.secondaryBtn}
+                onClick={() => setShowSavedPlansModal(true)}
+              >
+                <FaFolderOpen /> My Saved Plans
+              </button>
+            </div>
           )}
         </div>
         <p className={styles.headerSubtitle}>
@@ -604,13 +627,29 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
               Your ideation, vendor selections, and timeline flow have been explicitly saved to your account.
               You can load this later and convert it into a real live event when you are ready.
             </div>
-            <button 
-              className={styles.generateBtn}
-              onClick={() => router.push("/dashboard")}
-              style={{ marginTop: "16px" }}
-            >
-              Back to Dashboard
-            </button>
+            <div style={{ display: "flex", gap: "12px", marginTop: "24px", justifyContent: "center" }}>
+              <button 
+                className={styles.secondaryBtn}
+                onClick={() => router.push("/dashboard")}
+              >
+                Back to Dashboard
+              </button>
+              <button 
+                className={styles.generateBtn}
+                onClick={() => {
+                  setStep(1);
+                  setFormData({
+                    title: "", event_type: "conference", description: "", location: "Lagos",
+                    start_date: "", end_date: "", guest_count: "100", budget: "500000",
+                  });
+                  setVendorPlan(null);
+                  setSelectedVendors({});
+                  setFlowPlan(null);
+                }}
+              >
+                <FaPlus /> Create Another Plan
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -624,6 +663,10 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
             {/* Cover Image */}
             <div 
               className={`${styles.drawerCoverImage} ${styles['coverGradient' + ((viewingVendor.category.length + (viewingVendor.vendor.business_name || '').length) % 5)]}`}
+              style={viewingVendor.vendor.cover_image_url ? { 
+                backgroundImage: `url(${viewingVendor.vendor.cover_image_url})`,
+                backgroundSize: '100%' 
+              } : undefined}
             />
 
             <div className={styles.drawerContent}>
@@ -657,6 +700,47 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
                   </div>
                 </div>
               </div>
+
+              {/* Packages / Service Items */}
+              {viewingVendor.vendor.packages && viewingVendor.vendor.packages.length > 0 && (
+                <div className={styles.drawerSection}>
+                  <h3 className={styles.drawerSectionTitle}>Available Packages</h3>
+                  <div className={styles.packageList}>
+                    {viewingVendor.vendor.packages.map((pkg: any, idx: number) => {
+                      const isChecked = drawerPackages.includes(pkg.name);
+                      return (
+                        <div
+                          key={idx}
+                          className={`${styles.packageItem} ${isChecked ? styles.packageItemChecked : ''}`}
+                          onClick={() => {
+                            setDrawerPackages(prev =>
+                              isChecked
+                                ? prev.filter(p => p !== pkg.name)
+                                : [...prev, pkg.name]
+                            );
+                          }}
+                        >
+                          <div className={styles.packageCheck}>
+                            {isChecked && <FaCheckCircle style={{ color: '#10b981', fontSize: '1rem' }} />}
+                          </div>
+                          {pkg.image_url && (
+                            <div style={{ flexShrink: 0, width: 60, height: 60, borderRadius: 8, overflow: 'hidden', marginLeft: '4px' }}>
+                              <img src={pkg.image_url} alt={pkg.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            </div>
+                          )}
+                          <div className={styles.packageDetails}>
+                            <div className={styles.packageHeader}>
+                              <span className={styles.packageName}>{pkg.name}</span>
+                              <span className={styles.packagePrice}>₦{Number(pkg.price).toLocaleString()}</span>
+                            </div>
+                            <p className={styles.packageDesc}>{pkg.description}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className={styles.drawerFooter}>

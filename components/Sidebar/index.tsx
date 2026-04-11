@@ -28,6 +28,7 @@ export type PageKey =
   | "salesAnalytics"
   | "Generate Promotion Kit"
   | "vendorMarketplace"
+  | "vendorDashboard"
   | "refunds"
   | "eventTools"
   | "sponsors"
@@ -44,6 +45,7 @@ export type PageKey =
 interface SidebarProps {
   activePage: PageKey;
   onNavClick: (pageKey: PageKey) => void;
+  isVendor?: boolean;
 }
 
 const menuItems: {
@@ -52,6 +54,7 @@ const menuItems: {
   label: string;
   isBottom?: boolean;
   disabled?: boolean;
+  vendorOnly?: boolean;
 }[] = [
   { key: "overview", icon: <FaHome />, label: "Dashboard" },
   {
@@ -78,6 +81,12 @@ const menuItems: {
     icon: <FaHandshake />,
     label: "Vendor Hub",
   },
+  {
+    key: "vendorDashboard",
+    icon: <FaStore />,
+    label: "Vendor Portal",
+    vendorOnly: true,
+  },
   { key: "refunds", icon: <FaUndo />, label: "Refunds" },
   { key: "eventTools", icon: <FaToolbox />, label: "Event Tools" },
   { key: "sponsors", icon: <FaTrophy />, label: "Sponsors" },
@@ -95,8 +104,8 @@ const menuItems: {
   { key: "logout", icon: <FaSignOutAlt />, label: "Log Out", isBottom: true },
 ];
 
-const Sidebar = ({ activePage, onNavClick }: SidebarProps) => {
-  const topItems = menuItems.filter((item) => !item.isBottom);
+const Sidebar = ({ activePage, onNavClick, isVendor = false }: SidebarProps) => {
+  const topItems = menuItems.filter((item) => !item.isBottom && (!item.vendorOnly || isVendor));
   const bottomItems = menuItems.filter((item) => item.isBottom);
 
   // Disable "overview" (Dashboard) when creating an event

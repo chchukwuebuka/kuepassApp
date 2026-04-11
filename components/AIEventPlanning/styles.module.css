@@ -10,6 +10,28 @@
   text-align: center;
 }
 
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.headerActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .headerTop {
+    justify-content: center;
+    flex-direction: column;
+  }
+}
+
 .headerTitle {
   font-size: 2.5rem;
   font-weight: 800;
@@ -496,8 +518,17 @@
 .drawerCoverImage {
   height: 220px;
   position: relative;
-  background-size: cover;
+  background-size: contain;
   background-position: center;
+  background-repeat: no-repeat;
+} 
+
+.drawerCoverImage::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.3) 100%);
+  pointer-events: none;
 }
 
 /* Gradients for vendor placeholders */
