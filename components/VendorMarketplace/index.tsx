@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaStore } from "react-icons/fa";
 import styles from "./styles.module.css";
 import VendorCard from "./VendorCard";
 import VendorDetailModal from "./VendorDetailModal";
@@ -30,7 +30,7 @@ const SERVICE_CATEGORIES = [
   "Event Planning",
 ];
 
-const VendorMarketplace: React.FC = () => {
+const VendorMarketplace: React.FC<{ onBecomeVendor?: () => void }> = ({ onBecomeVendor }) => {
   const [vendors, setVendors] = useState<VendorData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -119,6 +119,11 @@ const VendorMarketplace: React.FC = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
+          {onBecomeVendor && (
+            <button className={styles.btnPrimary} onClick={onBecomeVendor} style={{ whiteSpace: "nowrap" }}>
+              <FaStore /> Become a Vendor
+            </button>
+          )}
         </div>
 
         {/* Category Filter Tabs */}

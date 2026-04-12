@@ -160,6 +160,16 @@ const AIEventPlanning = nextDynamic(
     ),
   }
 );
+const VendorDashboard = nextDynamic(
+  () => import("@/components/VendorDashboard"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
 
 
 const API_BASE_URL = (
@@ -218,6 +228,23 @@ function DashboardContent() {
   const [activePage, setActivePage] = useState<PageKey>(
     mode === "createEvent" ? "createEvent" : (page as PageKey) || "overview"
   );
+  const [isVendor, setIsVendor] = useState(false);
+
+  // Check if user is a vendor (has vendor profile)
+  useEffect(() => {
+    const checkVendorStatus = async () => {
+      try {
+        await authenticatedRequest<any>(
+          `${API_BASE_URL}/vendor/profile/`,
+          "GET"
+        );
+        setIsVendor(true);
+      } catch {
+        setIsVendor(false);
+      }
+    };
+    checkVendorStatus();
+  }, []);
 
   // Sync activeEventId to URL if it changes and is not already in URL
   useEffect(() => {
@@ -393,7 +420,7 @@ function DashboardContent() {
     bulkPreRegister: <BulkPreRegistration eventId={activeEventId} />,
     finance: <Finance />,
     salesAnalytics: <SalesAnalyticsPage eventId={activeEventId} />,
-    vendorMarketplace: <VendorMarketplace />,
+    vendorMarketplace: <VendorMarketplace onBecomeVendor={() => setActivePage("vendorDashboard")} />,
     refunds: <RefundDashboard eventId={activeEventId} />,
     eventTools: <EventToolsDashboard eventId={activeEventId} />,
     sponsors: <SponsorDashboard eventId={activeEventId} />,
@@ -401,6 +428,7 @@ function DashboardContent() {
     surveys: <SurveyDashboard eventId={activeEventId} />,
     seating: <SeatingDashboard eventId={activeEventId} />,
     aiPlanning: <AIEventPlanning eventId={activeEventId} />,
+    vendorDashboard: <VendorDashboard />,
     store: (
       <>
         <h1>Store</h1>
@@ -428,7 +456,7 @@ function DashboardContent() {
   return (
     <div>
       <div className={styles.dashboardLayout}>
-        <Sidebar activePage={activePage} onNavClick={handleNavClick} />
+        <Sidebar activePage={activePage} onNavClick={handleNavClick} isVendor={isVendor} />
         <div className={`${styles.container} ${roboto.className}`}>
           <div className={styles.mainContent}>{contentMapping[activePage]}</div>
         </div>
