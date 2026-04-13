@@ -46,6 +46,7 @@ interface SidebarProps {
   activePage: PageKey;
   onNavClick: (pageKey: PageKey) => void;
   isVendor?: boolean;
+  hasEvent?: boolean;
 }
 
 const menuItems: {
@@ -55,26 +56,30 @@ const menuItems: {
   isBottom?: boolean;
   disabled?: boolean;
   vendorOnly?: boolean;
+  requiresEvent?: boolean;
 }[] = [
   { key: "overview", icon: <FaHome />, label: "Dashboard" },
   {
     key: "customization",
     icon: <FaUsers />,
     label: "Customization",
+    requiresEvent: true,
   },
-  { key: "userManagement", icon: <FaUsers />, label: "User Management" },
-  { key: "bulkPreRegister", icon: <FaUserFriends />, label: "Bulk Pre-Register" },
-  { key: "aiPlanning", icon: <FaToolbox />, label: "AI Planning" },
+  { key: "userManagement", icon: <FaUsers />, label: "User Management", requiresEvent: true },
+  { key: "bulkPreRegister", icon: <FaUserFriends />, label: "Bulk Pre-Register", requiresEvent: true },
+  { key: "aiPlanning", icon: <FaToolbox />, label: "AI Event Planner" },
   { key: "finance", icon: <FaMoneyBill />, label: "Finance", disabled: true },
   {
     key: "salesAnalytics",
     icon: <FaChartLine />,
     label: "Sales Analytics",
+    requiresEvent: true,
   },
   {
     key: "Generate Promotion Kit",
     icon: <FaStore />,
     label: "Generate Promotion Kit",
+    requiresEvent: true,
   },
   {
     key: "vendorMarketplace",
@@ -87,12 +92,12 @@ const menuItems: {
     label: "Vendor Portal",
     vendorOnly: true,
   },
-  { key: "refunds", icon: <FaUndo />, label: "Refunds" },
-  { key: "eventTools", icon: <FaToolbox />, label: "Event Tools" },
-  { key: "sponsors", icon: <FaTrophy />, label: "Sponsors" },
-  { key: "sessions", icon: <FaCalendarAlt />, label: "Sessions" },
-  { key: "surveys", icon: <FaClipboardList />, label: "Surveys" },
-  { key: "seating", icon: <FaChair />, label: "Seating" },
+  { key: "refunds", icon: <FaUndo />, label: "Refunds", requiresEvent: true },
+  { key: "eventTools", icon: <FaToolbox />, label: "Event Tools", requiresEvent: true },
+  { key: "sponsors", icon: <FaTrophy />, label: "Sponsors", requiresEvent: true },
+  { key: "sessions", icon: <FaCalendarAlt />, label: "Sessions", requiresEvent: true },
+  { key: "surveys", icon: <FaClipboardList />, label: "Surveys", requiresEvent: true },
+  { key: "seating", icon: <FaChair />, label: "Seating", requiresEvent: true },
   { key: "store", icon: <FaStore />, label: "Store", disabled: true },
   {
     key: "support",
@@ -104,8 +109,13 @@ const menuItems: {
   { key: "logout", icon: <FaSignOutAlt />, label: "Log Out", isBottom: true },
 ];
 
-const Sidebar = ({ activePage, onNavClick, isVendor = false }: SidebarProps) => {
-  const topItems = menuItems.filter((item) => !item.isBottom && (!item.vendorOnly || isVendor));
+const Sidebar = ({ activePage, onNavClick, isVendor = false, hasEvent = false }: SidebarProps) => {
+  const topItems = menuItems.filter((item) => {
+    if (item.isBottom) return false;
+    if (item.vendorOnly && !isVendor) return false;
+    if (item.requiresEvent && !hasEvent) return false;
+    return true;
+  });
   const bottomItems = menuItems.filter((item) => item.isBottom);
 
   // Disable "overview" (Dashboard) when creating an event
