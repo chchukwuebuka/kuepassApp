@@ -2415,6 +2415,16 @@ export default function CreateEventPage() {
     { id: 3, label: "Preview & publish", completed: false },
   ];
 
+  const hasStartedFilling = Boolean(
+    formData.eventName ||
+    formData.eventDescription ||
+    formData.startDate ||
+    formData.address ||
+    eventImagePreview ||
+    additionalImages.length > 0 ||
+    tickets.length > 0
+  );
+
   if (isLoading) {
     return (
       <div className={styles.createEventContainer}>
@@ -2450,17 +2460,19 @@ export default function CreateEventPage() {
       {/* Main Content */}
       <div className={styles.mainContent}>
         {/* Clear All Data Button */}
-        <div className={styles.clearAllWrapper}>
-          <button
-            type="button"
-            className={styles.clearAllButton}
-            onClick={clearAllData}
-            title="Clear all form data and start fresh"
-          >
-            <IconTrash size={16} />
-            <span>Clear All Data</span>
-          </button>
-        </div>
+        {hasStartedFilling && (
+          <div className={styles.clearAllWrapper}>
+            <button
+              type="button"
+              className={styles.clearAllButton}
+              onClick={clearAllData}
+              title="Clear all form data and start fresh"
+            >
+              <IconTrash size={16} />
+              <span>Clear All Data</span>
+            </button>
+          </div>
+        )}
         {currentStep === 1 && (
           <>
             {/* AI Event Creation Section removed as requested */}
