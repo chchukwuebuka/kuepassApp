@@ -108,7 +108,7 @@
 
 /* Featured Events Section */
 .featuredSection {
-  padding: 0 1rem 3rem;
+  padding: 0 1rem 0rem;
   border-radius: 16px;
 }
 
@@ -303,10 +303,10 @@
 /* Events Grid */
 .eventsGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2.5rem 2rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
   padding: 2rem 1rem;
-  max-width: 1200px;
+  max-width: 1300px;
   margin: 0 auto;
 }
 
@@ -327,7 +327,7 @@
 /* Event Card */
 .eventCard {
   background: white;
-  border-radius: 20px;
+  border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   border: 1px solid #f3f4f6;
@@ -335,7 +335,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 18px;
+  padding: 14px;
 }
 
 .eventCard:hover {
@@ -346,9 +346,7 @@
 .eventImageContainer {
   position: relative;
   width: 100%;
-  height: 200px;
-
-
+  height: 160px;
 }
 
 .eventImage {
@@ -365,11 +363,16 @@
 }
 
 .eventTitle {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   color: #111827;
   margin: 0 0 0.5rem 0;
   line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .eventDetails {
@@ -424,7 +427,14 @@ font-size: 12.77px;
 }
 
 /* Responsive Design */
-@media (max-width: 1024px) {
+@media (max-width: 1150px) {
+  .eventsGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 900px) {
   .eventsGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
@@ -527,7 +537,7 @@ font-size: 12.77px;
   background-image: url(../../../public/images/heroImage.png);
   background-size: cover;
   background-position: center;
-  width: 96%;
+  /* width: 96%; */
   height: 580px;
   display: flex;
   justify-content: center;

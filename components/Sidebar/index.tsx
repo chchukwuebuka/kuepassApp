@@ -22,6 +22,7 @@ import {
 import { ReactElement } from "react";
 
 export type PageKey =
+  | "overview"
   | "createEvent"
   | "customization"
   | "userManagement"
@@ -38,7 +39,6 @@ export type PageKey =
   | "seating"
   | "store"
   | "support"
-  | "createEvent"
   | "bulkPreRegister"
   | "aiPlanning";
 
@@ -68,6 +68,7 @@ const menuItems: {
   { key: "vendorDashboard", icon: <FaStore />, label: "Vendor Portal", vendorOnly: true, category: "General" },
   
   // Event Management
+  { key: "overview", icon: <FaChartLine />, label: "Overview", requiresEvent: true, category: "Event Management" },
   { key: "customization", icon: <FaRegEdit />, label: "Customization", requiresEvent: true, category: "Event Management" },
   { key: "eventTools", icon: <FaToolbox />, label: "Event Tools", requiresEvent: true, category: "Event Management" },
   { key: "sessions", icon: <FaCalendarAlt />, label: "Sessions", requiresEvent: true, category: "Event Management" },

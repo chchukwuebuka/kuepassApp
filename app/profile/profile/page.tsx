@@ -20,14 +20,16 @@ import {
 import {
   IconEdit,
   IconLogout,
-  IconCalendarEvent,
-  IconBuilding,
-  IconMail,
   IconUser,
-  IconPhone,
-  IconWorld,
-  IconCurrencyDollar,
-  IconLanguage,
+  IconShieldLock,
+  IconDeviceMobile,
+  IconSettings,
+  IconClock,
+  IconUsers,
+  IconLock,
+  IconDotsCircleHorizontal,
+  IconMail,
+  IconPlus,
 } from "@tabler/icons-react";
 import Navbar from "@/components/navbar";
 import CustomFooter from "@/components/Footer";
@@ -60,6 +62,33 @@ const ProfilePage: React.FC = () => {
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const isLogged = useSelector((state: RootState) => state.user.isLogged);
 
+  const [activeTab, setActiveTab] = useState<'personal' | 'email' | 'mobile'>('personal');
+  const [detectedCountry, setDetectedCountry] = useState<string>("Not provided");
+  const [detectedLanguage, setDetectedLanguage] = useState<string>("English");
+
+  useEffect(() => {
+    // Detect Language
+    if (typeof navigator !== 'undefined') {
+      try {
+        const langCode = navigator.language.split('-')[0];
+        const langName = new Intl.DisplayNames(['en'], { type: 'language' }).of(langCode) || 'English';
+        setDetectedLanguage(langName);
+      } catch (e) {
+        setDetectedLanguage('English');
+      }
+    }
+
+    // Detect Country via IP
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.country_name) {
+          setDetectedCountry(data.country_name);
+        }
+      })
+      .catch(() => console.log("Failed to fetch IP country"));
+  }, []);
+
   useEffect(() => {
     // Log the user data to see what we have
     console.log("Redux userInfo:", userInfo);
@@ -74,8 +103,8 @@ const ProfilePage: React.FC = () => {
     // Get profile picture URL directly from profile_url
     let profile_url = userInfo.profile_url || "";
 
-    // Add a cache-busting timestamp if not already present
-    if (profile_url && !profile_url.includes("?t=")) {
+    // Add a cache-busting timestamp if not already present, but NEVER for Google images
+    if (profile_url && !profile_url.includes("?t=") && !profile_url.includes("googleusercontent.com")) {
       const timestamp = new Date().getTime();
       profile_url = profile_url.includes("?")
         ? `${profile_url}&t=${timestamp}`
@@ -101,9 +130,9 @@ const ProfilePage: React.FC = () => {
       phoneNumber: phoneNumber,
       profile_url: profile_url,
       username: userInfo.username || "",
-      country: userInfo.country || "Not provided",
+      country: userInfo.country || "",
       currency: userInfo.currency || "Not provided",
-      language: userInfo.language || "Not provided",
+      language: userInfo.language || "",
       active: userInfo.active ?? true,
     });
   }, [userInfo, isLogged, router]);
@@ -121,8 +150,7 @@ const ProfilePage: React.FC = () => {
     setImgSrc(""); // Clear the image source on error
   };
 
-  // Show loading state if user data isn't ready
-  if (!userProfile) {
+    if (!userProfile) {
     return (
       <Stack>
         <Stack className={styles.navStark}>
@@ -130,7 +158,7 @@ const ProfilePage: React.FC = () => {
         </Stack>
         <Container className={styles.container}>
           <Paper className={styles.loadingCard}>
-            <Loader color="#024d3a" size="lg" />
+            <Loader color="#025a3a" size="lg" />
             <Text className={styles.loadingText}>Loading profile...</Text>
           </Paper>
         </Container>
@@ -142,164 +170,192 @@ const ProfilePage: React.FC = () => {
   }
 
   return (
-    <Stack>
-      <Stack className={styles.navStark}>
-        <Navbar />
-      </Stack>
-      <Container className={styles.container}>
-        <Card className={styles.profileCard}>
-          <Flex className={styles.profileCard1}>
-            <Box className={styles.profileImage}>
-              <Avatar
-                src={imgSrc || ""}
-                alt="Profile"
-                size={150}
-                radius={150}
-                className={styles.avatar}
-                imageProps={{ onError: handleImageError }}
-              />
-              {imgError && (
-                <Text className={styles.imgErrorText}>
-                  Failed to load profile image from server
-                </Text>
-              )}
-            </Box>
-            <Box className={styles.profileDetails}>
-              <Title order={2} className={styles.profileName}>
-                {userProfile.name}
-              </Title>
-              <Divider className={styles.profileDivider} />
+    <Stack style={{ backgroundColor: "#f4f5f7", minHeight: "100vh" }} gap={0}>
+      <Navbar />
 
-              <Group className={styles.profileInfo}>
-                <IconUser className={styles.infoIcon} />
-                <Text component="span" className={styles.infoLabel}>
-                  Username:
-                </Text>
-                <Text component="span">{userProfile.username}</Text>
-              </Group>
-
-              <Group className={styles.profileInfo}>
-                <IconMail className={styles.infoIcon} />
-                <Text component="span" className={styles.infoLabel}>
-                  Email:
-                </Text>
-                <Text component="span">{userProfile.email}</Text>
-              </Group>
-
-              <Group className={styles.profileInfo}>
-                <IconPhone className={styles.infoIcon} />
-                <Text component="span" className={styles.infoLabel}>
-                  Phone:
-                </Text>
-                <Text component="span">{userProfile.phoneNumber}</Text>
-              </Group>
-
-              <Group className={styles.profileInfo}>
-                <IconWorld className={styles.infoIcon} />
-                <Text component="span" className={styles.infoLabel}>
-                  Country:
-                </Text>
-                <Text component="span">{userProfile.country}</Text>
-              </Group>
-
-              <Group className={styles.profileInfo}>
-                <IconCurrencyDollar className={styles.infoIcon} />
-                <Text component="span" className={styles.infoLabel}>
-                  Currency:
-                </Text>
-                <Text component="span">{userProfile.currency}</Text>
-              </Group>
-
-              <Group className={styles.profileInfo}>
-                <IconLanguage className={styles.infoIcon} />
-                <Text component="span" className={styles.infoLabel}>
-                  Language:
-                </Text>
-                <Text component="span">{userProfile.language}</Text>
-              </Group>
-
-              <Group className={styles.profileInfo}>
-                <Text component="span" className={styles.infoLabel}>
-                  Account Status:
-                </Text>
-                <Badge
-                  color={userProfile.active ? "green" : "red"}
-                  variant="light"
-                  size="lg"
-                >
-                  {userProfile.active ? "Active" : "Inactive"}
-                </Badge>
-              </Group>
-            </Box>
-          </Flex>
-
-          <Group className={styles.actions}>
-            <Link href="/profile/edithProfile" className={styles.actionLink}>
-              <button className={styles.editButton}>
-                <IconEdit size={18} className={styles.buttonIcon} />
-                Edit Profile
-              </button>
-            </Link>
-            <button onClick={handleLogout} className={styles.logoutButton}>
-              <IconLogout size={18} className={styles.buttonIcon} />
-              Log Out
-            </button>
-          </Group>
-        </Card>
-
-        <Flex className={styles.eventsFlex}>
-          <Card className={styles.eventsCards}>
-            <Title order={3} className={styles.cardTitle}>
-              My Events
-            </Title>
-            <Text className={styles.cardDescription}>
-              View events that has been uploaded with this profile and also
-              search for events of your choice.
-            </Text>
-            <Link
-              href="/eventSchedule/exploreEvent"
-              className={styles.actionLink}
+      <Flex style={{ flex: 1, width: "100%", paddingTop: "80px" }}>
+        {/* Hostinger-style Accounts Sidebar */}
+        <Box className={styles.sidebar}>
+          <div className={styles.sidebarItemActive}>
+            <IconUser size={20} stroke={2} />
+            Profile
+          </div>
+          <div className={styles.sidebarSubMenu}>
+            <div 
+              className={activeTab === 'personal' ? styles.sidebarSubItemActive : styles.sidebarSubItem}
+              onClick={() => setActiveTab('personal')}
             >
-              <button className={styles.editButton}>
-                <IconCalendarEvent size={18} className={styles.buttonIcon} />
-                View
-              </button>
-            </Link>
-          </Card>
+              {activeTab === 'personal' && <span>•</span>} Personal Information
+            </div>
+            <div 
+              className={activeTab === 'email' ? styles.sidebarSubItemActive : styles.sidebarSubItem}
+              onClick={() => setActiveTab('email')}
+            >
+              {activeTab === 'email' && <span>•</span>} Email Address
+            </div>
+            <div 
+              className={activeTab === 'mobile' ? styles.sidebarSubItemActive : styles.sidebarSubItem}
+              onClick={() => setActiveTab('mobile')}
+            >
+              {activeTab === 'mobile' && <span>•</span>} Mobile Numbers
+            </div>
+          </div>
+          
+          <div className={styles.sidebarItem}>
+            <IconShieldLock size={20} stroke={1.5} /> Security
+          </div>
+          <div className={styles.sidebarItem}>
+            <IconDeviceMobile size={20} stroke={1.5} /> Multi-Factor Authentication
+          </div>
+          <div className={styles.sidebarItem}>
+            <IconSettings size={20} stroke={1.5} /> Settings
+          </div>
+          <div className={styles.sidebarItem}>
+            <IconClock size={20} stroke={1.5} /> Sessions
+          </div>
+          <div className={styles.sidebarItem}>
+            <IconUsers size={20} stroke={1.5} /> Groups
+          </div>
+          <div className={styles.sidebarItem}>
+            <IconLock size={20} stroke={1.5} /> Privacy
+          </div>
+          <div className={styles.sidebarItem} style={{ marginTop: "1rem" }}>
+            <IconDotsCircleHorizontal size={20} stroke={1.5} /> View more
+          </div>
+        </Box>
 
-          <Card className={styles.eventsCards}>
-            <Title order={3} className={styles.cardTitle}>
-              My Buildings
-            </Title>
-            <Text className={styles.cardDescription}>
-              View events that has been uploaded with this profile and also
-              search for events of your choice.
-            </Text>
-            <Link href="/building/my-buildings" className={styles.actionLink}>
-              <button className={styles.editButton}>
-                <IconBuilding size={18} className={styles.buttonIcon} />
-                View
-              </button>
-            </Link>
-          </Card>
+        {/* Main Content Area */}
+        <Box className={styles.mainContent}>
+          <Container className={styles.container}>
+            {activeTab === 'personal' && (
+              <>
+                <Title order={2} className={styles.pageTitle}>Profile</Title>
+                
+                <Card className={styles.profileCard}>
+                  {/* Header Row: Avatar, Name/Email, Edit Button */}
+                  <Flex className={styles.profileHeaderFlex}>
+                    <Flex align="center" gap={20}>
+                      <Box className={styles.profileImage}>
+                        <Avatar
+                          src={imgSrc || ""}
+                          alt="Profile"
+                          size={70}
+                          radius={70}
+                          className={styles.avatar}
+                          imageProps={{ onError: handleImageError }}
+                        />
+                        {imgError && <Text className={styles.imgErrorText}>Failed to load</Text>}
+                      </Box>
+                      <Box>
+                        <Title order={3} className={styles.profileName}>
+                          {userProfile.name}
+                        </Title>
+                        <Text className={styles.profileEmail}>
+                          {userProfile.email}
+                        </Text>
+                      </Box>
+                    </Flex>
 
-          <Card className={styles.eventsCards}>
-            <Title order={3} className={styles.cardTitle}>
-              My Invites
-            </Title>
-            <Text className={styles.cardDescription}>
-              View events that has been uploaded with this profile and also
-              search for events of your choice.
-            </Text>
-            <Link href="/dashboard" className={styles.actionLink}>
-              <button className={styles.editButton}>
-                <IconCalendarEvent size={18} className={styles.buttonIcon} />
-                View
-              </button>
-            </Link>
-          </Card>
-        </Flex>
-      </Container>
+                    <Link href="/profile/edithProfile" className={styles.actionLink}>
+                      <button className={styles.editButton}>
+                        Edit
+                      </button>
+                    </Link>
+                  </Flex>
+
+                  {/* User Info Grid */}
+                  <div className={styles.infoGrid}>
+                    <div className={styles.infoBlock}>
+                      <Text className={styles.infoLabel}>Full Name</Text>
+                      <Text className={styles.infoValue}>{userProfile.name}</Text>
+                    </div>
+                    <div className={styles.infoBlock}>
+                      <Text className={styles.infoLabel}>Display Name</Text>
+                      <Text className={styles.infoValue}>{userProfile.username || userProfile.name}</Text>
+                    </div>
+                    <div className={styles.infoBlock}>
+                      <Text className={styles.infoLabel}>Gender</Text>
+                      <Text className={styles.infoValue}>I'd prefer not to say</Text>
+                    </div>
+                    <div className={styles.infoBlock}>
+                      <Text className={styles.infoLabel}>Country/Region</Text>
+                      <Text className={styles.infoValue}>
+                        {userProfile.country || detectedCountry}
+                      </Text>
+                    </div>
+                    <div className={styles.infoBlock}>
+                      <Text className={styles.infoLabel}>Language</Text>
+                      <Text className={styles.infoValue}>{userProfile.language || detectedLanguage}</Text>
+                    </div>
+                    <div className={styles.infoBlock}>
+                      <Text className={styles.infoLabel}>Time zone</Text>
+                      <Text className={styles.infoValue}>(GMT +01:00) West Africa Standard Time</Text>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Email Addresses Card */}
+                <Card className={styles.profileCard} mt="md">
+                  <Title order={4} className={styles.sectionTitle}>My Email Addresses</Title>
+                  <Text className={styles.sectionDesc}>
+                    View and manage the email addresses associated with your account. They can be used to sign in and to reset password if you ever forget.
+                  </Text>
+                  <div className={styles.emailBlock}>
+                    <Text className={styles.infoValue}>{userProfile.email}</Text>
+                    <Badge color="green" variant="light">Primary</Badge>
+                  </div>
+                </Card>
+              </>
+            )}
+
+            {activeTab === 'email' && (
+              <>
+                <Title order={2} className={styles.pageTitle}>Profile</Title>
+                <Card className={styles.profileCard}>
+                  <Title order={3} className={styles.sectionTitle} mb={8}>My Email Addresses</Title>
+                  <Text className={styles.sectionDesc} mb={24}>
+                    View and manage the email addresses associated with your account. They can be used to sign in and to reset password if you ever forget it.
+                  </Text>
+                  
+                  <Divider />
+                  
+                  <Flex align="center" justify="space-between" mt={32} mb={32}>
+                    <Flex align="center" gap={16}>
+                      <Avatar size={50} radius="xl" color="red" bg="#ff4d4f">
+                         <IconMail size={24} color="white" />
+                      </Avatar>
+                      <Box>
+                        <Text fw={500} size="md" c="dark">{userProfile.email}</Text>
+                        <Text size="xs" c="dimmed" mt={4}>Registered</Text>
+                      </Box>
+                    </Flex>
+                  </Flex>
+                  
+                  <Flex justify="center" mt={40}>
+                    <Text 
+                      c="#007bff" 
+                      fw={600} 
+                      style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}
+                    >
+                      <IconPlus size={18} stroke={3} /> Add Email Address
+                    </Text>
+                  </Flex>
+                </Card>
+              </>
+            )}
+
+            {/* Separated Logout Action - Always visible safely at the bottom */}
+            <Flex justify="flex-start" mt={40} mb={40}>
+               <button onClick={handleLogout} className={styles.logoutButton}>
+                 <IconLogout size={18} className={styles.buttonIcon} />
+                 Log Out
+               </button>
+            </Flex>
+
+          </Container>
+        </Box>
+      </Flex>
+
       <Box>
         <CustomFooter />
       </Box>

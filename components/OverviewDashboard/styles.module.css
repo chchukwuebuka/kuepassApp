@@ -1,0 +1,96 @@
+.overviewContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.emptyCard {
+  background: white;
+  padding: 48px;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  border: 1px solid #e2e8f0;
+  text-align: center;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.iconWrapper {
+  background: #f0fdf4;
+  padding: 20px;
+  border-radius: 50%;
+  margin-bottom: 24px;
+}
+
+.emptyIcon {
+  color: #025a3a;
+}
+
+.emptyTitle {
+  font-size: 1.5rem;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+.emptyDesc {
+  color: #64748b;
+  margin: 0 0 32px 0;
+  line-height: 1.5;
+}
+
+.createBtn {
+  background-color: #025a3a;
+  height: 44px;
+  padding: 0 24px;
+  transition: all 0.2s;
+}
+
+.createBtn:hover {
+  background-color: #01432b;
+  transform: translateY(-2px);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.recentActivityHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 32px;
+  margin-bottom: 8px;
+}
+
+.recentActivityHeader h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.tableWrapper {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  overflow: hidden;
+}

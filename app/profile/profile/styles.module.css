@@ -1,17 +1,23 @@
 .navStark {
-  margin-bottom: 80px;
+  margin-bottom: 40px;
 }
 
 .container {
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: flex-start;
-  background-color: #f5f5f5;
-  max-width: 1200px;
+  max-width: 1000px;
   width: 100%;
   margin: 0 auto;
   padding: 0 20px;
+}
+
+.pageTitle {
+  font-size: 1.8rem;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 24px;
+  margin-top: 20px;
 }
 
 .loadingCard {
@@ -21,248 +27,253 @@
   justify-content: center;
   background: white;
   padding: 3rem;
-  border-radius: 16px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   width: 100%;
-  max-width: 50rem;
   height: 200px;
 }
 
 .loadingText {
   margin-top: 1rem;
-  color: #024d3a;
+  color: #025a3a;
   font-weight: 500;
 }
 
 .profileCard {
   background: white;
-  padding: 2rem;
-  border-radius: 16px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 32px 40px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   width: 100%;
-  max-width: 50rem;
+  border: 1px solid #e2e8f0;
 }
 
-.profileCard1 {
+.profileHeaderFlex {
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 30px;
-  margin-bottom: 20px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
 }
 
 .profileImage {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 1rem;
+  margin-right: 12px;
 }
 
 .avatar {
-  border: 4px solid #024d3a;
+  border: none;
 }
 
 .imgErrorText {
   margin-top: 0.5rem;
-  color: #e74c3c;
+  color: #ef4444;
   font-size: 0.8rem;
 }
 
-.profileDetails {
-  margin-bottom: 1rem;
-  text-align: left;
-  gap: 20px;
-  /* flex: 1; */
-}
-
 .profileName {
-  font-size: 1.8rem;
-  margin: 0 0 1rem 0;
-  color: #024d3a;
-  padding-bottom: 0.5rem;
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #111827;
+  margin: 0 0 4px 0;
 }
 
-.profileDivider {
-  margin-bottom: 1rem;
-  border-color: #f0f0f0;
-}
-
-.profileInfo {
-  margin: 0.5rem 0;
-  color: #555;
-  font-size: 1rem;
-  line-height: 1.5;
-  flex-wrap: nowrap;
-}
-
-.infoIcon {
-  color: #024d3a;
-  margin-right: 0.5rem;
-}
-
-.infoLabel {
-  color: #333;
-  font-weight: 600;
-  width: 100px;
-}
-
-.actions {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 20px;
+.profileEmail {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0;
 }
 
 .actionLink {
   text-decoration: none;
 }
 
-.buttonIcon {
-  margin-right: 8px;
-}
-
-.editButton,
-.logoutButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.8rem;
-  font-size: 1rem;
-  cursor: pointer;
-  font-weight: bold;
-  width: 14.125rem;
-  height: 2.75rem;
-  border-radius: 46px;
-  transition: all 0.3s ease;
-}
-
 .editButton {
-  border: 1px solid #025a3a;
-  color: #f5f5f5;
-  background-color: #025a3a;
-  border: 1px #056348 solid;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 24px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .editButton:hover {
-  color: #017f56;
-  background-color: #f5f5f5;
-  transform: translateY(-2px);
+  background-color: #059669;
 }
 
+/* User Info Grid */
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.infoBlock {
+  display: flex;
+  flex-direction: column;
+}
+
+.infoLabel {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.infoValue {
+  font-size: 1rem;
+  color: #1f2937;
+  font-weight: 400;
+}
+
+/* Secondary Card Info */
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.sectionDesc {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 24px;
+  line-height: 1.5;
+  max-width: 800px;
+}
+
+.emailBlock {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Auth / Logout */
 .logoutButton {
-  border: 1px solid #025a3a;
-  color: #025a3a;
-  background-color: transparent;
-  border: 1px #056348 solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  font-weight: 600;
+  border-radius: 6px;
+  background-color: white;
+  color: #374151;
+  border: 1px solid #cbd5e1;
+  transition: all 0.2s ease;
+  gap: 8px;
 }
 
 .logoutButton:hover {
-  color: #f5f5f5;
-  background-color: #017f56;
-  transform: translateY(-2px);
+  background-color: #f1f5f9;
+  color: #111827;
 }
 
-.eventsFlex {
-  display: flex;
-  justify-content: center;
-  align-items: stretch;
-  margin-top: 30px;
-  margin-bottom: 30px;
-  gap: 20px;
-  flex-wrap: wrap;
-  width: 100%;
-}
-
-.eventsCards {
-  flex: 1;
-  min-width: 300px;
-  max-width: 400px;
-  border-radius: 20px;
-  border: 1px #025a3a solid;
-  text-align: center;
-  padding: 20px;
-  background-color: #ffffff;
+/* Hostinger-style Sidebar */
+.sidebar {
+  width: 250px;
+  background-color: #0b151f; /* very dark slate/teal */
+  padding: 32px 0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  min-height: calc(100vh - 80px); /* minus navbar approx */
+  flex-shrink: 0;
+}
+
+.sidebarItem {
+  display: flex;
   align-items: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  gap: 12px;
+  color: #94a3b8;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 16px 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.eventsCards:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+.sidebarItem:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
 }
 
-.cardTitle {
-  color: #024d3a;
-  margin-bottom: 1rem;
+.sidebarItemActive {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #f8fafc;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 16px 24px;
+  cursor: pointer;
+}
+
+.sidebarItemActive svg {
+  color: #10b981;
+}
+
+.sidebarSubMenu {
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 12px 0;
+}
+
+.sidebarSubItem {
+  color: #94a3b8;
+  padding: 10px 24px 10px 56px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.sidebarSubItem:hover {
+  color: #ffffff;
+}
+
+.sidebarSubItemActive {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  padding: 10px 24px 10px 48px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.sidebarSubItemActive span {
+  color: #10b981;
   font-size: 1.5rem;
+  line-height: 0;
 }
 
-.cardDescription {
-  color: #555;
-  margin-bottom: 1.5rem;
-  flex-grow: 1;
+.mainContent {
+  flex: 1;
+  padding-bottom: 60px;
 }
 
 /* Responsive styles */
 @media (max-width: 768px) {
-  .profileCard {
-    width: 90%;
-    padding: 1.5rem;
+  .sidebar {
+    display: none; /* Hide sidebar on mobile or implement a hamburger */
   }
 
-  .profileCard1 {
+  .profileCard {
+    padding: 24px;
+  }
+
+  .profileHeaderFlex {
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     gap: 20px;
   }
 
-  .profileImage {
-    margin-bottom: 0.5rem;
-  }
-
-  .profileDetails {
-    text-align: center;
-    width: 100%;
-  }
-
-  .profileInfo {
-    justify-content: center;
-  }
-
-  .infoLabel {
-    width: auto;
-    margin-right: 5px;
-  }
-
-  .eventsFlex {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .eventsCards {
-    width: 90%;
-    margin-bottom: 10px;
-    min-width: unset;
-  }
-
-  .actions {
-    flex-direction: column;
-    align-items: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .avatar {
-    width: 120px !important;
-    height: 120px !important;
-  }
-
-  .editButton,
-  .logoutButton {
-    width: 100%;
+  .infoGrid {
+    grid-template-columns: 1fr;
+    gap: 24px;
   }
 }
