@@ -7,12 +7,18 @@
 
 /* Progress Tracker */
 .progressTracker {
-  background-color: white;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 1rem 2rem;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/images/hands.png');
+  background-size: cover;
+  background-position: center;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.1);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 2.5rem 2rem;
   position: sticky;
   top: 0;
   z-index: 10;
+  margin-bottom: 1rem;
 }
 
 .progressHeader {
@@ -68,21 +74,22 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: #e5e7eb;
-  color: #6b7280;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #f5b645;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
   font-size: 0.875rem;
+  backdrop-filter: blur(4px);
 }
 
 .completedStep .checkIcon {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: #22c55e;
-  color: white;
+  background-color: #f5b645;
+  color: #151515;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -92,45 +99,49 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: #22c55e;
-  color: white;
+  background-color: #f5b645;
+  color: #151515;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .incompleteCheckIcon {
-  color: #9ca3af;
+  color: rgba(255, 255, 255, 0.9);
   stroke-width: 1.5;
 }
 
 .stepLabel {
-  font-size: 0.75rem;
-  color: #374151;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
   white-space: nowrap;
-  font-weight: 400;
+  font-weight: 500;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
 .activeStep .stepLabel {
-  color: #374151;
-  font-weight: 400;
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
 }
 
 .completedStep .stepLabel {
-  color: #374151;
-  font-weight: 400;
+  color: #ffffff;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
 .stepConnector {
   width: 120px;
   height: 2px;
-  background-color: #e5e7eb;
+  background-color: rgba(255, 255, 255, 0.3);
   margin: 0 0.5rem;
   margin-top: -1.5rem;
 }
 
 .connectorActive {
-  background-color: #22c55e;
+  background-color: #f5b645;
+  box-shadow: 0 0 8px rgba(245, 182, 69, 0.6);
 }
 
 .userProfile {
