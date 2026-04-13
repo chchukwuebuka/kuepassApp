@@ -226,7 +226,7 @@ function DashboardContent() {
   const router = useRouter();
   const pathname = usePathname();
   const [activePage, setActivePage] = useState<PageKey>(
-    mode === "createEvent" ? "createEvent" : (page as PageKey) || "overview"
+    mode === "createEvent" ? "createEvent" : (page as PageKey) || "createEvent"
   );
   const [isVendor, setIsVendor] = useState(false);
 
@@ -273,26 +273,9 @@ function DashboardContent() {
       return;
     }
 
-    const fetchLatestEvent = async () => {
-      try {
-        const response = await authenticatedRequest<any>(
-          `${API_BASE_URL}/events/`,
-          "GET"
-        );
-        const eventList = response?.data || response?.results || response || [];
-        const events = Array.isArray(eventList) ? eventList : [];
-        if (events.length > 0) {
-          // Use the most recently created event
-          const sorted = [...events].sort(
-            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          );
-          setActiveEventId(sorted[0].id);
-        }
-      } catch (err) {
-        console.error("Failed to auto-fetch events:", err);
-      }
-    };
-    fetchLatestEvent();
+    // We no longer auto-fetch the latest event automatically
+    // The dashboard will now load cleanly unless an event is specifically selected
+    return;
   }, [eventId, mode]);
 
   useEffect(() => {
@@ -371,50 +354,6 @@ function DashboardContent() {
   };
 
   const contentMapping: Record<PageKey, React.ReactElement> = {
-    overview: (
-      <>
-        {!activeEventId ? (
-          <CreateEventPage />
-        ) : (
-          <>
-            {loading ? (
-              <Center style={{ height: "200px" }}>
-                <Loader size="xl" />
-              </Center>
-            ) : error ? (
-              <Center style={{ height: "200px" }}>
-                <Text color="red" size="xl">
-                  {error}
-                </Text>
-              </Center>
-            ) : event ? (
-              <TopBanner event={event} />
-            ) : (
-              <div className={styles.placeholderBanner}>
-                <h2>Select an event to view details</h2>
-              </div>
-            )}
-            <div className={styles.statsGrid}>
-              <StatsCard
-                title="Total Registered Users"
-                value={registeredUsers.toString()}
-              />
-              <StatsCard
-                title="Total Validated Users"
-                value={validatedUsers.toString()}
-              />
-              <StatsCard
-                title="Total Balance"
-                value={totalBalance}
-                btnValue="View Details"
-                onClick={() => console.log("Total Balance button clicked!")}
-              />
-            </div>
-            <UserTable eventId={activeEventId} searchQuery="" filter="all" />
-          </>
-        )}
-      </>
-    ),
     customization: <Customization />,
     userManagement: <TicketDashboard eventId={activeEventId} />,
     bulkPreRegister: <BulkPreRegistration eventId={activeEventId} />,
@@ -445,12 +384,6 @@ function DashboardContent() {
       </>
     ),
     createEvent: <CreateEventPage />,
-    logout: (
-      <>
-        <h1>Log Out</h1>
-        <p>You have been logged out.</p>
-      </>
-    ),
   };
 
   return (

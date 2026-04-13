@@ -23,7 +23,7 @@ import {
 } from "@tabler/icons-react";
 import styles from "./styles.module.css";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signUp } from "@/app/services/api";
 import { setAuthToken, setUserData } from "@/app/services/auth";
 import { useDispatch } from "react-redux";
@@ -32,6 +32,7 @@ import { useGoogleLogin } from "@react-oauth/google";
 
 const SignUp = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const form = useForm({
     initialValues: {
       username: "",
@@ -155,8 +156,13 @@ const SignUp = () => {
           );
         }
 
-        // Redirect to profile page instead of homepage
-        router.push("/profile/profile");
+        // Redirect to profile page or the requested redirect path
+        const redirectPath = searchParams.get("redirect");
+        if (redirectPath) {
+          router.push(redirectPath);
+        } else {
+          router.push("/profile/profile");
+        }
         return data.data;
       } else {
         // Handle error
@@ -274,8 +280,13 @@ const SignUp = () => {
           dispatch(login(user));
         }
 
-        // Use the appropriate approach for Next.js router
-        router.push("/auth/signin?registered=true");
+        // Pass along the redirect parameter to the signin page so it isn't lost
+        const redirectPath = searchParams.get("redirect");
+        if (redirectPath) {
+          router.push(`/auth/signin?registered=true&redirect=${encodeURIComponent(redirectPath)}`);
+        } else {
+          router.push("/auth/signin?registered=true");
+        }
       } else {
         setError(
           response.message || "Failed to create account. Please try again."
@@ -499,7 +510,7 @@ const SignUp = () => {
 
             <Text className={styles.signInText}>
               Already have an account?{" "}
-              <Link href="/auth/signin" className={styles.signInLink}>
+              <Link href={searchParams.get("redirect") ? `/auth/signin?redirect=${encodeURIComponent(searchParams.get("redirect")!)}` : "/auth/signin"} className={styles.signInLink}>
                 Sign In
               </Link>
             </Text>

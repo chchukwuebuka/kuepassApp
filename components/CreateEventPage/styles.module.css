@@ -141,16 +141,18 @@
 
 /* Main Content */
 .mainContent {
-  max-width: 1400px;
-
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 24px;
 }
 
 .section {
   background-color: white;
-
   padding: 2rem;
-  /* margin-bottom: 2rem; */
-
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  margin-bottom: 2rem;
 }
 
 .sectionHeader {
@@ -160,16 +162,14 @@
 .sectionTitle {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #025a3a;
+  color: #0f172a;
   margin-bottom: 0.5rem;
 }
 
 .sectionSubtitle {
-  /* font-size: 0.95rem; */
-  color: #151515;
-  font-weight: 500;
-  font-size: 18px;
-
+  color: #64748b;
+  font-weight: 400;
+  font-size: 1rem;
 }
 
 /* Image Upload Section */
@@ -183,8 +183,8 @@
   width: 100%;
   min-height: 300px;
   border-radius: 12px;
-  border: 2px dashed #d1d5db;
-  background-color: #f9fafb;
+  border: 2px dashed #cbd5e1;
+  background-color: #f8fafc;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -338,7 +338,7 @@
 .inputLabel {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #374151;
+  color: #475569;
   margin-bottom: 0.25rem;
 }
 
@@ -433,11 +433,12 @@
 .input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 1rem;
   transition: all 0.2s ease;
-  background-color: #F5F6FA;
+  background-color: #ffffff;
+  color: #0f172a;
 }
 
 .input:focus {
@@ -449,13 +450,14 @@
 .textarea {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 1rem;
   font-family: inherit;
   resize: vertical;
   transition: all 0.2s ease;
-  background-color: #F5F6FA;
+  background-color: #ffffff;
+  color: #0f172a;
 }
 
 .textarea:focus {
@@ -467,10 +469,11 @@
 .select {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 1rem;
-  background-color: #F5F6FA;
+  background-color: #ffffff;
+  color: #0f172a;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: center;
@@ -503,12 +506,12 @@
 
 .eventTypeCard:hover {
   border-color: #025a3a;
-  background-color: rgb(254, 247, 236)#f0fdf4;
+  background-color: #f0fdf4;
 }
 
 .eventTypeCardSelected {
   border-color: #025a3a;
-  background-color: rgb(254, 247, 236);
+  background-color: #f0fdf4;
 }
 
 .eventTypeCardContent {
@@ -589,14 +592,12 @@
 .dateTimeInput {
   width: 100%;
   padding: 0.75rem 1rem 0.75rem 3rem;
-  border: 0.6px solid #D5D5D5;
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 1rem;
-  background-color: #F5F6FA;
+  background-color: #ffffff;
+  color: #0f172a;
   transition: all 0.2s ease;
-
-  /* border-radius: 4px; */
-
 }
 
 .dateTimeInput::-webkit-calendar-picker-indicator {
@@ -642,32 +643,37 @@
 .locationButtons {
   display: flex;
   margin-top: 0.5rem;
-  border: 1px solid #D5D5D5;
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
-  /* width: 390px; */
+  overflow: hidden;
 }
 
 .locationButton {
+  flex: 1;
   padding: 0.75rem 1.5rem;
-  border: 1px solid transparent;
-  /* border-radius: 8px; */
+  border: none;
+  border-right: 1px solid #cbd5e1;
   background-color: white;
-  color: #6b7280;
+  color: #475569;
   font-weight: 500;
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
+.locationButton:last-child {
+  border-right: none;
+}
+
 .locationButton:hover {
-  border-color: transparent;
-  color: #025a3a;
+  background-color: #f8fafc;
+  color: #0f172a;
 }
 
 .locationButtonActive {
-  background-color: #f3f4f6;
-  border-color: transparent;
+  background-color: #f0fdf4;
   color: #025a3a;
+  font-weight: 600;
 }
 
 /* Address Row */
@@ -687,6 +693,56 @@
   display: flex;
   justify-content: flex-end;
   margin-top: 2rem;
+}
+
+.saveButtonsContainer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.saveExitButton {
+  padding: 0.75rem 2rem;
+  background-color: white;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saveExitButton:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.saveContinueButton {
+  padding: 0.75rem 2rem;
+  background-color: #025a3a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saveContinueButton:hover:not(:disabled) {
+  background-color: #013a25;
+  transform: translateY(-1px);
+}
+
+.saveContinueButton:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .buttonGroupRow {
