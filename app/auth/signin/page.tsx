@@ -142,7 +142,12 @@ const SignIn: React.FC = () => {
       };
       setUserData(userForLocalStorage);
 
-      router.push("/"); // Or to a dashboard/profile page
+      const redirectPath = searchParams.get("redirect");
+      if (redirectPath) {
+        router.push(redirectPath);
+      } else {
+        router.push("/");
+      }
     } else {
       const errorMessage =
         backendResponse.message ||
@@ -459,7 +464,7 @@ const SignIn: React.FC = () => {
 
             <Text className={styles.signUpText}>
               Don&apos;t have an account?{" "}
-              <Link href="/auth/signnup" className={styles.signUpLink}>
+              <Link href={searchParams.get("redirect") ? `/auth/signnup?redirect=${encodeURIComponent(searchParams.get("redirect")!)}` : "/auth/signnup"} className={styles.signUpLink}>
                 Sign up
               </Link>
             </Text>
