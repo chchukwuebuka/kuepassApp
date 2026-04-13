@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import {
   TextInput,
   PasswordInput,
@@ -30,7 +30,7 @@ import { useDispatch } from "react-redux";
 import { login } from "@/store/store"; // Adjust the path as necessary
 import { useGoogleLogin } from "@react-oauth/google";
 
-const SignUp = () => {
+const SignUpContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const form = useForm({
@@ -520,5 +520,11 @@ const SignUp = () => {
     </div>
   );
 };
+
+const SignUp = () => (
+  <Suspense fallback={null}>
+    <SignUpContent />
+  </Suspense>
+);
 
 export default SignUp;

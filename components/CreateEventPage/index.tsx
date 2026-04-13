@@ -2447,21 +2447,20 @@ export default function CreateEventPage() {
         isSubmitting={isSubmitting}
       />
 
-      {/* Clear All Data Button */}
-      <div className={styles.clearAllWrapper}>
-        <button
-          type="button"
-          className={styles.clearAllButton}
-          onClick={clearAllData}
-          title="Clear all form data and start fresh"
-        >
-          <IconTrash size={16} />
-          Clear All Data
-        </button>
-      </div>
-
       {/* Main Content */}
       <div className={styles.mainContent}>
+        {/* Clear All Data Button */}
+        <div className={styles.clearAllWrapper}>
+          <button
+            type="button"
+            className={styles.clearAllButton}
+            onClick={clearAllData}
+            title="Clear all form data and start fresh"
+          >
+            <IconTrash size={16} />
+            <span>Clear All Data</span>
+          </button>
+        </div>
         {currentStep === 1 && (
           <>
             {/* AI Event Creation Section removed as requested */}

@@ -101,7 +101,7 @@ const VendorMarketplace: React.FC<{ onBecomeVendor?: () => void }> = ({ onBecome
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerTop}>
-          <div>
+          <div className={styles.titleWrapper}>
             <h1 className={styles.title}>
               <span className={styles.titleAccent}>Vendor</span> Hub
             </h1>
@@ -109,36 +109,41 @@ const VendorMarketplace: React.FC<{ onBecomeVendor?: () => void }> = ({ onBecome
               Discover and connect with trusted vendors for your events
             </p>
           </div>
+          <div className={styles.headerActions}>
+            {onBecomeVendor && (
+              <button className={styles.btnPrimary} onClick={onBecomeVendor}>
+                <FaStore /> Become a Vendor
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.headerBottom}>
           <div className={styles.searchWrapper}>
             <FaSearch className={styles.searchIcon} />
             <input
               type="text"
               className={styles.searchInput}
-              placeholder="Search vendors by name, location, or service..."
+              placeholder="Search vendors..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          {onBecomeVendor && (
-            <button className={styles.btnPrimary} onClick={onBecomeVendor} style={{ whiteSpace: "nowrap" }}>
-              <FaStore /> Become a Vendor
-            </button>
-          )}
-        </div>
 
-        {/* Category Filter Tabs */}
-        <div className={styles.filterTabs}>
-          {SERVICE_CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              className={`${styles.filterTab} ${
-                activeCategory === cat ? styles.filterTabActive : ""
-              }`}
-              onClick={() => setActiveCategory(cat)}
-            >
-              {cat}
-            </button>
-          ))}
+          {/* Category Filter Tabs */}
+          <div className={styles.filterTabs}>
+            {SERVICE_CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                className={`${styles.filterTab} ${
+                  activeCategory === cat ? styles.filterTabActive : ""
+                }`}
+                onClick={() => setActiveCategory(cat)}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 .sidebar {
   width: 250px;
-  height: calc(100vh - 84px); /* assuming 84px top nav */
+  height: calc(100vh - 84px);
+  /* assuming 84px top nav */
   background: #ffffff;
   color: #475569;
   position: fixed;
@@ -18,9 +19,11 @@
 .sidebar::-webkit-scrollbar {
   width: 4px;
 }
+
 .sidebar::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .sidebar::-webkit-scrollbar-thumb {
   background-color: #cbd5e1;
   border-radius: 10px;
@@ -199,7 +202,8 @@
   }
 
   .categoryHeader {
-    display: none; /* Hide categories on mobile bottom nav */
+    display: none;
+    /* Hide categories on mobile bottom nav */
   }
 
   .menu,

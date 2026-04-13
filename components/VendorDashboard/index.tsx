@@ -539,7 +539,7 @@ const VendorDashboard: React.FC = () => {
         <div className={styles.statCard}>
           <div className={styles.statLabel}>Rating</div>
           <div className={styles.statValue}>
-            <FaStar style={{ color: "#f5bc45", fontSize: "0.9em", marginRight: 4 }} />
+            <FaStar style={{ color: "#f5bc45", fontSize: "1rem", marginRight: 6 }} />
             {(profile.average_rating || 0).toFixed(1)}
           </div>
         </div>
@@ -577,10 +577,10 @@ const VendorDashboard: React.FC = () => {
       {/* ====== OVERVIEW TAB ====== */}
       {activeTab === "overview" && (
         <div className={styles.sectionPanel}>
-          <h3 style={{ margin: "0 0 12px 0", color: "#15302B", fontSize: "1.6rem", fontWeight: "800", letterSpacing: "-0.01em" }}>
+          <h3 style={{ margin: "0 0 8px 0", color: "#0f172a", fontSize: "1.25rem", fontWeight: "700" }}>
             {profile.business_name}
           </h3>
-          <p style={{ color: "#64748b", margin: "0 0 16px 0", fontSize: "1.05rem", lineHeight: "1.6" }}>
+          <p style={{ color: "#475569", margin: "0 0 16px 0", fontSize: "0.95rem" }}>
             {profile.bio || "No bio provided yet."}
           </p>
           <div className={styles.overviewDetails}>
@@ -794,7 +794,7 @@ const VendorDashboard: React.FC = () => {
       {/* ====== SETTINGS TAB ====== */}
       {activeTab === "settings" && (
         <div className={styles.sectionPanel}>
-          <h3 style={{ margin: "0 0 20px 0", color: "#15302B" }}>Edit Profile</h3>
+          <h3 style={{ margin: "0 0 16px 0", color: "#0f172a", fontSize: "1.25rem", fontWeight: "700" }}>Edit Profile</h3>
 
           {settingsMsg && (
             <div className={settingsMsg.includes("success") ? styles.successMsg : styles.errorMsg}>
