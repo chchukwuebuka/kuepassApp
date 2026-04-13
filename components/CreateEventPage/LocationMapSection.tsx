@@ -65,12 +65,12 @@ export default function LocationMapSection({
       </div>
 
       {/* Map Component */}
-      <div className={styles.mapContainer}>
-        <div className={styles.mapWrapper}>
-          {streetAddress || address ? (
+      {(streetAddress || address) && (
+        <div className={styles.mapContainer}>
+          <div className={styles.mapWrapper}>
             <iframe
               src={`https://maps.google.com/maps?q=${encodeURIComponent(
-                streetAddress || address || "Lagos, Nigeria"
+                streetAddress || address
               )}&output=embed`}
               width="100%"
               height="100%"
@@ -80,18 +80,9 @@ export default function LocationMapSection({
               referrerPolicy="no-referrer-when-downgrade"
               className={styles.mapIframe}
             />
-          ) : (
-            <div className={styles.mapPlaceholder}>
-              <div className={styles.mapPlaceholderContent}>
-                <IconCalendar size={48} className={styles.mapPlaceholderIcon} />
-                <p className={styles.mapPlaceholderText}>
-                  Enter an address to view the map
-                </p>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

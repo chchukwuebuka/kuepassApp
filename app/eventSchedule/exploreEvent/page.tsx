@@ -679,7 +679,7 @@ const ExploreEvents: React.FC = () => {
 
       {/* Search Bar */}
       <div className={styles.searchSection}>
-        <div className={styles.searchBarWrapper}>
+        <div className={styles.searchBarWrapper} style={{ maxWidth: "800px", width: "100%" }}>
           <TextInput
             leftSection={<IconSearch size={20} color="#F5B645" />}
             placeholder="Try: 'free concerts this weekend in Enugu'"
@@ -726,22 +726,28 @@ const ExploreEvents: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Title Page Banner */}
-      {/* <div className={styles.titlePageContainer}>Featured Events</div>
-      <div className={styles.titlePage}>
-        <h2 className={styles.title}>
-          FLAVOUR N&apos;BANIA: The <br /> Awakening{" "}
-        </h2>
-        <p className={styles.titlePageSubtitle}>SEP 25 </p>
-      </div> */}
-
       {/* Featured Events Section */}
       {featuredEvent && (
         <div className={styles.featuredSection}>
-          <TextReveal colorFinal="#151515">
-            <h2 className={styles.titlePageContainer}>Featured Events</h2>
-          </TextReveal>
+          <Group justify="space-between" align="center" mb="sm">
+            <TextReveal colorFinal="#151515">
+              <h2 className={styles.titlePageContainer} style={{ margin: 0 }}>Featured Events</h2>
+            </TextReveal>
+            <Button
+              component={Link}
+              href="/dashboard?mode=createEvent"
+              bg="#f5b645"
+              c="#151515"
+              radius="xl"
+              fw={700}
+              size="md"
+              style={{ transition: "all 0.2s" }}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+            >
+              Create Event
+            </Button>
+          </Group>
           <div className={styles.titlePage}>
             <div className={styles.featuredImageContainer}>
               {featuredEvent.banner_url &&

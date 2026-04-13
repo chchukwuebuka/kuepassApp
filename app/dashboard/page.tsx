@@ -170,6 +170,16 @@ const VendorDashboard = nextDynamic(
     ),
   }
 );
+const OverviewDashboard = nextDynamic(
+  () => import("@/components/OverviewDashboard"),
+  {
+    loading: () => (
+      <Center>
+        <Loader />
+      </Center>
+    ),
+  }
+);
 
 
 const API_BASE_URL = (
@@ -225,9 +235,12 @@ function DashboardContent() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
-  const [activePage, setActivePage] = useState<PageKey>(
-    mode === "createEvent" ? "createEvent" : (page as PageKey) || "createEvent"
-  );
+  const [activePage, setActivePage] = useState<PageKey>(() => {
+    if (mode === "createEvent") return "createEvent";
+    if (page) return page as PageKey;
+    if (eventId) return "overview";
+    return "createEvent";
+  });
   const [isVendor, setIsVendor] = useState(false);
 
   // Check if user is a vendor (has vendor profile)
@@ -384,6 +397,14 @@ function DashboardContent() {
       </>
     ),
     createEvent: <CreateEventPage />,
+    overview: <OverviewDashboard 
+      eventId={activeEventId} 
+      event={event} 
+      registeredUsers={registeredUsers} 
+      validatedUsers={validatedUsers} 
+      totalBalance={totalBalance} 
+      onNavigateToCreate={() => setActivePage("createEvent")}
+    />,
   };
 
   return (
