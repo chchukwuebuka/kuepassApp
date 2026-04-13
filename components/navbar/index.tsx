@@ -210,7 +210,7 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
                 ) : (
                   <Group>
                     <Button
-                      variant="outline"
+                      unstyled
                       className={styles.navBTNEnhanced}
                       onClick={handleLogin}
                     >
@@ -276,13 +276,14 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
                 {!isLogged ? (
                   <>
                     <Button
-                      variant="outline"
+                      unstyled
                       className={styles.navBTNEnhanced}
                       onClick={handleLogin}
                     >
                       Login
                     </Button>
                     <Button
+                      unstyled
                       className={styles.navBTN1Enhanced}
                       onClick={handleSignup}
                     >

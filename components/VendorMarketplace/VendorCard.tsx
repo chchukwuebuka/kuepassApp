@@ -17,6 +17,7 @@ export interface VendorData {
   bio?: string;
   location_text: string;
   phone_number?: string;
+  website?: string;
   average_rating: number;
   is_verified: boolean;
   services: VendorServiceData[];

@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import {
   TextInput,
   PasswordInput,
@@ -39,7 +39,7 @@ import { useGoogleLogin, CredentialResponse } from "@react-oauth/google"; // Cor
 
 // Removed duplicate JwtPayload, use UserData from auth.ts or Redux User type
 
-const SignIn: React.FC = () => {
+const SignInContent: React.FC = () => {
   const form = useForm({
     initialValues: { email: "", password: "" },
     validate: {
@@ -485,5 +485,11 @@ const SignIn: React.FC = () => {
     </div>
   );
 };
+
+const SignIn: React.FC = () => (
+  <Suspense fallback={null}>
+    <SignInContent />
+  </Suspense>
+);
 
 export default SignIn;

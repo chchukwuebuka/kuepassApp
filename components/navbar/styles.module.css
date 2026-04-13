@@ -162,17 +162,20 @@
 }
 
 .navBTNEnhanced {
-
   color: #ffffff !important;
   background-color: transparent !important;
-  border: 1px solid #f59e0b !important;
+  border: 1.5px solid #f59e0b !important;
   border-radius: 46px !important;
-  width: 7rem;
-  height: 2.25rem;
-  padding: 0 1rem !important;
-  font-weight: 500 !important;
-  font-size: 0.875rem !important;
+  min-width: 110px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.5rem !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
   transition: all 0.2s ease !important;
+  box-sizing: border-box;
 }
 
 .navBTNEnhanced:hover {
@@ -185,13 +188,17 @@
   background-color: #F5B645 !important;
   color: #ffffff !important;
   border-radius: 46px !important;
-  width: 8rem;
-  height: 2.25rem;
-  padding: 0 1rem !important;
-  font-weight: 500 !important;
-  font-size: 0.875rem !important;
+  min-width: 120px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.5rem !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
   transition: all 0.2s ease !important;
   border: none !important;
+  box-sizing: border-box;
 }
 
 .navBTN1Enhanced:hover {

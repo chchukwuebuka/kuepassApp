@@ -7,6 +7,7 @@ import {
   FaStar,
   FaRegStar,
   FaPhone,
+  FaGlobe,
   FaTimes,
 } from "react-icons/fa";
 import styles from "./styles.module.css";
@@ -103,14 +104,28 @@ const VendorDetailModal: React.FC<VendorDetailModalProps> = ({ vendor, onClose }
           {/* Contact */}
           <div className={styles.modalSection}>
             <h4 className={styles.modalSectionTitle}>Contact</h4>
-            {vendor.phone_number ? (
+            {vendor.phone_number && (
               <div className={styles.modalContactRow}>
                 <FaPhone className={styles.modalContactIcon} />
                 <a href={`tel:${vendor.phone_number}`} style={{ color: "inherit", textDecoration: "none" }}>
                   {vendor.phone_number}
                 </a>
               </div>
-            ) : (
+            )}
+            {vendor.website && (
+              <div className={styles.modalContactRow}>
+                <FaGlobe className={styles.modalContactIcon} />
+                <a 
+                  href={vendor.website.startsWith('http') ? vendor.website : `https://${vendor.website}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  style={{ color: "inherit", textDecoration: "none" }}
+                >
+                  {vendor.website.replace(/^https?:\/\//, '')}
+                </a>
+              </div>
+            )}
+            {(!vendor.phone_number && !vendor.website) && (
               <p style={{ fontSize: "0.88rem", color: "#6b7280" }}>No contact information available.</p>
             )}
           </div>
@@ -125,6 +140,15 @@ const VendorDetailModal: React.FC<VendorDetailModalProps> = ({ vendor, onClose }
               onClick={() => window.open(`tel:${vendor.phone_number}`, "_self")}
             >
               Call Vendor
+            </button>
+          )}
+          {vendor.website && (
+            <button
+              className={styles.btnPrimary}
+              style={{ flex: 1, background: '#0f172a', color: '#fff' }}
+              onClick={() => window.open(vendor.website!.startsWith('http') ? vendor.website : `https://${vendor.website}`, "_blank")}
+            >
+              Visit Website
             </button>
           )}
           <button
