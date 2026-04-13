@@ -456,7 +456,7 @@ function DashboardContent() {
   return (
     <div>
       <div className={styles.dashboardLayout}>
-        <Sidebar activePage={activePage} onNavClick={handleNavClick} isVendor={isVendor} />
+        <Sidebar activePage={activePage} onNavClick={handleNavClick} isVendor={isVendor} hasEvent={!!activeEventId} />
         <div className={`${styles.container} ${roboto.className}`}>
           <div className={styles.mainContent}>{contentMapping[activePage]}</div>
         </div>

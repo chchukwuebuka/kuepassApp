@@ -465,13 +465,14 @@ const AppearanceStep: React.FC<AppearanceStepProps> = ({
           </Flex>
         </Flex>
         <Stack className={styles.cardevent}>
-          <Image
-            src={backgroundImage || "/images/placeholder.png"}
-            alt="Event Banner"
-            className={styles.bannerImage}
-            fallbackSrc="/images/placeholder.png"
-            style={{ width: "100%", height: "280px", objectFit: "cover" }}
-          />
+          {backgroundImage && (
+            <Image
+              src={backgroundImage}
+              alt="Event Banner"
+              className={styles.bannerImage}
+              style={{ width: "100%", height: "280px", objectFit: "cover" }}
+            />
+          )}
           <Card
             className={styles.cardDetails}
             style={{ backgroundColor: rgbaColor }}
@@ -514,11 +515,7 @@ const AppearanceStep: React.FC<AppearanceStepProps> = ({
       </div>
 
       <Flex className={styles.flex}>
-        <PreviewCard title="Event Card Preview">
-          <></>
-        </PreviewCard>
-
-        <PreviewCard title="Event Page Preview">
+        <PreviewCard title="Event Preview">
           <>
             {showCountdown && targetDate && (
               <Flex className={styles.cardCountdown}>
