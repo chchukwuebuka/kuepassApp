@@ -13,6 +13,8 @@ import {
   Alert,
   Divider,
   Box,
+  Title,
+  SimpleGrid,
 } from "@mantine/core";
 import {
   IconCheck,
@@ -118,7 +120,7 @@ const EdithProfilePage: React.FC = () => {
       }
 
       const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "https://api.kuepass.com/api/";
+        (process.env.NEXT_PUBLIC_API_URL || "https://api.kuepass.com/api").replace(/\/$/, "");
       const response = await fetch(`${apiUrl}/token/refresh/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -177,7 +179,7 @@ const EdithProfilePage: React.FC = () => {
             formData.append("file", imgFile);
             const token = getAuthToken();
             const apiUrl =
-              process.env.NEXT_PUBLIC_API_URL || "https://api.kuepass.com/api/";
+              (process.env.NEXT_PUBLIC_API_URL || "https://api.kuepass.com/api").replace(/\/$/, "");
 
             const imageResponse = await fetch(`${apiUrl}/upload/image`, {
               method: "POST",
@@ -220,7 +222,7 @@ const EdithProfilePage: React.FC = () => {
       }
 
       const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "https://api.kuepass.com/api/";
+        (process.env.NEXT_PUBLIC_API_URL || "https://api.kuepass.com/api").replace(/\/$/, "");
       const updateProfileUrl = `${apiUrl}/users/update_profile/`;
 
       let response = await fetch(updateProfileUrl, {
@@ -311,74 +313,73 @@ const EdithProfilePage: React.FC = () => {
       gap={0}
       style={{
         minHeight: "100vh",
-        backgroundColor: "#f5f5f5",
-        marginTop: "50px",
+        backgroundColor: "#f4f5f7",
       }}
     >
-      <Navbar />
-      <Box className={styles.header}>
-        <Text size="2xl" fw={700} color="white" style={{ fontSize: "2rem" }}>
-          Edit Profile
-        </Text>
-      </Box>
-      <Container size="lg" py="xl">
-        <Card shadow="md" radius="md" p="xl" withBorder={false}>
-          {updateSuccess && (
-            <Alert
-              icon={<IconCheck size={16} />}
-              title="Success"
-              color="teal"
-              mb="md"
-            >
-              Profile updated successfully! Redirecting...
-            </Alert>
-          )}
-          {updateError && (
-            <Alert
-              icon={<IconAlertCircle size={16} />}
-              title="Error"
-              color="red"
-              mb="md"
-            >
-              {updateError}
-            </Alert>
-          )}
-          <Flex
-            direction={{ base: "column", md: "row" }}
-            gap="xl"
-            align={{ base: "center", md: "flex-start" }}
-          >
-            <Stack align="center" gap="md" w={{ base: "100%", md: "auto" }}>
-              <Avatar
-                src={imgSrc}
-                size={150}
-                radius={150}
-                style={{ border: "4px solid #024d3a" }}
-                imageProps={{ onError: () => setImgSrc("/default-avatar.png") }}
-              />
-              <Button
-                component="label"
-                htmlFor="imageUpload"
-                variant="outline"
-                color="teal"
-                radius="xl"
-                leftSection={<IconUpload size={16} />}
-                loading={uploading}
-              >
-                {uploading ? "Uploading..." : "Change Picture"}
-                <input
-                  type="file"
-                  id="imageUpload"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  style={{ display: "none" }}
+      <Navbar alwaysDark />
+      
+      <Flex style={{ flex: 1, width: "100%", paddingTop: "80px", justifyContent: "center", paddingBottom: "60px" }}>
+        <Container size="md" style={{ width: "100%" }}>
+          <Box mb={32}>
+            <Title order={2} style={{ fontSize: "1.8rem", color: "#111827" }}>Edit Profile</Title>
+            <Text c="dimmed">Update your personal details, profile photo, and regional preferences.</Text>
+          </Box>
+
+          <Card radius="md" p="xl" withBorder style={{ backgroundColor: "white", border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)" }}>
+            {updateSuccess && (
+              <Alert icon={<IconCheck size={16} />} title="Success" color="teal" mb="xl">
+                Profile updated successfully! Redirecting...
+              </Alert>
+            )}
+            {updateError && (
+              <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red" mb="xl">
+                {updateError}
+              </Alert>
+            )}
+
+            <form onSubmit={handleSubmit(onSubmit)}>
+              {/* Profile Image Section */}
+              <Group align="flex-start" mb="xl" gap="xl">
+                <Avatar
+                  src={imgSrc}
+                  size={100}
+                  radius={100}
+                  style={{ border: "1px solid #e2e8f0" }}
+                  imageProps={{ onError: () => setImgSrc("/default-avatar.png") }}
                 />
-              </Button>
-            </Stack>
-            <form onSubmit={handleSubmit(onSubmit)} style={{ flex: 1 }}>
-              <Stack gap="md">
+                <Stack gap={8} justify="center" style={{ height: "100px" }}>
+                  <Text fw={500}>Profile Photo</Text>
+                  <Text size="sm" c="dimmed">This will be displayed on your profile.</Text>
+                  <Button
+                    component="label"
+                    htmlFor="imageUpload"
+                    variant="light"
+                    color="teal"
+                    size="xs"
+                    radius="md"
+                    leftSection={<IconUpload size={14} />}
+                    loading={uploading}
+                    style={{ width: "fit-content" }}
+                  >
+                    {uploading ? "Uploading..." : "Change Picture"}
+                    <input
+                      type="file"
+                      id="imageUpload"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      style={{ display: "none" }}
+                    />
+                  </Button>
+                </Stack>
+              </Group>
+
+              <Divider mb="xl" />
+
+              {/* Personal Details Section */}
+              <Title order={4} mb="md" style={{ color: "#111827" }}>Personal details</Title>
+              <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg" mb="xl">
                 <TextInput
-                  label="Phone Number"
+                  label={<Text fw={500} size="sm" mb={4}>Phone Number</Text>}
                   placeholder="Enter phone number"
                   size="md"
                   maxLength={20}
@@ -386,10 +387,11 @@ const EdithProfilePage: React.FC = () => {
                   error={errors.phoneNumber?.message}
                 />
                 <TextInput
-                  label="Email"
+                  label={<Text fw={500} size="sm" mb={4}>Email Address</Text>}
                   placeholder="Your email"
                   readOnly
                   size="md"
+                  styles={{ input: { backgroundColor: '#f8fafc', color: '#64748b' } }}
                   {...register("email", {
                     pattern: {
                       value: /^\S+@\S+$/i,
@@ -399,54 +401,55 @@ const EdithProfilePage: React.FC = () => {
                   error={errors.email?.message}
                 />
                 <TextInput
-                  label="Country"
+                  label={<Text fw={500} size="sm" mb={4}>Country</Text>}
                   placeholder="Enter your country"
                   size="md"
                   maxLength={100}
                   {...register("country")}
                 />
                 <TextInput
-                  label="Currency"
-                  placeholder="Enter your preferred currency (e.g., USD, EUR)"
+                  label={<Text fw={500} size="sm" mb={4}>Currency</Text>}
+                  placeholder="e.g., USD, EUR"
                   size="md"
                   maxLength={10}
                   {...register("currency")}
                 />
                 <TextInput
-                  label="Language"
-                  placeholder="Enter your preferred language (e.g., en, fr)"
+                  label={<Text fw={500} size="sm" mb={4}>Language</Text>}
+                  placeholder="e.g., en, fr"
                   size="md"
                   maxLength={20}
                   {...register("language")}
                 />
-              </Stack>
-              <Divider my="xl" />
-              <Group justify="center" gap="md">
+              </SimpleGrid>
+
+              <Divider mb="xl" />
+
+              <Group justify="flex-end" gap="md">
+                <Button
+                  component={Link}
+                  href="/profile/profile"
+                  variant="subtle"
+                  color="gray"
+                  size="md"
+                  radius="md"
+                >
+                  Cancel
+                </Button>
                 <Button
                   onClick={handleSubmit(onSubmit)}
                   color="teal"
                   size="md"
-                  radius="xl"
+                  radius="md"
                   loading={isUpdating}
                 >
                   {isUpdating ? "Saving..." : "Save Changes"}
                 </Button>
-                <Button
-                  component={Link}
-                  href="/profile/profile"
-                  variant="outline"
-                  color="teal"
-                  size="md"
-                  radius="xl"
-                  leftSection={<IconArrowLeft size={16} />}
-                >
-                  Back to Profile
-                </Button>
               </Group>
             </form>
-          </Flex>
-        </Card>
-      </Container>
+          </Card>
+        </Container>
+      </Flex>
       <Box mt="auto">
         <CustomFooter />
       </Box>

@@ -172,96 +172,13 @@
   color: #111827;
 }
 
-/* Hostinger-style Sidebar */
-.sidebar {
-  width: 250px;
-  background-color: #0b151f; /* very dark slate/teal */
-  padding: 32px 0;
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100vh - 80px); /* minus navbar approx */
-  flex-shrink: 0;
-}
-
-.sidebarItem {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #94a3b8;
-  font-size: 1rem;
-  font-weight: 500;
-  padding: 16px 24px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.sidebarItem:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: #f8fafc;
-}
-
-.sidebarItemActive {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #f8fafc;
-  font-size: 1rem;
-  font-weight: 600;
-  padding: 16px 24px;
-  cursor: pointer;
-}
-
-.sidebarItemActive svg {
-  color: #10b981;
-}
-
-.sidebarSubMenu {
-  display: flex;
-  flex-direction: column;
-  background-color: rgba(0, 0, 0, 0.2);
-  padding: 12px 0;
-}
-
-.sidebarSubItem {
-  color: #94a3b8;
-  padding: 10px 24px 10px 56px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.sidebarSubItem:hover {
-  color: #ffffff;
-}
-
-.sidebarSubItemActive {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #ffffff;
-  padding: 10px 24px 10px 48px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.sidebarSubItemActive span {
-  color: #10b981;
-  font-size: 1.5rem;
-  line-height: 0;
-}
-
-.mainContent {
-  flex: 1;
-  padding-bottom: 60px;
+/* Profile Tabs styling */
+.profileTabs {
+  margin-top: 16px;
 }
 
 /* Responsive styles */
 @media (max-width: 768px) {
-  .sidebar {
-    display: none; /* Hide sidebar on mobile or implement a hamburger */
-  }
-
   .profileCard {
     padding: 24px;
   }

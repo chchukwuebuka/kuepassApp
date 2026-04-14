@@ -18,16 +18,9 @@ import {
   Title,
 } from "@mantine/core";
 import {
-  IconEdit,
   IconLogout,
   IconUser,
-  IconShieldLock,
   IconDeviceMobile,
-  IconSettings,
-  IconClock,
-  IconUsers,
-  IconLock,
-  IconDotsCircleHorizontal,
   IconMail,
   IconPlus,
 } from "@tabler/icons-react";
@@ -62,7 +55,7 @@ const ProfilePage: React.FC = () => {
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const isLogged = useSelector((state: RootState) => state.user.isLogged);
 
-  const [activeTab, setActiveTab] = useState<'personal' | 'email' | 'mobile'>('personal');
+
   const [detectedCountry, setDetectedCountry] = useState<string>("Not provided");
   const [detectedLanguage, setDetectedLanguage] = useState<string>("English");
 
@@ -154,7 +147,7 @@ const ProfilePage: React.FC = () => {
     return (
       <Stack>
         <Stack className={styles.navStark}>
-          <Navbar />
+          <Navbar alwaysDark />
         </Stack>
         <Container className={styles.container}>
           <Paper className={styles.loadingCard}>
@@ -171,66 +164,16 @@ const ProfilePage: React.FC = () => {
 
   return (
     <Stack style={{ backgroundColor: "#f4f5f7", minHeight: "100vh" }} gap={0}>
-      <Navbar />
+      <Navbar alwaysDark />
 
-      <Flex style={{ flex: 1, width: "100%", paddingTop: "80px" }}>
-        {/* Hostinger-style Accounts Sidebar */}
-        <Box className={styles.sidebar}>
-          <div className={styles.sidebarItemActive}>
-            <IconUser size={20} stroke={2} />
-            Profile
-          </div>
-          <div className={styles.sidebarSubMenu}>
-            <div 
-              className={activeTab === 'personal' ? styles.sidebarSubItemActive : styles.sidebarSubItem}
-              onClick={() => setActiveTab('personal')}
-            >
-              {activeTab === 'personal' && <span>•</span>} Personal Information
-            </div>
-            <div 
-              className={activeTab === 'email' ? styles.sidebarSubItemActive : styles.sidebarSubItem}
-              onClick={() => setActiveTab('email')}
-            >
-              {activeTab === 'email' && <span>•</span>} Email Address
-            </div>
-            <div 
-              className={activeTab === 'mobile' ? styles.sidebarSubItemActive : styles.sidebarSubItem}
-              onClick={() => setActiveTab('mobile')}
-            >
-              {activeTab === 'mobile' && <span>•</span>} Mobile Numbers
-            </div>
-          </div>
-          
-          <div className={styles.sidebarItem}>
-            <IconShieldLock size={20} stroke={1.5} /> Security
-          </div>
-          <div className={styles.sidebarItem}>
-            <IconDeviceMobile size={20} stroke={1.5} /> Multi-Factor Authentication
-          </div>
-          <div className={styles.sidebarItem}>
-            <IconSettings size={20} stroke={1.5} /> Settings
-          </div>
-          <div className={styles.sidebarItem}>
-            <IconClock size={20} stroke={1.5} /> Sessions
-          </div>
-          <div className={styles.sidebarItem}>
-            <IconUsers size={20} stroke={1.5} /> Groups
-          </div>
-          <div className={styles.sidebarItem}>
-            <IconLock size={20} stroke={1.5} /> Privacy
-          </div>
-          <div className={styles.sidebarItem} style={{ marginTop: "1rem" }}>
-            <IconDotsCircleHorizontal size={20} stroke={1.5} /> View more
-          </div>
-        </Box>
+      <Flex style={{ flex: 1, width: "100%", paddingTop: "80px", justifyContent: "center", paddingBottom: "60px" }}>
+        <Container size="md" className={styles.container}>
+          <Box mb={32}>
+            <Title order={2} className={styles.pageTitle}>Account Settings</Title>
+            <Text c="dimmed">Manage your profile details, email addresses, and security preferences.</Text>
+          </Box>
 
-        {/* Main Content Area */}
-        <Box className={styles.mainContent}>
-          <Container className={styles.container}>
-            {activeTab === 'personal' && (
-              <>
-                <Title order={2} className={styles.pageTitle}>Profile</Title>
-                
+          <Box className={styles.mainContent}>
                 <Card className={styles.profileCard}>
                   {/* Header Row: Avatar, Name/Email, Edit Button */}
                   <Flex className={styles.profileHeaderFlex}>
@@ -274,6 +217,10 @@ const ProfilePage: React.FC = () => {
                       <Text className={styles.infoValue}>{userProfile.username || userProfile.name}</Text>
                     </div>
                     <div className={styles.infoBlock}>
+                      <Text className={styles.infoLabel}>Phone Number</Text>
+                      <Text className={styles.infoValue}>{userProfile.phoneNumber || "Not provided"}</Text>
+                    </div>
+                    <div className={styles.infoBlock}>
                       <Text className={styles.infoLabel}>Gender</Text>
                       <Text className={styles.infoValue}>I'd prefer not to say</Text>
                     </div>
@@ -305,44 +252,7 @@ const ProfilePage: React.FC = () => {
                     <Badge color="green" variant="light">Primary</Badge>
                   </div>
                 </Card>
-              </>
-            )}
 
-            {activeTab === 'email' && (
-              <>
-                <Title order={2} className={styles.pageTitle}>Profile</Title>
-                <Card className={styles.profileCard}>
-                  <Title order={3} className={styles.sectionTitle} mb={8}>My Email Addresses</Title>
-                  <Text className={styles.sectionDesc} mb={24}>
-                    View and manage the email addresses associated with your account. They can be used to sign in and to reset password if you ever forget it.
-                  </Text>
-                  
-                  <Divider />
-                  
-                  <Flex align="center" justify="space-between" mt={32} mb={32}>
-                    <Flex align="center" gap={16}>
-                      <Avatar size={50} radius="xl" color="red" bg="#ff4d4f">
-                         <IconMail size={24} color="white" />
-                      </Avatar>
-                      <Box>
-                        <Text fw={500} size="md" c="dark">{userProfile.email}</Text>
-                        <Text size="xs" c="dimmed" mt={4}>Registered</Text>
-                      </Box>
-                    </Flex>
-                  </Flex>
-                  
-                  <Flex justify="center" mt={40}>
-                    <Text 
-                      c="#007bff" 
-                      fw={600} 
-                      style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}
-                    >
-                      <IconPlus size={18} stroke={3} /> Add Email Address
-                    </Text>
-                  </Flex>
-                </Card>
-              </>
-            )}
 
             {/* Separated Logout Action - Always visible safely at the bottom */}
             <Flex justify="flex-start" mt={40} mb={40}>
@@ -352,8 +262,8 @@ const ProfilePage: React.FC = () => {
                </button>
             </Flex>
 
-          </Container>
-        </Box>
+          </Box>
+        </Container>
       </Flex>
 
       <Box>
@@ -364,3 +274,4 @@ const ProfilePage: React.FC = () => {
 };
 
 export default ProfilePage;
+  
