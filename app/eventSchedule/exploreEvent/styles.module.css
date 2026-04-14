@@ -244,7 +244,7 @@
   color: white;
 }
 
-.getTicketsBtn {
+.getTicketsBtn.getTicketsBtn {
   background-color: #F5B645;
   border: none;
   border-radius: 70px;
@@ -255,7 +255,7 @@
   transition: all 0.2s ease;
 }
 
-.getTicketsBtn:hover {
+.getTicketsBtn.getTicketsBtn:hover {
   background-color: #F5B645;
   transform: translateY(-1px);
   color: #151515;
