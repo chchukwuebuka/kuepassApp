@@ -114,14 +114,28 @@ export const EventSection: React.FC<EventSectionProps> = ({
             return true;
           });
 
-          // Force client-side sort by start_date (ascending)
-          fetchedEventsData.sort((a, b) => {
-            const dateA = new Date(a.start_date).getTime();
-            const dateB = new Date(b.start_date).getTime();
-            return dateA - dateB;
-          });
-
           const now = new Date();
+
+          // Sort: Upcoming first (soonest first), then Ongoing, then Past (most recent first)
+          fetchedEventsData.sort((a, b) => {
+            const startA = new Date(a.start_date).getTime();
+            const startB = new Date(b.start_date).getTime();
+            const endA = new Date(a.end_date).getTime();
+            const endB = new Date(b.end_date).getTime();
+            const nowMs = now.getTime();
+
+            // Determine category: 0 = Upcoming, 1 = Ongoing, 2 = Past
+            const catA = startA > nowMs ? 0 : endA >= nowMs ? 1 : 2;
+            const catB = startB > nowMs ? 0 : endB >= nowMs ? 1 : 2;
+
+            // Different categories → sort by category priority
+            if (catA !== catB) return catA - catB;
+
+            // Same category: Upcoming & Ongoing → soonest first (ascending)
+            // Past → most recent first (descending)
+            if (catA === 2) return startB - startA;
+            return startA - startB;
+          });
           const mappedEvents: EventCardProps[] = fetchedEventsData.map(
             (event) => {
               // Handle banner_url as either array or string
