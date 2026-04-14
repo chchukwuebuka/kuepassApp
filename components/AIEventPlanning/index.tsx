@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Loader, Alert, Center, TextInput, Textarea, Select, Modal } from "@mantine/core";
 import { useRouter } from "next/navigation";
 import { authenticatedRequest } from "@/app/services/auth";
-import { FaMagic, FaCalendarCheck, FaPlus, FaCheckCircle, FaArrowRight, FaSave, FaFolderOpen } from "react-icons/fa";
+import { FaMagic, FaCalendarCheck, FaPlus, FaCheckCircle, FaArrowRight, FaSave, FaFolderOpen, FaMapMarkerAlt, FaPhone, FaTimes } from "react-icons/fa";
 import styles from "./styles.module.css";
 
 interface AIEventPlanningProps {
@@ -657,7 +657,7 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
       {viewingVendor && (
         <div className={styles.drawerOverlay} onClick={() => setViewingVendor(null)}>
           <div className={styles.sideDrawer} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.drawerCloseBtn} onClick={() => setViewingVendor(null)}>&times;</button>
+            <button className={styles.drawerCloseBtn} onClick={() => setViewingVendor(null)}><FaTimes size={14} /></button>
             
             {/* Cover Image */}
             <div 
@@ -690,11 +690,11 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
                 <h3 className={styles.drawerSectionTitle}>Contact & Location</h3>
                 <div className={styles.drawerContactList}>
                   <div className={styles.contactItem}>
-                    <div className={styles.contactIcon}>📍</div>
+                    <div className={styles.contactIcon}><FaMapMarkerAlt size={16} /></div>
                     <span>{viewingVendor.vendor.location_text || "Remote / Serves Multiple Locations"}</span>
                   </div>
                   <div className={styles.contactItem}>
-                     <div className={styles.contactIcon}>📞</div>
+                     <div className={styles.contactIcon}><FaPhone size={14} /></div>
                      <span>{viewingVendor.vendor.phone_number || "Contact details provided upon booking"}</span>
                   </div>
                 </div>
