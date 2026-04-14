@@ -145,14 +145,14 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
               </div>
 
               <div className={styles.dashboardNavCenter}>
-                <button className={styles.dashboardViewEventButton}>
+                <Link href="/eventSchedule/exploreEvent?ownership=Created" className={styles.dashboardViewEventButton} style={{ textDecoration: 'none' }}>
                   <IconEye
                     size={16}
                     stroke={2}
                     className={styles.viewEventIcon}
                   />
                   <span>View your event</span>
-                </button>
+                </Link>
                 <div className={styles.dashboardNavSeparator}></div>
                 <Menu position="bottom-end" shadow="md" width={200} transitionProps={{ transition: 'pop', duration: 150 }}>
                   <Menu.Target>

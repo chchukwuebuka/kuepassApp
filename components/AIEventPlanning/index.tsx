@@ -326,7 +326,6 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
               {(step > 1 || formData.title) && step !== 4 && (
                 <button 
                   className={styles.secondaryBtn} 
-                  style={{ borderColor: "#ef4444", color: "#ef4444" }}
                   onClick={() => {
                     if (confirm("Reset current draft and start a new plan?")) {
                       localStorage.removeItem("kuepass_ai_planner_draft");

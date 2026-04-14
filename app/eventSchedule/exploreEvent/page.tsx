@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, memo, useCallback } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -165,6 +166,13 @@ const EventCardDisplay: React.FC<{ eventData: MappedEvent }> = memo(
 EventCardDisplay.displayName = "EventCardDisplay";
 
 const ExploreEvents: React.FC = () => {
+  const searchParams = useSearchParams();
+  const ownershipParam = searchParams.get("ownership");
+  const initialOwnership: OwnershipFilter =
+    ownershipParam === "Created" || ownershipParam === "Registered"
+      ? ownershipParam
+      : "All";
+
   const [searchQuery, setSearchQuery] = useState("");
   const [locationFilter, setLocationFilter] = useState("All Locations");
   const [dateFilter, setDateFilter] = useState("All dates");
@@ -172,7 +180,7 @@ const ExploreEvents: React.FC = () => {
   const [priceFilter, setPriceFilter] = useState("All Prices");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("All");
   const [ownershipFilter, setOwnershipFilter] =
-    useState<OwnershipFilter>("All");
+    useState<OwnershipFilter>(initialOwnership);
   const [events, setEvents] = useState<MappedEvent[]>([]);
   const [featuredEvent, setFeaturedEvent] = useState<MappedEvent | null>(null);
   const [isLoading, setIsLoading] = useState(false);
