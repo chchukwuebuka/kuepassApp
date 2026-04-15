@@ -139,6 +139,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={roboto.className}>
+        <div className="background-ellipse-left"></div>
+        <div className="background-ellipse-right"></div>
         <Suspense fallback={null}>
           <AnalyticsProvider />
         </Suspense>

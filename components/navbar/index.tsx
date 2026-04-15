@@ -137,8 +137,8 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
                     <Image
                       src="/images/klogo.png"
                       alt="Kuepass"
-                      width={39}
-                      height={60}
+                      width={26}
+                      height={40}
                     />
                   </div>
                 </Link>
@@ -253,8 +253,8 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysDark = false }) => {
                   <Image
                     src="/images/klogo.png"
                     alt="Kuepass"
-                    width={39}
-                    height={60}
+                    width={26}
+                    height={40}
                   />
                 </div>
               </Link>

@@ -6,7 +6,7 @@
   display: flex;
   height: 100vh;
   overflow: hidden;
-  background-color: white;
+  background-color: transparent;
   padding: 1rem;
   gap: 30px;
 }
@@ -20,8 +20,12 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
   position: relative;
+  border-radius: 2rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .image {
@@ -35,9 +39,10 @@
 
 /* Right column with form */
 .rightColumn {
-  
   width: 45%;
   height: 100%;
+  position: relative;
+  background-color: transparent;
 }
 
 .formContainer {

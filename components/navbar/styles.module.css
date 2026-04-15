@@ -181,7 +181,11 @@
 .navBTNEnhanced:hover {
   background-color: rgba(245, 158, 11, 0.1) !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.2);
+}
+
+.navBTNEnhanced:active {
+  transform: scale(0.97);
 }
 
 .navBTN1Enhanced {
@@ -204,7 +208,11 @@
 .navBTN1Enhanced:hover {
   background-color: #F5B645 !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(2, 88, 58, 0.3);
+  box-shadow: 0 8px 24px rgba(245, 182, 69, 0.45);
+}
+
+.navBTN1Enhanced:active {
+  transform: scale(0.97);
 }
 
 .navBTN11Enhanced {
@@ -223,7 +231,11 @@
 .navBTN11Enhanced:hover {
   background-color: #023825 !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(5, 99, 72, 0.2);
+  box-shadow: 0 8px 24px rgba(2, 56, 37, 0.45);
+}
+
+.navBTN11Enhanced:active {
+  transform: scale(0.97);
 }
 
 .avatarButtonEnhanced {
