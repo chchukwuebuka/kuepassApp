@@ -44,6 +44,7 @@ interface TicketsStepProps {
   eventLocation?: string;
   guestCount?: string;
   onVendorsSelected?: (vendorIds: (number | string)[]) => void;
+  isSubmitting?: boolean;
 }
 
 export default function TicketsStep({
@@ -65,6 +66,7 @@ export default function TicketsStep({
   onAddServiceClick,
   onEditServiceClick,
   onRemoveService,
+  isSubmitting = false,
 }: TicketsStepProps) {
   const router = useRouter();
 
@@ -268,126 +270,7 @@ export default function TicketsStep({
         </div>
       </div>
 
-      {/* Ask Custom Questions Section */}
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Ask Custom Questions</h2>
-          <p className={styles.sectionSubtitle}>
-            Need to know something specific? Add questions here that attendees
-            must answer to complete their registration.
-          </p>
-        </div>
 
-        <div className={styles.questionsStepContainer}>
-          {questions.length > 0 && (
-            <div className={styles.questionsInputList}>
-              {questions.map((question) => (
-                <div key={question.id} className={styles.questionInputItem}>
-                  <input
-                    type="text"
-                    value={question.title}
-                    readOnly
-                    className={styles.questionInput}
-                    placeholder={
-                      question.placeholder || "please enter your institution"
-                    }
-                  />
-                  <button
-                    type="button"
-                    className={styles.removeQuestionInputButton}
-                    onClick={() =>
-                      onRemoveQuestion && onRemoveQuestion(question.id)
-                    }
-                  >
-                    <IconTrash size={18} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          <button
-            type="button"
-            className={styles.addQuestionsButton}
-            onClick={onAddQuestions}
-          >
-            <IconPlus size={20} />
-            Add Questions
-          </button>
-        </div>
-      </div>
-
-      {/* Event Services Section */}
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Event Services & Add-ons</h2>
-          <p className={styles.sectionSubtitle}>
-            Add optional services or items attendees can select during registration (like souvenirs, meals, VIP kits etc.)
-          </p>
-        </div>
-
-        <div className={styles.questionsStepContainer}>
-          {services.length > 0 && (
-            <div className={styles.questionsInputList} style={{ marginBottom: "20px" }}>
-              {services.map((service) => {
-                const linkedTicket = service.linkedTicketId && service.linkedTicketId !== "all" 
-                  ? tickets.find(t => t.id === service.linkedTicketId) 
-                  : null;
-
-                return (
-                <div key={service.id} className={styles.questionInputItem} style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '12px', cursor: 'pointer' }} onClick={() => onEditServiceClick && onEditServiceClick(service)}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <span style={{ fontWeight: 600 }}>{service.name}</span>
-                      {linkedTicket ? (
-                        <span style={{ fontSize: '11px', backgroundColor: '#e2f5ec', color: '#025a3a', padding: '2px 6px', borderRadius: '4px', width: 'fit-content', fontWeight: 600 }}>
-                          Linked to: {linkedTicket.name || "Ticket"}
-                        </span>
-                      ) : (
-                        <span style={{ fontSize: '11px', backgroundColor: '#f5f5f5', color: '#666', padding: '2px 6px', borderRadius: '4px', width: 'fit-content', fontWeight: 500 }}>
-                          General Event Service
-                        </span>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      className={styles.removeQuestionInputButton}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (onRemoveService) onRemoveService(service.id);
-                      }}
-                    >
-                      <IconTrash size={18} />
-                    </button>
-                  </div>
-                  {service.description && (
-                    <span style={{ fontSize: '13px', color: '#666', marginTop: '6px' }}>{service.description}</span>
-                  )}
-                </div>
-              );
-              })}
-            </div>
-          )}
-          <button
-            type="button"
-            className={styles.addQuestionsButton}
-            onClick={onAddServiceClick}
-          >
-            <IconPlus size={20} /> Add Service
-          </button>
-        </div>
-      </div>
-
-      {/* AI Vendor Recommendations */}
-      {eventType && (
-        <div className={styles.section}>
-          <VendorRecommendations
-            eventType={eventType}
-            eventLocation={eventLocation}
-            guestCount={guestCount}
-            onVendorsSelected={onVendorsSelected}
-          />
-        </div>
-      )}
 
       {/* Navigation Buttons */}
       <div className={styles.ticketsStepSaveButtonsContainer}>
@@ -415,12 +298,14 @@ export default function TicketsStep({
           type="button"
           className={styles.ticketsStepPreviewPublishButton}
           onClick={() => {
-            saveDraft();
-            onNext();
+            if (!isSubmitting) {
+              saveDraft();
+              onNext();
+            }
           }}
-          disabled={tickets.length === 0}
+          disabled={tickets.length === 0 || isSubmitting}
         >
-          Preview & Publish
+          {isSubmitting ? "Creating..." : "Create Event"}
         </button>
       </div>
     </>

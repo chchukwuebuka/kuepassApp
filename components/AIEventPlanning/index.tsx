@@ -5,8 +5,34 @@ import { authenticatedRequest } from "@/app/services/auth";
 import { FaMagic, FaCalendarCheck, FaPlus, FaCheckCircle, FaArrowRight, FaSave, FaFolderOpen, FaMapMarkerAlt, FaPhone, FaTimes } from "react-icons/fa";
 import styles from "./styles.module.css";
 
+interface AIEventPlanningInitialData {
+  title?: string;
+  event_type?: string;
+  description?: string;
+  location?: string;
+  guest_count?: string;
+  budget?: string;
+  start_date?: string;
+  end_date?: string;
+}
+
+interface AIEventPlanningPlanData {
+  title: string;
+  event_type: string;
+  description: string;
+  location: string;
+  guest_count: string;
+  budget: string;
+  timeline_data: TimelineItem[];
+  vendor_plan_data: any;
+  selected_vendors: Record<string, any>;
+}
+
 interface AIEventPlanningProps {
   eventId?: string;
+  initialData?: AIEventPlanningInitialData;
+  onClose?: () => void;
+  onCreateEvent?: (planData: AIEventPlanningPlanData) => void;
 }
 
 interface TimelineItem {
@@ -47,7 +73,7 @@ const EVENT_TYPES = [
   { value: "other", label: "Other" },
 ];
 
-export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
+export default function AIEventPlanning({ eventId, initialData, onClose, onCreateEvent }: AIEventPlanningProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(!!eventId);
   
@@ -67,6 +93,7 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
   const [loadingPlans, setLoadingPlans] = useState(false);
   const [viewingVendor, setViewingVendor] = useState<{category: string, vendor: any} | null>(null);
   const [drawerPackages, setDrawerPackages] = useState<string[]>([]);
+  const [showVendors, setShowVendors] = useState(false);
 
   useEffect(() => {
     if (viewingVendor) {
@@ -130,21 +157,21 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
   };
 
   const [formData, setFormData] = useState({
-    title: "",
-    event_type: "conference",
-    description: "",
-    location: "Lagos",
-    start_date: "",
-    end_date: "",
-    guest_count: "100",
-    budget: "500000",
+    title: initialData?.title || "",
+    event_type: initialData?.event_type || "conference",
+    description: initialData?.description || "",
+    location: initialData?.location || "Lagos",
+    start_date: initialData?.start_date || "",
+    end_date: initialData?.end_date || "",
+    guest_count: initialData?.guest_count || "100",
+    budget: initialData?.budget || "500000",
   });
 
   const [isRestoring, setIsRestoring] = useState(true);
 
-  // Restore draft from local storage
+  // Restore draft from local storage (skip if initialData was provided from parent)
   useEffect(() => {
-    if (!eventId && typeof window !== "undefined") {
+    if (!eventId && !initialData && typeof window !== "undefined") {
       const savedDraft = localStorage.getItem("kuepass_ai_planner_draft");
       if (savedDraft) {
         try {
@@ -266,7 +293,7 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
     }
   };
 
-  const saveAiPlan = async () => {
+  const saveAiPlan = async (skipTransition: boolean = false) => {
     setSavingPlan(true);
     setError(null);
     try {
@@ -291,16 +318,25 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
         payload
       );
       
-      if (response && response.id) {
+      console.log("saveAiPlan response:", response);
+      const planId = response?.id || response?.data?.id;
+      if (planId) {
+        console.log("Plan saved successfully, ID:", planId);
         if (typeof window !== "undefined") {
           localStorage.removeItem("kuepass_ai_planner_draft");
         }
-        setStep(4); // Success step
+        if (!skipTransition) {
+          setStep(4); // Success step
+        }
+        return true;
       } else {
+        console.error("Save plan failed - no ID in response:", response);
         setError("Failed to save plan.");
+        return false;
       }
     } catch (err: any) {
       setError(err.message || "An error occurred saving the plan.");
+      return false;
     } finally {
       setSavingPlan(false);
     }
@@ -321,6 +357,16 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
       <header className={styles.header}>
         <div className={styles.headerTop}>
           <h1 className={styles.headerTitle} style={{ margin: 0 }}>AI Event Build Flow</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {onClose && (
+            <button
+              className={styles.secondaryBtn}
+              onClick={onClose}
+              style={{ padding: '8px 16px' }}
+            >
+              <FaTimes /> Close
+            </button>
+          )}
           {isPreviewMode && (
             <div className={styles.headerActions}>
               {(step > 1 || formData.title) && step !== 4 && (
@@ -351,6 +397,7 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
               </button>
             </div>
           )}
+          </div>
         </div>
         <p className={styles.headerSubtitle}>
           {step === 1 && "Step 1: Ideation. Describe your event details."}
@@ -451,15 +498,15 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
               size="md"
             />
             <TextInput 
-              label="Approx. Start Time" 
-              placeholder="e.g., 9:00 AM"
+              label="Approx. Start Date & Time" 
+              placeholder="e.g., 16/04/2026 9:00 AM"
               value={formData.start_date}
               onChange={(e) => setFormData({...formData, start_date: e.target.value})}
               size="md"
             />
             <TextInput 
-              label="Approx. End Time" 
-              placeholder="e.g., 5:00 PM"
+              label="Approx. End Date & Time" 
+              placeholder="e.g., 18/04/2026 5:00 PM"
               value={formData.end_date}
               onChange={(e) => setFormData({...formData, end_date: e.target.value})}
               size="md"
@@ -474,14 +521,14 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
                 size="md"
               />
             </div>
-            <div className={styles.fullWidth} style={{ marginTop: "12px", display: "flex", justifyContent: "flex-end" }}>
+            <div className={styles.fullWidth} style={{ marginTop: "12px", display: "flex", justifyContent: "flex-end", gap: "12px", flexWrap: "wrap" }}>
               <button 
                 className={styles.generateBtn} 
                 onClick={findVendorsAndBudget} 
                 disabled={generatingVendors || !formData.title}
               >
                 {generatingVendors ? <Loader size="xs" color="white" /> : <FaMagic />}
-                {generatingVendors ? "Analyzing Budget & Vendors..." : "Find Vendors & Budget"}
+                {generatingVendors ? "Analyzing Details..." : "Generate Budget & Vendors"}
               </button>
             </div>
           </div>
@@ -503,21 +550,32 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
           </div>
 
           <div className={styles.card}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
               <div>
-                <h2 style={{ margin: "0 0 8px 0", color: "#111827" }}>Suggested Vendors</h2>
-                <p style={{ color: "#6b7280", margin: 0 }}>Select the vendors you want to hire. They are matched mathematically to your budget.</p>
+                <h2 style={{ margin: "0 0 8px 0", color: "#111827" }}>Vendor Selection (Optional)</h2>
+                <p style={{ color: "#6b7280", margin: 0 }}>Vendor suggestions have been automatically generated based on your budget.</p>
               </div>
-              <button 
-                className={styles.generateBtn} 
-                onClick={generateTimeline} 
-                disabled={generatingFlow}
-              >
-                {generatingFlow ? <><Loader size="xs" color="white" /> Generating Flow...</> : <>Proceed to Flow <FaArrowRight /></>}
-              </button>
+              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                {!showVendors && (
+                  <button 
+                    className={styles.secondaryBtn} 
+                    onClick={() => setShowVendors(true)} 
+                  >
+                    View Suggested Vendors
+                  </button>
+                )}
+                <button 
+                  className={styles.generateBtn} 
+                  onClick={generateTimeline} 
+                  disabled={generatingFlow}
+                >
+                  {generatingFlow ? <><Loader size="xs" color="white" /> Generating...</> : <>Skip to Timeline <FaArrowRight /></>}
+                </button>
+              </div>
             </div>
             
-            <div className={styles.vendorSection}>
+            {showVendors && (
+              <div className={styles.vendorSection}>
               {(!vendorPlan.vendor_suggestions && Object.keys(selectedVendors).length > 0) && (
                 <Alert color="blue" mb="md" style={{ borderRadius: "8px" }}>
                   <span style={{ fontWeight: 600 }}>Restored Draft:</span> Showing the specific vendors you selected previously when saving this plan.
@@ -563,8 +621,19 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
                   </div>
                 );
               })}
+              
+              <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e5e7eb", display: "flex", justifyContent: "flex-end" }}>
+                <button 
+                  className={styles.generateBtn} 
+                  onClick={generateTimeline} 
+                  disabled={generatingFlow}
+                >
+                  {generatingFlow ? <><Loader size="xs" color="white" /> Generating Flow...</> : <>Save Vendors & Proceed to Timeline <FaArrowRight /></>}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
+        </div>
         </>
       )}
 
@@ -575,27 +644,16 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
             <div>
               <h2 style={{ margin: 0, color: "#111827", fontSize: "1.5rem", fontWeight: 800 }}>Day-of Timeline</h2>
               <p style={{ margin: "6px 0 0 0", color: "#6b7280" }}>
-                Your highly professional event flow schedule. Review and save your plan.
+                Your AI-generated event flow schedule. What would you like to do with this plan?
               </p>
             </div>
             <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
               <button 
                 className={styles.secondaryBtn} 
-                onClick={() => setStep(2)} 
+                onClick={() => vendorPlan ? setStep(2) : setStep(1)} 
               >
-                Back to Vendors
+                {vendorPlan ? 'Back to Vendors' : 'Back to Details'}
               </button>
-
-              {isPreviewMode && (
-                <button 
-                  className={styles.successBtn} 
-                  onClick={saveAiPlan}
-                  disabled={savingPlan}
-                >
-                  {savingPlan ? <Loader size="xs" color="white" /> : <FaSave />}
-                  {savingPlan ? "Saving..." : "Review & Save AI Plan"}
-                </button>
-              )}
             </div>
           </div>
 
@@ -611,6 +669,54 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
               </div>
             ))}
           </div>
+
+          {/* Action Buttons: Create Event Now or Save for Later */}
+          {isPreviewMode && (
+            <div style={{ marginTop: "24px", padding: "24px", background: "linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)", borderRadius: "12px", border: "1px solid #bbf7d0" }}>
+              <h3 style={{ margin: "0 0 8px 0", color: "#111827", fontSize: "1.1rem" }}>What would you like to do?</h3>
+              <p style={{ color: "#6b7280", margin: "0 0 16px 0", fontSize: "0.9rem" }}>
+                Use this plan to create a live event now, or save it to your account for later.
+              </p>
+              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                {onCreateEvent && (
+                  <button 
+                    className={styles.generateBtn}
+                    onClick={async () => {
+                      const success = await saveAiPlan(true);
+                      if (success) {
+                        onCreateEvent({
+                          title: formData.title,
+                          event_type: formData.event_type,
+                          description: formData.description,
+                          location: formData.location,
+                          guest_count: formData.guest_count,
+                          budget: formData.budget,
+                          timeline_data: flowPlan.timeline_data,
+                          vendor_plan_data: vendorPlan || {},
+                          selected_vendors: selectedVendors,
+                          ticket_suggestions: vendorPlan?.ticket_suggestions || [],
+                        });
+                      }
+                    }}
+                    disabled={savingPlan}
+                    style={{ flex: 1, minWidth: '180px' }}
+                  >
+                    {savingPlan ? <Loader size="xs" color="white" /> : <FaCalendarCheck />}
+                    {savingPlan ? "Saving & Proceeding..." : "Create Event Now"}
+                  </button>
+                )}
+                <button 
+                  className={styles.generateBtn} 
+                  onClick={() => saveAiPlan(false)}
+                  disabled={savingPlan}
+                  style={{ flex: 1, minWidth: '180px' }}
+                >
+                  {savingPlan ? <Loader size="xs" color="white" /> : <FaSave />}
+                  {savingPlan ? "Saving..." : "Save for Later"}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -623,18 +729,38 @@ export default function AIEventPlanning({ eventId }: AIEventPlanningProps) {
             </div>
             <h2 style={{ color: "#111827", marginBottom: "12px" }}>Plan Saved Successfully!</h2>
             <div className={styles.emptyStateText}>
-              Your ideation, vendor selections, and timeline flow have been explicitly saved to your account.
-              You can load this later and convert it into a real live event when you are ready.
+              Your plan has been saved to your account. You can load it anytime from your dashboard
+              to create a live event when you are ready.
             </div>
-            <div style={{ display: "flex", gap: "12px", marginTop: "24px", justifyContent: "center" }}>
+            <div style={{ display: "flex", gap: "12px", marginTop: "24px", justifyContent: "center", flexWrap: "wrap" }}>
+              {onCreateEvent && flowPlan && (
+                <button 
+                  className={styles.generateBtn}
+                  onClick={() => {
+                    onCreateEvent({
+                      title: formData.title,
+                      event_type: formData.event_type,
+                      description: formData.description,
+                      location: formData.location,
+                      guest_count: formData.guest_count,
+                      budget: formData.budget,
+                      timeline_data: flowPlan.timeline_data,
+                      vendor_plan_data: vendorPlan || {},
+                      selected_vendors: selectedVendors,
+                    });
+                  }}
+                >
+                  <FaCalendarCheck /> Use Plan to Create Event
+                </button>
+              )}
               <button 
                 className={styles.secondaryBtn}
-                onClick={() => router.push("/dashboard")}
+                onClick={() => onClose ? onClose() : router.push("/dashboard")}
               >
-                Back to Dashboard
+                {onClose ? 'Back to Form' : 'Back to Dashboard'}
               </button>
               <button 
-                className={styles.generateBtn}
+                className={styles.secondaryBtn}
                 onClick={() => {
                   setStep(1);
                   setFormData({
