@@ -150,16 +150,7 @@ const SeatingDashboard = nextDynamic(
     ),
   }
 );
-const AIEventPlanning = nextDynamic(
-  () => import("@/components/AIEventPlanning"),
-  {
-    loading: () => (
-      <Center>
-        <Loader />
-      </Center>
-    ),
-  }
-);
+
 const VendorDashboard = nextDynamic(
   () => import("@/components/VendorDashboard"),
   {
@@ -379,7 +370,7 @@ function DashboardContent() {
     sessions: <SessionManager eventId={activeEventId} />,
     surveys: <SurveyDashboard eventId={activeEventId} />,
     seating: <SeatingDashboard eventId={activeEventId} />,
-    aiPlanning: <AIEventPlanning eventId={activeEventId} />,
+
     vendorDashboard: <VendorDashboard />,
     store: (
       <>

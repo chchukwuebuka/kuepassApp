@@ -173,9 +173,51 @@ width: 40%;
 }
 
 .modalTabs {
-  margin-bottom: 20px;
-  /* background-color: aqua; */
+  margin-bottom: 30px;
   margin: auto;
+  width: 100%;
+}
+
+.customTabList {
+  display: flex;
+  background-color: #f3f4f6;
+  border-radius: 100px;
+  padding: 6px;
+  width: fit-content;
+  margin: 0 auto 30px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.customTab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 100px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.customTab:hover {
+  color: #374151;
+}
+
+.customTabActive {
+  background-color: white;
+  color: #025a3a;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.customTabIcon {
+  width: 18px;
+  height: 18px;
 }
 
 .previewContainer {

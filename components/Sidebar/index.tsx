@@ -39,8 +39,7 @@ export type PageKey =
   | "seating"
   | "store"
   | "support"
-  | "bulkPreRegister"
-  | "aiPlanning";
+  | "bulkPreRegister";
 
 interface SidebarProps {
   activePage: PageKey;
@@ -63,7 +62,6 @@ const menuItems: {
 }[] = [
   // General
   { key: "createEvent", icon: <FaHome />, label: "Create Event", category: "General" },
-  { key: "aiPlanning", icon: <FaToolbox />, label: "AI Event Planner", category: "General" },
   { key: "vendorMarketplace", icon: <FaHandshake />, label: "Vendor Hub", category: "General" },
   { key: "vendorDashboard", icon: <FaStore />, label: "Vendor Portal", vendorOnly: true, category: "General" },
   

@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import { CheckCircle } from "lucide-react";
 import styles from "./styles.module.css";
 import AutocompleteInput from "./AutocompleteInput";
 import ProgressTracker from "./ProgressTracker";
@@ -43,6 +44,10 @@ const EventServiceModal = dynamic(() => import("./EventServiceModal"), {
   ssr: false,
 });
 import { EventService } from "./EventServiceModal";
+
+const AIEventPlanning = dynamic(() => import("@/components/AIEventPlanning"), {
+  ssr: false,
+});
 
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.kuepass.com/api/"
@@ -153,6 +158,8 @@ export default function CreateEventPage() {
   const searchParams = useSearchParams();
   const eventId = searchParams.get("eventId");
   const [currentStep, setCurrentStep] = useState<number>(1);
+  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
+  const [finalEventId, setFinalEventId] = useState<string>("");
   const [eventImage, setEventImage] = useState<File | null>(null);
   const [eventImagePreview, setEventImagePreview] = useState<string | null>(
     null
@@ -254,6 +261,8 @@ export default function CreateEventPage() {
   const [aiLoading, setAiLoading] = useState<boolean>(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [showAiSection, setShowAiSection] = useState<boolean>(true);
+  const [showAiBranchModal, setShowAiBranchModal] = useState<boolean>(false);
+  const [showAiPlannerOverlay, setShowAiPlannerOverlay] = useState<boolean>(false);
   const [aiGenerated, setAiGenerated] = useState<boolean>(false);
   const [aiTicketSuggestions, setAiTicketSuggestions] = useState<
     Array<{
@@ -1128,8 +1137,9 @@ export default function CreateEventPage() {
   };
 
   // AI-powered event generation handler
-  const handleAiGenerate = async () => {
-    if (!aiPrompt.trim()) {
+  const handleAiGenerate = async (promptOverride?: string) => {
+    const promptToUse = (promptOverride || aiPrompt).trim();
+    if (!promptToUse) {
       setAiError("Please describe your event first.");
       return;
     }
@@ -1139,7 +1149,7 @@ export default function CreateEventPage() {
       const response = await authenticatedRequest<any>(
         `${API_BASE_URL}/ai/create-event/`,
         "POST",
-        { prompt: aiPrompt.trim() }
+        { prompt: promptToUse }
       );
 
       // The backend returns { success, message, event: {...}, ticket_suggestions: [...] }
@@ -1150,33 +1160,28 @@ export default function CreateEventPage() {
       // Map AI response to formData
       setFormData((prev) => ({
         ...prev,
-        eventName: eventData.title || prev.eventName,
-        eventDescription: eventData.description || prev.eventDescription,
-        eventType: eventData.event_type || prev.eventType,
-        startDate: eventData.start_date
+        eventName: prev.eventName || eventData.title,
+        eventDescription: prev.eventDescription || eventData.description,
+        eventType: prev.eventType || eventData.event_type,
+        startDate: prev.startDate || eventData.start_date
           ? new Date(eventData.start_date).toISOString().slice(0, 10)
           : prev.startDate,
-        startTime: eventData.start_date
+        startTime: prev.startTime || eventData.start_date
           ? new Date(eventData.start_date).toTimeString().slice(0, 5)
           : prev.startTime,
-        endDate: eventData.end_date
+        endDate: prev.endDate || eventData.end_date
           ? new Date(eventData.end_date).toISOString().slice(0, 10)
           : prev.endDate,
-        endTime: eventData.end_date
+        endTime: prev.endTime || eventData.end_date
           ? new Date(eventData.end_date).toTimeString().slice(0, 5)
           : prev.endTime,
-        locationType:
-          eventData.location === "Virtual"
-            ? "virtual"
-            : eventData.location === "Physical"
-            ? "venue"
-            : prev.locationType,
-        address: eventData.address || prev.address,
-        streetAddress: eventData.street_address || eventData.address || prev.streetAddress,
-        city: eventData.city || prev.city,
-        state: eventData.state || prev.state,
-        country: eventData.country || prev.country,
-        landmark: eventData.landmark || prev.landmark,
+        locationType: prev.locationType || (eventData.location === "Virtual" ? "virtual" : "venue"),
+        address: prev.address || eventData.address,
+        streetAddress: prev.streetAddress || eventData.street_address || eventData.address,
+        city: prev.city || eventData.city,
+        state: prev.state || eventData.state,
+        country: prev.country || eventData.country,
+        landmark: prev.landmark || eventData.landmark,
         meetingLink: eventData.meeting_link || prev.meetingLink,
         tags: eventData.tags && eventData.tags.length > 0 ? eventData.tags : prev.tags,
         additionalDetails: eventData.additional_details || prev.additionalDetails,
@@ -1276,7 +1281,7 @@ export default function CreateEventPage() {
       }
 
       // Auto-navigate to step 2 so user sees the tickets and questions
-      setTimeout(() => setCurrentStep(2), 500);
+      setTimeout(() => { setCurrentStep(3); setShowAiBranchModal(false); }, 500);
     } catch (err: any) {
       console.error("AI event generation failed:", err);
       setAiError(
@@ -1807,8 +1812,8 @@ export default function CreateEventPage() {
       return;
     }
 
-    if (currentStep < 3) {
-      setCurrentStep((prev) => prev + 1);
+    if (currentStep < 2) {
+      setCurrentStep(2);
       return;
     }
 
@@ -2069,7 +2074,7 @@ export default function CreateEventPage() {
           activity: slot.title,
           start_time: slot.startTime,
           end_time: slot.endTime,
-          host: slot.hostName || "",
+          host: slot.hostName || "Event Host",
           description: slot.description || "",
         }))
       );
@@ -2087,7 +2092,7 @@ export default function CreateEventPage() {
             ? formData.streetAddress || formData.address
             : "",
         ...(formData.landmark && { landmark: formData.landmark }),
-        ...(formData.eventType && { event_type: formData.eventType }),
+        ...(formData.eventType && { event_type: formData.eventType.toLowerCase() }),
         ...(formData.meetingLink && { meeting_link: formData.meetingLink }),
         ...(formData.tags &&
           formData.tags.length > 0 && { tags: formData.tags }),
@@ -2349,7 +2354,8 @@ export default function CreateEventPage() {
           }
         }
 
-        alert("Event created successfully!");
+        setFinalEventId(finalEventId);
+        setShowSuccessModal(true);
       }
 
       // Create countdown for the event after publishing
@@ -2380,10 +2386,14 @@ export default function CreateEventPage() {
       }
 
       localStorage.removeItem(FORM_STORAGE_KEY);
-      router.push(`/dashboard?eventId=${finalEventId}`);
+      // The Celebration Modal handles the dashboard routing now.
     } catch (err: any) {
       console.error("Error saving event:", err);
+      if (err.data) {
+        console.error("Backend validation errors:", JSON.stringify(err.data, null, 2));
+      }
       alert(
+        err.data ? `Validation error: ${JSON.stringify(err.data)}` :
         err.message ||
           "Failed to save event. Please check the form and try again."
       );
@@ -2406,13 +2416,8 @@ export default function CreateEventPage() {
     );
 
   const steps = [
-    { id: 1, label: "Event details", completed: isEventDetailsCompleted },
-    {
-      id: 2,
-      label: "Tickets",
-      completed: currentStep > 2 || tickets.length > 0,
-    },
-    { id: 3, label: "Preview & publish", completed: false },
+    { id: 1, label: "Event details", completed: currentStep > 1 || isEventDetailsCompleted },
+    { id: 2, label: "Assets & Tickets", completed: currentStep > 2 || (Boolean(eventImagePreview) && tickets.length > 0) },
   ];
 
   const hasStartedFilling = Boolean(
@@ -2443,12 +2448,13 @@ export default function CreateEventPage() {
       }}
       className={styles.createEventContainer}
     >
-      {/* Progress Tracker */}
-      <ProgressTracker
+      <div style={{ display: showAiPlannerOverlay ? 'none' : 'block', width: '100%' }}>
+        {/* Progress Tracker */}
+        <ProgressTracker
         steps={steps}
         currentStep={currentStep}
         onPublish={
-          currentStep === 3
+          currentStep === 4
             ? () => {
                 handleSubmit();
               }
@@ -2475,130 +2481,7 @@ export default function CreateEventPage() {
         )}
         {currentStep === 1 && (
           <>
-            {/* AI Event Creation Section removed as requested */}
-
-            {/* Event Image Section */}
-            <div className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>Event Image</h2>
-                <p className={styles.sectionSubtitle}>
-                  Launch your event in no time—just minutes.
-                </p>
-              </div>
-
-              <div className={styles.imageUploadContainer}>
-                {/* Main Image Upload */}
-                <div className={styles.mainImageUpload}>
-                  {eventImagePreview ? (
-                    <div className={styles.imagePreview}>
-                      <img
-                        src={eventImagePreview}
-                        alt="Event preview"
-                        className={styles.previewImage}
-                      />
-                      <button
-                        type="button"
-                        className={styles.changeImageButton}
-                        onClick={() => {
-                          // Add current image to additional images if it exists
-                          if (
-                            eventImagePreview &&
-                            !additionalImages.includes(eventImagePreview)
-                          ) {
-                            setAdditionalImages((prev) => [
-                              ...prev,
-                              eventImagePreview,
-                            ]);
-                          }
-                          // Clear main image to allow new upload
-                          setEventImage(null);
-                          setEventImagePreview(null);
-                        }}
-                      >
-                        Add Another Image
-                      </button>
-                    </div>
-                  ) : (
-                    <label className={styles.uploadArea}>
-                      <input
-                        type="file"
-                        accept="image/png,image/jpeg,image/jpg"
-                        onChange={(e) =>
-                          handleImageUpload(e.target.files?.[0] || null)
-                        }
-                        style={{ display: "none" }}
-                      />
-                      <IconUpload size={32} className={styles.uploadIcon} />
-                      <span className={styles.uploadText}>upload</span>
-                    </label>
-                  )}
-                </div>
-
-                {/* Additional Image Placeholders */}
-                <div className={styles.additionalImagesContainer}>
-                  {/* Show existing images and placeholders */}
-                  {Array.from({
-                    length: Math.max(2, additionalImages.length + 1),
-                  }).map((_, index) => (
-                    <div
-                      key={index}
-                      className={styles.additionalImagePlaceholder}
-                    >
-                      {additionalImages[index] ? (
-                        <div className={styles.additionalImageWrapper}>
-                          <img
-                            src={additionalImages[index]}
-                            alt={`Additional ${index + 1}`}
-                            className={styles.additionalPreview}
-                          />
-                          <button
-                            type="button"
-                            className={styles.removeImageButton}
-                            onClick={() => {
-                              setAdditionalImages((prev) =>
-                                prev.filter((_, i) => i !== index)
-                              );
-                            }}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ) : (
-                        <label className={styles.smallUploadArea}>
-                          <input
-                            type="file"
-                            accept="image/png,image/jpeg,image/jpg"
-                            onChange={(e) =>
-                              handleAdditionalImageUpload(
-                                e.target.files?.[0] || null,
-                                index
-                              )
-                            }
-                            style={{ display: "none" }}
-                          />
-                          <IconUpload size={20} />
-                        </label>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Image Guidelines */}
-                <div className={styles.imageGuidelines}>
-                  <p className={styles.guidelineText}>
-                    • Recommended image size: 2160 x 1080px
-                  </p>
-                  <p className={styles.guidelineText}>
-                    • Maximum file size: 10MB
-                  </p>
-                  <p className={styles.guidelineText}>
-                    • Supported image files: JPEG, PNG
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Event Details Section */}
+            {/* AI Event Creation Section removed as requested */}{/* Event Details Section */}
             <div className={styles.section}>
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>Event details</h2>
@@ -3102,39 +2985,20 @@ export default function CreateEventPage() {
                   </>
                 )}
 
-                {/* Button Text Selector */}
-                <ButtonTextSelector
-                  selectedText={formData.ticketButtonText}
-                  onTextChange={(text: string) =>
-                    handleInputChange("ticketButtonText", text)
-                  }
-                />
 
-                {/* Event Details Section (Tags, Social Links, Sections) */}
-                <EventDetailsSection
-                  tags={formData.tags}
-                  onTagsChange={(tags) => handleInputChange("tags", tags)}
-                  socialLinks={formData.socialLinks}
-                  onSocialLinksChange={(links) =>
-                    handleInputChange("socialLinks", links)
-                  }
-                  sections={formData.sections}
-                  onSectionsChange={(sections) =>
-                    handleInputChange("sections", sections)
-                  }
-                  lineupItems={lineupItems}
-                  onLineupItemsChange={setLineupItems}
-                  schedules={schedules}
-                  onSchedulesChange={setSchedules}
-                />
+                {/* AI Error Display */}
+                {aiError && (
+                  <div style={{ width: '100%', padding: '12px 16px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#dc2626', fontSize: '0.9rem', marginBottom: '4px' }}>
+                    ⚠️ {aiError}
+                  </div>
+                )}
 
-
-
-                {/* Save & Exit / Save & Continue Buttons */}
-                <div className={styles.saveButtonsContainer}>
+                {/* Save & Exit / Save & Continue / Plan with AI Buttons */}
+                <div className={styles.saveButtonsContainer} style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', width: '100%' }}>
                   <button
                     type="button"
                     className={styles.saveExitButton}
+                    style={{ whiteSpace: 'nowrap', flex: 1, minWidth: 'fit-content' }}
                     onClick={() => {
                       saveDraft();
                       router.push("/dashboard");
@@ -3145,6 +3009,7 @@ export default function CreateEventPage() {
                   <button
                     type="button"
                     className={styles.saveContinueButton}
+                    style={{ whiteSpace: 'nowrap', flex: 1, minWidth: 'fit-content' }}
                     onClick={() => {
                       saveDraft();
                       setCurrentStep(2);
@@ -3155,7 +3020,23 @@ export default function CreateEventPage() {
                       !formData.eventType
                     }
                   >
-                    Save & Continue
+                    Continue Manually
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.saveContinueButton}
+                    onClick={() => {
+                      saveDraft();
+                      setShowAiPlannerOverlay(true);
+                    }}
+                    disabled={
+                      !formData.eventName ||
+                      !formData.eventDescription ||
+                      !formData.eventType
+                    }
+                    style={{ flex: 1, minWidth: 'fit-content' }}
+                  >
+                    Plan with AI
                   </button>
                 </div>
               </div>
@@ -3163,14 +3044,138 @@ export default function CreateEventPage() {
           </>
         )}
 
+        
         {currentStep === 2 && (
-          <>
-            <TicketsStep
+          <div className={styles.section}>
+            
+
+            {/* Event Image Section */}
+            <div className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Event Image</h2>
+                <p className={styles.sectionSubtitle}>
+                  Launch your event in no time—just minutes.
+                </p>
+              </div>
+
+              <div className={styles.imageUploadContainer}>
+                {/* Main Image Upload */}
+                <div className={styles.mainImageUpload}>
+                  {eventImagePreview ? (
+                    <div className={styles.imagePreview}>
+                      <img
+                        src={eventImagePreview}
+                        alt="Event preview"
+                        className={styles.previewImage}
+                      />
+                      <button
+                        type="button"
+                        className={styles.changeImageButton}
+                        onClick={() => {
+                          // Add current image to additional images if it exists
+                          if (
+                            eventImagePreview &&
+                            !additionalImages.includes(eventImagePreview)
+                          ) {
+                            setAdditionalImages((prev) => [
+                              ...prev,
+                              eventImagePreview,
+                            ]);
+                          }
+                          // Clear main image to allow new upload
+                          setEventImage(null);
+                          setEventImagePreview(null);
+                        }}
+                      >
+                        Add Another Image
+                      </button>
+                    </div>
+                  ) : (
+                    <label className={styles.uploadArea}>
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg"
+                        onChange={(e) =>
+                          handleImageUpload(e.target.files?.[0] || null)
+                        }
+                        style={{ display: "none" }}
+                      />
+                      <IconUpload size={32} className={styles.uploadIcon} />
+                      <span className={styles.uploadText}>upload</span>
+                    </label>
+                  )}
+                </div>
+
+                {/* Additional Image Placeholders */}
+                <div className={styles.additionalImagesContainer}>
+                  {/* Show existing images and placeholders */}
+                  {Array.from({
+                    length: Math.max(2, additionalImages.length + 1),
+                  }).map((_, index) => (
+                    <div
+                      key={index}
+                      className={styles.additionalImagePlaceholder}
+                    >
+                      {additionalImages[index] ? (
+                        <div className={styles.additionalImageWrapper}>
+                          <img
+                            src={additionalImages[index]}
+                            alt={`Additional ${index + 1}`}
+                            className={styles.additionalPreview}
+                          />
+                          <button
+                            type="button"
+                            className={styles.removeImageButton}
+                            onClick={() => {
+                              setAdditionalImages((prev) =>
+                                prev.filter((_, i) => i !== index)
+                              );
+                            }}
+                          >
+                            ├ù
+                          </button>
+                        </div>
+                      ) : (
+                        <label className={styles.smallUploadArea}>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg"
+                            onChange={(e) =>
+                              handleAdditionalImageUpload(
+                                e.target.files?.[0] || null,
+                                index
+                              )
+                            }
+                            style={{ display: "none" }}
+                          />
+                          <IconUpload size={20} />
+                        </label>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Image Guidelines */}
+                <div className={styles.imageGuidelines}>
+                  <p className={styles.guidelineText}>
+                    ÔÇó Recommended image size: 2160 x 1080px
+                  </p>
+                  <p className={styles.guidelineText}>
+                    ÔÇó Maximum file size: 10MB
+                  </p>
+                  <p className={styles.guidelineText}>
+                    ÔÇó Supported image files: JPEG, PNG
+                  </p>
+                </div>
+              </div>
+            </div>
+
+<TicketsStep
               tickets={tickets as any}
               onAddTicket={() => setIsModalOpen(true)}
               onRemoveTicket={removeTicket}
               onBack={() => setCurrentStep(1)}
-              onNext={() => setCurrentStep(3)}
+              onNext={() => handleSubmit()}
               onAddQuestions={handleAddQuestion}
               questions={questions}
               onEditQuestion={handleEditQuestion}
@@ -3189,52 +3194,106 @@ export default function CreateEventPage() {
                 setIsServiceModalOpen(true);
               }}
               onRemoveService={(id) => setServices(services.filter((s) => s.id !== id))}
+              isSubmitting={isSubmitting}
             />
-          </>
+
+
+            
+            
+
+                
+
+
+            
+          </div>
         )}
 
-        {currentStep === 3 && (
-          <PreviewStep
-            eventName={formData.eventName}
-            eventDescription={formData.eventDescription}
-            eventType={formData.eventType}
-            eventImagePreview={eventImagePreview}
-            additionalImages={additionalImages}
-            startDate={formData.startDate}
-            startTime={formData.startTime}
-            endDate={formData.endDate}
-            endTime={formData.endTime}
-            timezone={formData.timezone}
-            locationType={formData.locationType}
-            streetAddress={formData.streetAddress}
-            address={formData.address}
-            city={formData.city}
-            state={formData.state}
-            country={formData.country}
-            meetingLink={formData.meetingLink}
-            additionalDetails={formData.additionalDetails}
-            socialLinks={formData.socialLinks}
-            tags={formData.tags}
-            tickets={tickets as any}
-            lineupItems={lineupItems as any}
-            schedules={schedules as any}
-            services={services as any}
-            ticketButtonText={formData.ticketButtonText}
-            eventTimingType={formData.eventTimingType}
-            repeatPattern={formData.repeatPattern}
-            repeatOnDays={formData.repeatOnDays}
-            repeatOnMonthDays={formData.repeatOnMonthDays}
-            timeMode={formData.timeMode}
-            timeSlots={formData.timeSlots}
-            eventId={eventId || undefined}
-            onBack={() => setCurrentStep(2)}
-            onPublish={() => {
-              handleSubmit();
-            }}
-            isSubmitting={isSubmitting}
-          />
-        )}
+        
+
+        
       </div>
+
+
+      
+      {/* Celebration Modal */}
+      {showSuccessModal && (
+        <div className={styles.modalOverlay} style={{ zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className={styles.modalContent} style={{ maxWidth: '400px', padding: '40px 30px', textAlign: 'center', margin: 'auto', background: 'white', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+            <div style={{ fontSize: '48px', marginBottom: '15px' }}>🎉</div>
+            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '10px', color: '#1a1a1a' }}>Event Created!</h2>
+            <p style={{ margin: '15px 0 25px', color: '#666', lineHeight: '1.5', fontSize: '15px' }}>
+              Your event is officially live. Keep the momentum going by heading over to Customization to set up your schedule, custom links, tags, and more!
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button 
+                type="button" 
+                className={styles.saveContinueButton} 
+                onClick={() => {
+                  router.push(`/dashboard?eventId=${finalEventId}&page=customization`);
+                }}
+                style={{ background: '#9333ea', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 600, fontSize: '15px' }}
+              >
+                Customize & Finalize Event
+              </button>
+              <button 
+                type="button" 
+                className={styles.saveExitButton} 
+                onClick={() => {
+                  router.push(`/dashboard?eventId=${finalEventId}`);
+                }}
+                style={{ padding: '12px', borderRadius: '8px', fontWeight: 600, fontSize: '15px', border: '1px solid #ddd', background: 'transparent', color: '#444' }}
+              >
+                Go to Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Celebration Modal */}
+      {showSuccessModal && (
+        <div className={styles.modalOverlay} style={{ zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(4px)' }}>
+          <div className={styles.modalContent} style={{ width: '90%', maxWidth: '440px', padding: '48px 40px', textAlign: 'center', margin: 'auto', background: 'white', borderRadius: '24px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', animation: 'fadeInScale 0.3s ease-out', position: 'relative' }}>
+            <div style={{ width: '80px', height: '80px', background: '#e2f5ec', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+              <CheckCircle size={40} color="#025a3a" strokeWidth={2.5} />
+            </div>
+            <h2 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '12px', color: '#111827', letterSpacing: '-0.5px' }}>Event Created!</h2>
+            <p style={{ margin: '0 auto 32px', color: '#6b7280', lineHeight: '1.6', fontSize: '15px', maxWidth: '300px' }}>
+              Your event is officially live. Customize your event's marketing links, lineup, and schedule next.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+              <button 
+                type="button" 
+                onClick={() => {
+                  window.location.href = `/dashboard?eventId=${finalEventId}&page=customization&openEdit=true&tab=advanced`;
+                }}
+                style={{ width: '100%', background: '#025a3a', color: 'white', border: 'none', padding: '16px', borderRadius: '12px', fontWeight: 600, fontSize: '16px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', justifyContent: 'center' }}
+                onMouseOver={(e) => e.currentTarget.style.background = '#02422a'}
+                onMouseOut={(e) => e.currentTarget.style.background = '#025a3a'}
+              >
+                Customize & Finalize Event
+              </button>
+              <button 
+                type="button" 
+                onClick={() => {
+                  window.location.href = `/dashboard?eventId=${finalEventId}`;
+                }}
+                style={{ width: '100%', padding: '16px', borderRadius: '12px', fontWeight: 600, fontSize: '16px', border: '1px solid #e5e7eb', background: 'white', color: '#374151', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', justifyContent: 'center' }}
+                onMouseOver={(e) => e.currentTarget.style.background = '#f9fafb'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'white'}
+              >
+                Go to Dashboard
+              </button>
+            </div>
+          </div>
+          <style dangerouslySetInnerHTML={{__html: `
+            @keyframes fadeInScale {
+              from { opacity: 0; transform: scale(0.95) translateY(10px); }
+              to { opacity: 1; transform: scale(1) translateY(0); }
+            }
+          `}} />
+        </div>
+      )}
 
       {/* Ticket Modal */}
       {isModalOpen && (
@@ -3277,6 +3336,109 @@ export default function CreateEventPage() {
         service={editingService}
         tickets={tickets as any}
       />
+      </div>
+
+      {/* AI Event Planner Inline View */}
+      {showAiPlannerOverlay && (
+        <div style={{
+          width: '100%',
+          flex: 1,
+          animation: 'fadeIn 0.3s ease-out'
+        }}>
+          <AIEventPlanning
+            initialData={{
+              title: formData.eventName,
+              event_type: formData.eventType?.toLowerCase() || 'conference',
+              description: formData.eventDescription,
+              location: [formData.address, formData.city, formData.state, formData.country].filter(Boolean).join(', ') || 'Lagos',
+              start_date: formData.startDate ? `${formData.startDate} ${formData.startTime}`.trim() : formData.startTime || '',
+              end_date: formData.endDate ? `${formData.endDate} ${formData.endTime}`.trim() : formData.endTime || '',
+            }}
+            onClose={() => setShowAiPlannerOverlay(false)}
+            onCreateEvent={(planData) => {
+              // Map AI plan data back to event creation form
+              setFormData((prev) => ({
+                ...prev,
+                eventName: planData.title || prev.eventName,
+                eventDescription: planData.description || prev.eventDescription,
+                eventType: planData.event_type
+                  ? planData.event_type.charAt(0).toUpperCase() + planData.event_type.slice(1)
+                  : prev.eventType,
+              }));
+
+              // Map timeline to schedules/itinerary
+              if (planData.timeline_data && planData.timeline_data.length > 0) {
+                const schedulesMap: Record<string, any[]> = {};
+
+                planData.timeline_data.forEach((item: any) => {
+                  let dayName = "Main Schedule";
+                  let timeStr = item.time || "";
+
+                  // If AI prefixes time with "Day X:"
+                  if (timeStr.toLowerCase().includes("day") && timeStr.includes(":")) {
+                    const parts = timeStr.split(":");
+                    // First part is day name (e.g. Day 1), rest is the time
+                    if (parts[0].toLowerCase().startsWith("day") && parts[0].length < 15) {
+                      dayName = parts[0].trim();
+                      timeStr = parts.slice(1).join(":").trim();
+                    }
+                  }
+
+                  const startTime = timeStr.split('-')[0]?.trim() || timeStr;
+                  const endTime = timeStr.split('-')[1]?.trim() || '';
+
+                  if (!schedulesMap[dayName]) schedulesMap[dayName] = [];
+                  schedulesMap[dayName].push({
+                    id: uuidv4(),
+                    title: item.activity || item.title || '',
+                    startTime: startTime,
+                    endTime: endTime,
+                    hostName: '',
+                    description: item.description || '',
+                  });
+                });
+
+                const mappedSchedules = Object.keys(schedulesMap).map(day => ({
+                  id: uuidv4(),
+                  name: day,
+                  slots: schedulesMap[day]
+                }));
+
+                setSchedules(mappedSchedules);
+
+                // Auto-add itinerary section
+                setFormData((prev) => ({
+                  ...prev,
+                  sections: [...new Set([...prev.sections, 'itinerary'])],
+                }));
+              }
+
+              // Map AI ticket suggestions to tickets
+              if (planData.ticket_suggestions && planData.ticket_suggestions.length > 0) {
+                const mappedTickets = planData.ticket_suggestions.map((t: any) => {
+                  const price = parseFloat(String(t.price).replace(/[^0-9.]/g, '')) || 0;
+                  const quantity = parseInt(String(t.quantity).replace(/[^0-9]/g, '')) || 100;
+                  return {
+                    id: uuidv4(),
+                    name: t.name || 'General Admission',
+                    price: price,
+                    quantity: quantity,
+                    type: (price === 0 ? 'Free' : 'Paid') as 'Paid' | 'Free' | 'Invite',
+                    description: t.description || '',
+                    perks: t.perks || [],
+                  };
+                });
+                setTickets(mappedTickets);
+              }
+
+              // Close overlay and go to step 2 (image/media)
+              setShowAiPlannerOverlay(false);
+              setAiGenerated(true);
+              setCurrentStep(2);
+            }}
+          />
+        </div>
+      )}
     </form>
   );
 }

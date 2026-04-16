@@ -1,11 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import DetailsStep from "../DetailsStep";
 import AppearanceStep from "../AppearanceStep";
+import EventDetailsSection from "../CreateEventPage/EventDetailsSection";
+import ButtonTextSelector from "../CreateEventPage/ButtonTextSelector";
+import QuestionModal from "../CreateEventPage/QuestionModal";
+import EventServiceModal, { EventService } from "../CreateEventPage/EventServiceModal";
+import VendorRecommendations from "../CreateEventPage/VendorRecommendations";
 import styles from "./styles.module.css";
-import type { EventFormData } from "../../store/types";
+import createStyles from "../CreateEventPage/styles.module.css";
+import type { EventFormData, Question } from "../../store/types";
 import { authenticatedRequest } from "../../app/services/auth";
 import {
   Stack,
@@ -17,9 +23,10 @@ import {
   Tabs,
   Loader,
 } from "@mantine/core";
-import { Edit, Eye, AlertCircle, Check } from "lucide-react";
+import { Edit, Eye, AlertCircle, Check, Settings, MessageSquarePlus } from "lucide-react";
 import { useAppDispatch } from "../../store/store";
 import { updateEvent } from "../../store/eventSlice";
+import { IconPlus, IconTrash } from "@tabler/icons-react";
 
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -41,7 +48,11 @@ const Customization: React.FC = () => {
   const eventId = searchParams.get("eventId");
   const dispatch = useAppDispatch();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
+  const [editingService, setEditingService] = useState<EventService | null>(null);
+  const [services, setServices] = useState<EventService[]>([]);
+  
   const [formData, setFormData] = useState<EventFormData>({
     title: "",
     description: "",
@@ -66,8 +77,13 @@ const Customization: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [customizationId, setCustomizationId] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<string | null>("details");
+  const [activeTab, setActiveTab] = useState<string | null>("preview");
   const [showCountdown, setShowCountdown] = useState(true);
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam) setActiveTab(tabParam);
+  }, [searchParams]);
 
   // Validate hex color
   const isValidHex = (color: string): boolean => {
@@ -152,6 +168,48 @@ const Customization: React.FC = () => {
         eventURL:
           event.event_url || `${window.location.origin}/events/${eventId}`,
         price: event.price?.toString() || "0.00",
+        tags: event.tags || [],
+        socialLinks: event.social_links
+            ? {
+                instagram: event.social_links.find((l: any) => l.platform === "instagram")?.url,
+                youtube: event.social_links.find((l: any) => l.platform === "youtube")?.url,
+                tiktok: event.social_links.find((l: any) => l.platform === "tiktok")?.url,
+              }
+            : {},
+        sections: (() => {
+          const s = event.sections || [];
+          if (event.itinerary && event.itinerary.length > 0 && !s.includes('itinerary')) {
+            return [...s, 'itinerary'];
+          }
+          return s;
+        })(),
+        lineupItems: event.line_up || [],
+        schedules: (() => {
+          const rawItinerary = event.itinerary || [];
+          if (!Array.isArray(rawItinerary) || rawItinerary.length === 0) return [];
+          // Check if it's already in grouped format (has 'slots' key)
+          if (rawItinerary[0]?.slots) return rawItinerary;
+          // Convert flat itinerary to grouped schedules
+          const groupMap: Record<string, any[]> = {};
+          rawItinerary.forEach((item: any) => {
+            const dayName = item.title || "Main Schedule";
+            if (!groupMap[dayName]) groupMap[dayName] = [];
+            groupMap[dayName].push({
+              id: crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`,
+              title: item.activity || item.title || '',
+              startTime: item.start_time || '',
+              endTime: item.end_time || '',
+              hostName: item.host || '',
+              description: item.description || '',
+            });
+          });
+          return Object.keys(groupMap).map(name => ({
+            id: crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`,
+            name,
+            slots: groupMap[name],
+          }));
+        })(),
+        ticketButtonText: existing?.button_text || "Get Ticket",
       };
 
       console.log("Setting formData:", fd);
@@ -228,7 +286,30 @@ const Customization: React.FC = () => {
       }
 
       // Patch event
-      const eventPayload = {
+      const socialLinksArray: { platform: string; url: string }[] = [];
+      if (formData.socialLinks?.instagram) socialLinksArray.push({ platform: "instagram", url: formData.socialLinks.instagram });
+      if (formData.socialLinks?.youtube) socialLinksArray.push({ platform: "youtube", url: formData.socialLinks.youtube });
+      if (formData.socialLinks?.tiktok) socialLinksArray.push({ platform: "tiktok", url: formData.socialLinks.tiktok });
+
+      const lineUpArray = (formData.lineupItems || []).map((item: any) => ({
+        name: item.name,
+        role: item.role,
+        description: item.description,
+        ...(item.image && { image: item.image }),
+      }));
+
+      const itineraryArray = (formData.schedules || []).flatMap((schedule: any) =>
+        schedule.slots.map((slot: any) => ({
+          title: schedule.name || slot.title,
+          activity: slot.title,
+          start_time: slot.startTime,
+          end_time: slot.endTime,
+          host: slot.hostName || "",
+          description: slot.description || "",
+        }))
+      );
+
+      const eventPayload: any = {
         title: formData.title,
         description: formData.description,
         location: formData.location,
@@ -237,6 +318,10 @@ const Customization: React.FC = () => {
         end_date: `${formData.endDate}T${formData.endTime}:00Z`,
         price: parseFloat(formData.price),
         card_color: formData.cardColor,
+        ...(formData.tags && formData.tags.length > 0 && { tags: formData.tags }),
+        ...(socialLinksArray.length > 0 && { social_links: socialLinksArray }),
+        ...(lineUpArray.length > 0 && { line_up: lineUpArray }),
+        ...(itineraryArray.length > 0 && { itinerary: itineraryArray }),
       };
       console.log("Event PATCH payload:", eventPayload);
       const eventResponse = await authenticatedRequest(
@@ -254,6 +339,7 @@ const Customization: React.FC = () => {
           : banner ? [banner] : [],
         font: "Arial",
         card_color: formData.cardColor,
+        button_text: formData.ticketButtonText !== 'Get Ticket' ? formData.ticketButtonText : undefined,
         is_active: true,
       };
       console.log("Customization payload:", customizationPayload);
@@ -336,77 +422,81 @@ const Customization: React.FC = () => {
 
   return (
     <div className={styles.formContainer}>
-      <Stack>
-        <div className={styles.AppFlex}>
-          <Button onClick={toggleModal} className={styles.AppFlexBTN}>
-            Edit Event
-          </Button>
-          {hasUnsaved && (
+      <Stack mb="xl">
+        <div className={styles.AppFlex} style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+          <Title order={2}>Customization</Title>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <Button
+              variant="outline"
+              onClick={handleDiscard}
+              disabled={isLoading || !hasUnsaved}
+            >
+              Discard Changes
+            </Button>
             <Button
               onClick={handleSubmit}
               loading={isLoading}
               color="green"
-              className={styles.AppFlexBTN}
+              disabled={!hasUnsaved}
             >
               Save Changes
             </Button>
-          )}
+          </div>
         </div>
+        {error && (
+          <Alert icon={<AlertCircle />} title="Error" color="red" variant="filled">
+            {error}
+          </Alert>
+        )}
+        {saveSuccess && (
+          <Alert icon={<Check />} title="Success" color="green" variant="filled">
+            Saved!
+          </Alert>
+        )}
       </Stack>
 
-      <Modal
-        opened={isModalOpen}
-        onClose={toggleModal}
-        title={
-          <div className={styles.modalTitle}>
-            <Edit size={20} />
-            <Title order={3}>Edit Event</Title>
+      {isLoading ? (
+        <div className={styles.loadingContainer}>
+          <Loader />
+          <Text>Loading...</Text>
+        </div>
+      ) : (
+        <Tabs
+          value={activeTab}
+          onTabChange={setActiveTab}
+          className={styles.modalTabs}
+          keepMounted={false}
+        >
+          <div className={styles.customTabList}>
+            <button 
+              type="button"
+              className={`${styles.customTab} ${activeTab === 'details' ? styles.customTabActive : ''}`}
+              onClick={() => setActiveTab('details')}
+            >
+              <Edit className={styles.customTabIcon} /> Core Settings
+            </button>
+            <button 
+              type="button"
+              className={`${styles.customTab} ${activeTab === 'preview' ? styles.customTabActive : ''}`}
+              onClick={() => setActiveTab('preview')}
+            >
+              <Eye className={styles.customTabIcon} /> Appearance
+            </button>
+            <button 
+              type="button"
+              className={`${styles.customTab} ${activeTab === 'addons' ? styles.customTabActive : ''}`}
+              onClick={() => setActiveTab('addons')}
+            >
+              <MessageSquarePlus className={styles.customTabIcon} /> Ticketing & Forms
+            </button>
+            <button 
+              type="button"
+              className={`${styles.customTab} ${activeTab === 'advanced' ? styles.customTabActive : ''}`}
+              onClick={() => setActiveTab('advanced')}
+            >
+              <Settings className={styles.customTabIcon} /> Marketing
+            </button>
           </div>
-        }
-        size="lg"
-        closeOnEscape={!isLoading}
-        closeOnClickOutside={!isLoading}
-      >
-        <Stack>
-          {error ? (
-            <Alert
-              icon={<AlertCircle />}
-              title="Error"
-              color="red"
-              variant="filled"
-            >
-              {error}
-            </Alert>
-          ) : saveSuccess ? (
-            <Alert
-              icon={<Check />}
-              title="Success"
-              color="green"
-              variant="filled"
-            >
-              Saved!
-            </Alert>
-          ) : null}
-          {isLoading ? (
-            <div className={styles.loadingContainer}>
-              <Loader />
-              <Text>Loading...</Text>
-            </div>
-          ) : (
-            <>
-              <Tabs
-                value={activeTab}
-                onTabChange={setActiveTab}
-                className={styles.modalTabs}
-              >
-                <Tabs.List>
-                  <Tabs.Tab value="details" icon={<Edit />}>
-                    Details
-                  </Tabs.Tab>
-                  <Tabs.Tab value="preview" icon={<Eye />}>
-                    Preview
-                  </Tabs.Tab>
-                </Tabs.List>
 
                 <Tabs.Panel value="details" pt="md">
                   <DetailsStep
@@ -419,12 +509,11 @@ const Customization: React.FC = () => {
                 </Tabs.Panel>
 
                 <Tabs.Panel value="preview" pt="md">
-                  <div className={styles.appearanceWrapper}>
+                  <div className={createStyles.section}>
                     <AppearanceStep
                       formData={formData}
                       updateFormData={handleUpdateFormData}
                       onFileSelect={handleFileSelect}
-                      previewOnly
                       showCountdown={showCountdown}
                     />
                   </div>
@@ -432,51 +521,156 @@ const Customization: React.FC = () => {
                     {showCountdown ? "Hide" : "Show"} Countdown
                   </Button>
                 </Tabs.Panel>
+
+                <Tabs.Panel value="addons" pt="md">
+                  <div className={createStyles.section}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '18px', color: '#111827' }}>Custom Questions</h3>
+                        <p style={{ margin: '5px 0 0', color: '#6b7280', fontSize: '14px' }}>Add questions for attendees to answer during registration.</p>
+                      </div>
+                      <Button
+                        onClick={() => setIsQuestionModalOpen(true)}
+                        leftSection={<IconPlus size={16} />}
+                        style={{ backgroundColor: '#025a3a' }}
+                      >
+                        Add Question
+                      </Button>
+                    </div>
+
+                    {formData.questions?.length === 0 ? (
+                      <div style={{ padding: '40px', textAlign: 'center', backgroundColor: '#f9fafb', borderRadius: '12px', border: '1px dashed #e5e7eb' }}>
+                        <MessageSquarePlus size={32} color="#9ca3af" style={{ margin: '0 auto 12px' }} />
+                        <Text color="dimmed">No custom questions created yet.</Text>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {formData.questions?.map((q: any) => (
+                          <div key={q.id || q.title} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '12px' }}>
+                            <div>
+                              <div style={{ fontWeight: 600, color: '#111827' }}>{q.title}</div>
+                              <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px' }}>
+                                {q.type === 'text' ? 'Short Answer' : q.type === 'checkbox' ? 'Multiple Choice' : q.type}
+                                {q.required && <span style={{ color: '#ef4444', marginLeft: '8px' }}>• Required</span>}
+                              </div>
+                            </div>
+                            <Button
+                              variant="subtle"
+                              color="red"
+                              onClick={() => {
+                                const newQs = formData.questions?.filter((existing) => existing !== q);
+                                handleUpdateFormData({ questions: newQs });
+                              }}
+                            >
+                              <IconTrash size={18} />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div style={{ padding: '20px 0', borderBottom: '1px solid #e5e7eb', margin: '20px 0' }} />
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '18px', color: '#111827' }}>Event Services (Add-ons)</h3>
+                        <p style={{ margin: '5px 0 0', color: '#6b7280', fontSize: '14px' }}>Add services attendees can buy (e.g. VIP tables, parking).</p>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          setEditingService(null);
+                          setIsServiceModalOpen(true);
+                        }}
+                        leftSection={<IconPlus size={16} />}
+                        style={{ backgroundColor: '#025a3a' }}
+                      >
+                        Add Service
+                      </Button>
+                    </div>
+
+                    {services.length === 0 ? (
+                      <div style={{ padding: '40px', textAlign: 'center', backgroundColor: '#f9fafb', borderRadius: '12px', border: '1px dashed #e5e7eb', marginBottom: '30px' }}>
+                        <Text color="dimmed">No premium services created yet.</Text>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '30px' }}>
+                        {services.map((srv) => (
+                          <div key={srv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '12px' }}>
+                            <div>
+                              <div style={{ fontWeight: 600, color: '#111827' }}>{srv.name}</div>
+                              {srv.description && <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px' }}>{srv.description}</div>}
+                            </div>
+                            <Button
+                              variant="subtle"
+                              color="red"
+                              onClick={() => setServices(services.filter((s) => s.id !== srv.id))}
+                            >
+                              <IconTrash size={18} />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div style={{ padding: '20px 0', borderBottom: '1px solid #e5e7eb', margin: '20px 0' }} />
+
+                    <VendorRecommendations
+                      eventType={formData.tags?.[0] || "General"}
+                      eventLocation={formData.location || "Virtual"}
+                      onVendorsSelected={() => {}}
+                    />
+                  </div>
+                </Tabs.Panel>
+
+                <Tabs.Panel value="advanced" pt="md">
+                  <div className={createStyles.section}>
+                    <ButtonTextSelector
+                      selectedText={formData.ticketButtonText || "Get Ticket"}
+                      onTextChange={(text: string) => handleUpdateFormData({ ticketButtonText: text })}
+                    />
+                    <div style={{ height: '30px' }} />
+                    <EventDetailsSection
+                      tags={formData.tags || []}
+                      onTagsChange={(tags) => handleUpdateFormData({ tags })}
+                      socialLinks={formData.socialLinks || {}}
+                      onSocialLinksChange={(links) => handleUpdateFormData({ socialLinks: links })}
+                      sections={formData.sections || []}
+                      onSectionsChange={(sections) => handleUpdateFormData({ sections })}
+                      lineupItems={formData.lineupItems || []}
+                      onLineupItemsChange={(items) => handleUpdateFormData({ lineupItems: items })}
+                      schedules={formData.schedules || []}
+                      onSchedulesChange={(schedules) => handleUpdateFormData({ schedules })}
+                    />
+                  </div>
+                </Tabs.Panel>
               </Tabs>
+      )}
 
-              <div className={styles.modalActions}>
-                {hasUnsaved && (
-                  <Button
-                    onClick={handleSubmit}
-                    loading={isLoading}
-                    color="green"
-                    fullWidth
-                    className={styles.modalButton}
-                  >
-                    Save Changes
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  onClick={handleDiscard}
-                  disabled={isLoading}
-                  fullWidth
-                  className={styles.modalButton}
-                >
-                  Discard
-                </Button>
-              </div>
-            </>
-          )}
-        </Stack>
-      </Modal>
+      {isQuestionModalOpen && (
+        <QuestionModal
+          isOpen={isQuestionModalOpen}
+          onClose={() => setIsQuestionModalOpen(false)}
+          onSave={(question) => {
+            const newQuestions = [...(formData.questions || []), question];
+            handleUpdateFormData({ questions: newQuestions });
+          }}
+        />
+      )}
 
-      <div className={styles.Appearance}>
-        <Text size="lg" mb="md">
-          Preview
-        </Text>
-        <div className={styles.appearanceWrapper}>
-          <AppearanceStep
-            formData={formData}
-            updateFormData={handleUpdateFormData}
-            onFileSelect={handleFileSelect}
-            showCountdown={showCountdown}
-          />
-        </div>
-        <Button mt="md" onClick={() => setShowCountdown((x) => !x)}>
-          {showCountdown ? "Hide" : "Show"} Countdown
-        </Button>
-      </div>
+      {isServiceModalOpen && (
+        <EventServiceModal
+          isOpen={isServiceModalOpen}
+          onClose={() => setIsServiceModalOpen(false)}
+          onSave={(service) => {
+            if (editingService) {
+              setServices(services.map((s) => (s.id === service.id ? service : s)));
+            } else {
+              setServices([...services, service]);
+            }
+          }}
+          service={editingService}
+        />
+      )}
     </div>
   );
 };

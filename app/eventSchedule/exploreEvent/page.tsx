@@ -409,12 +409,12 @@ const ExploreEvents: React.FC = () => {
         let userId: number | null = null;
         let userEmail: string | null = null;
 
-        if (userJson?.success && userJson.data?.id) {
-          userId = userJson.data.id;
-          userEmail = userJson.data.email;
-        } else if (userJson && (!userJson.success || !userJson.data)) {
-          // If authentication fails, clear the token
-          if (token) {
+        if (userJson) {
+          const userData = userJson.data || userJson;
+          if (userData.id) {
+            userId = userData.id;
+            userEmail = userData.email;
+          } else if (token) {
             localStorage.removeItem("auth_token");
           }
         }
@@ -493,8 +493,11 @@ const ExploreEvents: React.FC = () => {
           let ownershipStatus: MappedEvent["ownership"] = "None";
 
           // Check if user is the creator
-          if (userId !== null && e.creator && e.creator.id === userId) {
-            ownershipStatus = "Created";
+          if (userId !== null && e.creator) {
+            const creatorId = typeof e.creator === "object" ? e.creator.id : e.creator;
+            if (String(creatorId) === String(userId)) {
+              ownershipStatus = "Created";
+            }
           }
           // Check if user is a collaborator (by email)
           else if (
@@ -801,7 +804,11 @@ const ExploreEvents: React.FC = () => {
               </p>
               <Button
                 component={Link}
-                href={`/eventSchedule/eventDetails/${featuredEvent.id}`}
+                href={
+                  featuredEvent.ownership === "Created"
+                    ? `/dashboard?eventId=${featuredEvent.id}`
+                    : `/eventSchedule/eventDetails/${featuredEvent.id}`
+                }
                 className={styles.getTicketsBtn}
               >
                 Get your tickets now
