@@ -3,10 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 
-export const dynamicParams = true;
-export function generateStaticParams() {
-  return [];
-}
+
 import Image from "next/image";
 import {
   Container,

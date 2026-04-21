@@ -1,10 +1,5 @@
 "use client";
 
-export const dynamicParams = true;
-export function generateStaticParams() {
-  return [];
-}
-
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import styles from "./styles.module.css";
