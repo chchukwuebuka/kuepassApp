@@ -3,6 +3,7 @@ import React from "react";
 import styled from "styled-components";
 import { Container } from "@mantine/core";
 import Image from "next/image";
+import Link from "next/link";
 
 const CustomFooter: React.FC = () => {
   return (
@@ -86,12 +87,12 @@ const CustomFooter: React.FC = () => {
               <ColumnTitle>Company</ColumnTitle>
               <HeaderLine />
               <PageOptions>
-                <PageLink>About Us</PageLink>
-                <PageLink>Services</PageLink>
-                <PageLink>Contact Us</PageLink>
-                <PageLink>FAQs</PageLink>
-                <PageLink>Privacy Policy</PageLink>
-                <PageLink>Terms and Conditions</PageLink>
+                <PageLink href="/about">About Us</PageLink>
+                <PageLink href="/services">Services</PageLink>
+                <PageLink href="/connect">Contact Us</PageLink>
+                <PageLink href="#">FAQs</PageLink>
+                <PageLink href="#">Privacy Policy</PageLink>
+                <PageLink href="#">Terms and Conditions</PageLink>
               </PageOptions>
             </FooterColumn>
           </FooterGrid>
@@ -306,11 +307,11 @@ const PageOptions = styled.div`
   gap: 0.85rem;
 `;
 
-const PageLink = styled.span`
+const PageLink = styled(Link)`
   font-size: 0.95rem;
   font-weight: 400;
   color: #a1a1aa;
-  cursor: pointer;
+  text-decoration: none;
   transition: all 0.2s ease;
   position: relative;
   width: fit-content;
