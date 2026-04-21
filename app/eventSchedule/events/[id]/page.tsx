@@ -1,5 +1,10 @@
 "use client";
 
+export const dynamicParams = true;
+export function generateStaticParams() {
+  return [];
+}
+
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import {

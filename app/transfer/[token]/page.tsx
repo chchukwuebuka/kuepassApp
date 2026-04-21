@@ -1,5 +1,10 @@
 "use client";
 
+export const dynamicParams = true;
+export function generateStaticParams() {
+  return [];
+}
+
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { TextInput, Button, Text, Stack, Loader, Center } from "@mantine/core";

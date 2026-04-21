@@ -3,7 +3,10 @@
 import { useState, useEffect, useMemo, Suspense } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 
-export const dynamic = "force-dynamic";
+export const dynamicParams = true;
+export function generateStaticParams() {
+  return [];
+}
 import styles from "./styles.module.css";
 import QRCodePopup from "@/components/QRCodePopup";
 import {
