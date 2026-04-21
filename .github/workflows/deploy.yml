@@ -1,8 +1,8 @@
-name: Deploy Kuepass Frontend
+name: Deploy Kuepass Standalone
 
 on:
   push:
-    branches: [ master ] # Updated from main to master
+    branches: [ master ]
 
 jobs:
   build-and-deploy:
@@ -11,31 +11,37 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Install Node.js
+      - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 20
-
-      - name: Install Dependencies
-        run: npm install
+          cache: 'npm'
 
       - name: Build Project
-        run: npm run build
+        run: |
+          npm install
+          npm run build
 
-      - name: Deploy to Server
+      - name: Copy Standalone to Server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "out/*"
-          target: "/var/www/kuepass-frontend"
-          strip_components: 1
+          # We send the standalone folder and static files
+          source: ".next/standalone/*,.next/static/*,public/*"
+          target: "~/kuepassApp/deploy"
+          strip_components: 0
 
-      - name: Refresh Nginx
+      - name: Restart App on Server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          script: sudo systemctl restart nginx
+          script: |
+            # Move files to the right spot and restart PM2
+            cp -r ~/kuepassApp/deploy/.next/standalone/* ~/kuepassApp/
+            cp -r ~/kuepassApp/deploy/.next/static ~/kuepassApp/.next/
+            cp -r ~/kuepassApp/deploy/public ~/kuepassApp/
+            pm2 restart kuepass-frontend || pm2 start ~/kuepassApp/server.js --name "kuepass-frontend"

@@ -5,6 +5,7 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 });
 
 const nextConfig = {
+  output: 'standalone',
   // Your other Next.js configurations can go here
   reactStrictMode: true, // Example other config
 
