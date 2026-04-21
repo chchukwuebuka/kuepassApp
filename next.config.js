@@ -5,7 +5,6 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 });
 
 const nextConfig = {
-  output: 'export',
   // Your other Next.js configurations can go here
   reactStrictMode: true, // Example other config
 
