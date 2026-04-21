@@ -3,6 +3,7 @@ import React from "react";
 import styled from "styled-components";
 import { Container, Text } from "@mantine/core";
 import TestimonialsSection from "../TestimonialsSection";
+import AnimatedCopy from "../AnimatedCopy";
 
 interface StatsSectionProps {
   showHeader?: boolean;
@@ -53,10 +54,12 @@ const StatsSection: React.FC<StatsSectionProps> = ({
     >
       <Container size={containerWidth} px="md">
         {showHeader && (
-          <HeaderText>
-            <ItalicText>Kuepass</ItalicText> Delivers Results and experience for
-            its Users. trusted by Event Organizers everywhere
-          </HeaderText>
+          <AnimatedCopy>
+            <HeaderText>
+              <ItalicText>Kuepass</ItalicText> Delivers Results and experience for
+              its Users. trusted by Event Organizers everywhere
+            </HeaderText>
+          </AnimatedCopy>
         )}
 
         <StatsGrid>

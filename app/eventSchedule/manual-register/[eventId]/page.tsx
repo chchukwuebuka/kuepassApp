@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useState, useEffect, useMemo, Suspense } from "react";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 import styles from "./styles.module.css";
 import QRCodePopup from "@/components/QRCodePopup";
 import {
@@ -39,7 +41,6 @@ import {
 } from "@tabler/icons-react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-
 // --- INTERFACES ---
 interface EventData {
   id: string;
@@ -98,14 +99,32 @@ interface AttendeeRequestPayload {
 }
 
 const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api"
+  process.env.NEXT_PUBLIC_API_URL || "https://api.kuepass.com/api/"
 ).replace(/\/$/, "");
 
-export default function ManualRegisterEvent() {
+function ManualRegisterEventContent() {
+  const params = useParams<{ eventId?: string }>();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const eventId = searchParams.get("eventId");
+
+  // Get eventId from URL params (priority) or query string (fallback)
+  // Filter out invalid values like "[eventId]" literal string
+  const eventId = useMemo(() => {
+    const paramId = params?.eventId;
+    const queryId = searchParams.get("eventId");
+
+    // Check if paramId is valid (not the literal "[eventId]" string)
+    if (paramId && paramId !== "[eventId]" && !paramId.includes("[")) {
+      return paramId;
+    }
+
+    // Fallback to query param if valid
+    if (queryId && queryId !== "[eventId]" && !queryId.includes("[")) {
+      return queryId;
+    }
+
+    return "";
+  }, [params?.eventId, searchParams]);
 
   const [event, setEvent] = useState<EventData | null>(null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -121,6 +140,13 @@ export default function ManualRegisterEvent() {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
+  // Cross-event registration prevention
+  const [existingRegEventId, setExistingRegEventId] = useState<string | null>(
+    null
+  );
+  const [checkingExisting, setCheckingExisting] = useState(false);
+  const [crossEventError, setCrossEventError] = useState<string | null>(null);
+
   // Form data for manual registration
   const [formData, setFormData] = useState({
     firstName: "",
@@ -128,6 +154,7 @@ export default function ManualRegisterEvent() {
     email: "",
     phoneNumber: "",
   });
+  const [selectedCountryCode, setSelectedCountryCode] = useState("+234"); // Store country code separately
   const [formErrors, setFormErrors] = useState({
     firstName: "",
     lastName: "",
@@ -139,6 +166,31 @@ export default function ManualRegisterEvent() {
     setIsMounted(true);
   }, []);
 
+  // Only proceed if eventId exists and is valid
+  useEffect(() => {
+    // Check if eventId is empty or invalid (contains brackets, which means it's the literal "[eventId]")
+    if (
+      !eventId ||
+      eventId === "[eventId]" ||
+      eventId.includes("[") ||
+      eventId.includes("]")
+    ) {
+      setError(
+        "No eventId provided in the URL. Please use /eventSchedule/manual-register/[eventId] or /eventSchedule/manual-register?eventId={eventId}"
+      );
+      setLoading(false);
+      return;
+    }
+    fetchAllData(eventId);
+  }, [eventId]);
+
+  // Auto-select first ticket when tickets are loaded
+  useEffect(() => {
+    if (tickets.length > 0 && !selectedTicket) {
+      setSelectedTicket(tickets[0].id);
+    }
+  }, [tickets, selectedTicket]);
+
   const fees = 50.0;
 
   const calculateTotal = (): number => {
@@ -149,57 +201,49 @@ export default function ManualRegisterEvent() {
     return ticketPrice > 0 ? ticketPrice + fees : 0;
   };
 
-  useEffect(() => {
-    // Hardcoded event ID
-    const hardcodedEventId = "504";
-    fetchAllData(hardcodedEventId);
-  }, []);
-
   async function fetchAllData(eventId: string) {
     setLoading(true);
     setError(null);
 
     try {
-      // Fetch event details
-      const eventResponse = await fetch(`${API_BASE_URL}/events/${eventId}/`);
+      // Fetch all data in parallel for faster loading
+      const [eventResponse, ticketsResponse, questionsResponse] =
+        await Promise.all([
+          fetch(`${API_BASE_URL}/events/${eventId}/`),
+          fetch(`${API_BASE_URL}/tickets/?event=${eventId}`),
+          fetch(`${API_BASE_URL}/event-forms/${eventId}/questions/`),
+        ]);
+
+      // Process event data
       if (eventResponse.ok) {
         const eventData = await eventResponse.json();
-        console.log("Raw event data:", eventData); // Debug log
-
-        // Handle different response structures
         const eventResult = eventData?.data || eventData;
-        console.log("Processed event data:", eventResult); // Debug log
 
         if (eventResult && eventResult.id) {
           setEvent(eventResult as EventData);
-          console.log("Event set successfully:", eventResult.title); // Debug log
         } else {
           throw new Error("Event data not found in response.");
         }
       } else {
-        setError("Could not fetch event details.");
+        throw new Error("Could not fetch event details.");
       }
 
-      // Fetch tickets
-      const ticketsResponse = await fetch(
-        `${API_BASE_URL}/tickets/?event=${eventId}`
-      );
+      // Process tickets data
       if (ticketsResponse.ok) {
         const ticketsData = await ticketsResponse.json();
-        setTickets(ticketsData || []);
+        const ticketsResult = ticketsData?.data || ticketsData;
+        setTickets(Array.isArray(ticketsResult) ? ticketsResult : []);
       } else {
         setTickets([]);
       }
 
-      // Fetch questions
-      const questionsResponse = await fetch(
-        `${API_BASE_URL}/event-forms/${eventId}/questions/`
-      );
+      // Process questions data
       if (questionsResponse.ok) {
         const questionsData = await questionsResponse.json();
+        const questionsResult = questionsData?.data || questionsData;
         setQuestions(
-          Array.isArray(questionsData)
-            ? questionsData.sort((a, b) => a.order - b.order)
+          Array.isArray(questionsResult)
+            ? questionsResult.sort((a, b) => a.order - b.order)
             : []
         );
       } else {
@@ -212,10 +256,31 @@ export default function ManualRegisterEvent() {
     }
   }
 
-  const handlePhoneChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, phoneNumber: value }));
+  const handlePhoneChange = (value: string, countryData: any) => {
+    // Track country code from countryData
+    if (countryData?.dialCode) {
+      const code = `+${countryData.dialCode}`;
+      setSelectedCountryCode(code);
+    }
 
-    if (!value || value.length < 10) {
+    // value from react-phone-input-2 includes the country code prefix (e.g., "2348101234567")
+    // Extract only the local number by removing the country code digits
+    const dialCode =
+      countryData?.dialCode || selectedCountryCode.replace("+", "") || "234";
+    let localNumber = value;
+
+    // Remove country code prefix if it exists at the start
+    const dialCodeStr = String(dialCode);
+    if (value.startsWith(dialCodeStr)) {
+      localNumber = value.substring(dialCodeStr.length);
+    }
+
+    // Store only the local number (without country code) in formData
+    setFormData((prev) => ({ ...prev, phoneNumber: localNumber }));
+
+    // Validate phone number (check local number length)
+    const digitsOnly = localNumber.replace(/\D/g, "");
+    if (!localNumber || digitsOnly.length < 7) {
       setFormErrors((prev) => ({
         ...prev,
         phoneNumber: "Please enter a valid phone number.",
@@ -228,6 +293,52 @@ export default function ManualRegisterEvent() {
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setFormErrors((prev) => ({ ...prev, [field]: "" }));
+
+    // Clear cross-event error when email changes
+    if (field === "email") {
+      setCrossEventError(null);
+      setExistingRegEventId(null);
+    }
+  };
+
+  // Frontend guard: check if this email already registered for another event
+  const checkExistingRegistration = async (email: string) => {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+    if (!eventId) return;
+
+    try {
+      setCheckingExisting(true);
+      // Check if email is registered for any event
+      const res = await fetch(
+        `${API_BASE_URL}/attendees/?email=${encodeURIComponent(email)}`
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        const rows: any[] = Array.isArray(data)
+          ? data
+          : data?.results || data?.data || [];
+
+        // If they've registered for a different event, block registration
+        const otherEvent = rows.find(
+          (row) => String(row.event) && String(row.event) !== String(eventId)
+        );
+
+        if (otherEvent) {
+          setExistingRegEventId(String(otherEvent.event));
+          setCrossEventError(
+            "This email is already registered for a different event. You cannot register for another event with the same email."
+          );
+        } else {
+          setExistingRegEventId(null);
+          setCrossEventError(null);
+        }
+      }
+    } catch {
+      // Non-fatal; let backend enforce hard rule
+    } finally {
+      setCheckingExisting(false);
+    }
   };
 
   const validateForm = () => {
@@ -300,33 +411,43 @@ export default function ManualRegisterEvent() {
       return;
     }
 
+    // Frontend cross-event lock
+    if (existingRegEventId && existingRegEventId !== String(eventId)) {
+      alert(
+        "You are already registered for a different event with this email. Please use the same event link or a different email."
+      );
+      return;
+    }
+
+    if (!eventId) {
+      alert("Event ID is missing. Please refresh the page.");
+      return;
+    }
+
+    if (!selectedTicket) {
+      alert("Please select a ticket.");
+      return;
+    }
+
     setPaymentLoading(true);
     setError(null);
 
     try {
-      // Hardcoded values
-      const hardcodedEventId = "504";
-      const hardcodedTicketId = "a91cb755-0e07-4bc0-b426-e34fed6f44b4";
-
-      // Format phone number - react-phone-input-2 returns the number without the + sign
-      const formattedPhone = formData.phoneNumber.trim().startsWith("+")
-        ? formData.phoneNumber.trim()
-        : `+${formData.phoneNumber.trim()}`;
+      // Format phone number - combine country code with local number
+      const localNumber = formData.phoneNumber.replace(/\D/g, ""); // Remove any non-digits from local number
+      const formattedPhone = `${selectedCountryCode}${localNumber}`;
 
       const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
 
-      console.log("📞 Phone number formatting:");
-      console.log("- Original:", formData.phoneNumber.trim());
-      console.log("- Formatted:", formattedPhone);
-
-      const requestBody = {
-        name: fullName,
+      // Prepare request body - use dynamic eventId and selectedTicket
+      const requestBody: any = {
+        event: String(eventId),
+        ticket: String(selectedTicket),
         email: formData.email.trim(),
+        name: fullName,
         phone_number: formattedPhone,
-        event: hardcodedEventId,
-        ticket_id: hardcodedTicketId,
-        payment_status: "bypassed", // Mark payment as bypassed for manually added attendees
-        registration_source: "manual_entry", // Track how they were added
+        payment_status: "bypassed",
+        registration_source: "manual_entry", // Track manual registrations
         responses: answers.map((answer) => ({
           question: answer.questionId,
           text_response:
@@ -337,62 +458,83 @@ export default function ManualRegisterEvent() {
         })),
       };
 
-      console.log("🔍 Request details:");
-      console.log("- URL:", `${API_BASE_URL}/attendees/`);
-      console.log("- Method: POST");
-      console.log("- Request Body:", requestBody);
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
-      const response = await fetch(`${API_BASE_URL}/attendees/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
+      try {
+        const response = await fetch(`${API_BASE_URL}/attendees/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(requestBody),
+          signal: controller.signal,
+        });
 
-      console.log("🔍 Response details:");
-      console.log("- Status:", response.status);
-      console.log("- Status Text:", response.statusText);
+        clearTimeout(timeoutId);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.log("❌ Error Response Body:", errorText);
+        if (!response.ok) {
+          let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
 
-        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+          try {
+            const errorText = await response.text();
+            const errorData = JSON.parse(errorText);
+            errorMessage =
+              errorData.detail ||
+              errorData.message ||
+              errorData.error ||
+              errorMessage;
+          } catch {
+            // If parsing fails, use default error message
+          }
 
-        try {
-          const errorData = JSON.parse(errorText);
-          console.log("❌ Parsed Error Data:", errorData);
-          errorMessage =
-            errorData.detail ||
-            errorData.message ||
-            errorData.error ||
-            errorMessage;
-        } catch (parseError) {
-          console.log("❌ Could not parse error response as JSON:", parseError);
-          errorMessage = errorText || errorMessage;
+          throw new Error(errorMessage);
         }
 
-        throw new Error(errorMessage);
+        const result = await response.json();
+
+        // Handle different response structures from backend
+        const attendeeId =
+          result.id ||
+          result.attendee_id ||
+          result.data?.id ||
+          result.data?.attendee_id;
+
+        if (!attendeeId) {
+          throw new Error(
+            "Registration successful but attendee ID not found in response."
+          );
+        }
+
+        // Store the attendee ID for QR code generation
+        setRegisteredAttendeeId(attendeeId);
+        setShowQRModal(true);
+        setPaymentLoading(false);
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId);
+
+        if (fetchError.name === "AbortError") {
+          throw new Error(
+            "Request timed out. Please check your connection and try again."
+          );
+        }
+        throw fetchError;
       }
-
-      const result = await response.json();
-      console.log("✅ Success Response:", result);
-
-      // Store the attendee ID for QR code generation
-      setRegisteredAttendeeId(result.id || result.attendee_id);
-      setShowQRModal(true);
-      setPaymentLoading(false);
     } catch (err: any) {
       console.error("Failed to add attendee:", err);
+
+      let errorMessage = "An error occurred during registration.";
+
       if (err instanceof TypeError && err.message === "Failed to fetch") {
-        alert(
-          "Network error: Unable to connect to the server. Please check your internet connection and try again."
-        );
-      } else {
-        alert(err.message || "An error occurred during registration.");
+        errorMessage =
+          "Network error: Unable to connect to the server. Please check your internet connection and try again.";
+      } else if (err.message) {
+        errorMessage = err.message;
       }
-      console.error("Error in handleRegistration:", err);
+
+      alert(errorMessage);
       setPaymentLoading(false);
     }
   };
@@ -407,6 +549,7 @@ export default function ManualRegisterEvent() {
       email: "",
       phoneNumber: "",
     });
+    setSelectedCountryCode("+234"); // Reset to default
     setFormErrors({
       firstName: "",
       lastName: "",
@@ -414,6 +557,8 @@ export default function ManualRegisterEvent() {
       phoneNumber: "",
     });
     setAnswers([]);
+    setExistingRegEventId(null);
+    setCrossEventError(null);
   };
 
   const getTicketTypeIcon = (type: string) => {
@@ -465,7 +610,7 @@ export default function ManualRegisterEvent() {
     );
   }
 
-  if (error || !event) {
+  if (error || !eventId || !event) {
     return (
       <Center
         style={{
@@ -544,6 +689,18 @@ export default function ManualRegisterEvent() {
           </div>
         </div>
 
+        {/* Cross-event registration lock notice */}
+        {crossEventError && (
+          <Alert
+            icon={<IconAlertCircle size={16} />}
+            color="red"
+            mb="lg"
+            title="Registration Restricted"
+          >
+            {crossEventError}
+          </Alert>
+        )}
+
         <div className={styles.formContainer}>
           {/* Main Form Section */}
           <div className={styles.formSection}>
@@ -613,9 +770,17 @@ export default function ManualRegisterEvent() {
                     onChange={(e) =>
                       handleInputChange("email", e.currentTarget.value)
                     }
+                    onBlur={() =>
+                      checkExistingRegistration(formData.email.trim())
+                    }
                     className={styles.input}
-                    disabled={paymentLoading}
+                    disabled={paymentLoading || checkingExisting}
                   />
+                  {checkingExisting && (
+                    <Text size="xs" color="dimmed" mt={5}>
+                      Checking registration status...
+                    </Text>
+                  )}
                   {formErrors.email && (
                     <Text size="xs" color="red" mt={5}>
                       {formErrors.email}
@@ -627,26 +792,33 @@ export default function ManualRegisterEvent() {
                   <label className={styles.questionLabel}>
                     Phone Number <span className={styles.required}>*</span>
                   </label>
-                  <PhoneInput
-                    country={"ng"}
-                    value={formData.phoneNumber}
-                    onChange={handlePhoneChange}
-                    inputClass={styles.phoneInput}
-                    buttonClass={styles.phoneButton}
-                    containerClass={styles.phoneContainer}
-                    inputProps={{
-                      required: true,
-                      disabled: paymentLoading,
-                      placeholder: "810 123 4567",
-                    }}
-                    specialLabel=""
-                    enableSearch={true}
-                    searchPlaceholder="Search country..."
-                    searchNotFound="No country found"
-                    preferredCountries={["ng", "us", "gb", "ca"]}
-                    disableCountryCode={false}
-                    countryCodeEditable={false}
-                  />
+                  <div className={styles.phoneInputWrapper}>
+                    <PhoneInput
+                      country={"ng"}
+                      value={
+                        selectedCountryCode.replace("+", "") +
+                        formData.phoneNumber
+                      }
+                      onChange={handlePhoneChange}
+                      inputClass={styles.phoneInput}
+                      buttonClass={styles.phoneButton}
+                      containerClass={styles.phoneContainer}
+                      inputProps={{
+                        required: true,
+                        disabled: paymentLoading,
+                        placeholder: "810 123 4567",
+                      }}
+                      specialLabel=""
+                      enableSearch={true}
+                      searchPlaceholder="Search country..."
+                      searchNotFound="No country found"
+                      preferredCountries={["ng", "us", "gb", "ca"]}
+                      disableCountryCode={false}
+                      countryCodeEditable={false}
+                      autoFormat={false}
+                      prefix=""
+                    />
+                  </div>
                   {formErrors.phoneNumber && (
                     <Text size="xs" color="red" mt={5}>
                       {formErrors.phoneNumber}
@@ -835,16 +1007,7 @@ export default function ManualRegisterEvent() {
           <div className={styles.summarySection}>
             <Paper className={styles.summaryBox}>
               {/* Order Summary */}
-              <div className={styles.summaryHeader}>
-                {/* <Group gap="sm">
-                  <ThemeIcon variant="light" color="green">
-                    <IconCreditCard size={20} />
-                  </ThemeIcon>
-                  <Text fw={600} size="lg">
-                    Order Summary
-                  </Text>
-                </Group> */}
-              </div>
+              <div className={styles.summaryHeader}></div>
               <div className={styles.summaryContent}>
                 <Divider my="md" />
                 <div className={styles.summaryTotal}>
@@ -859,6 +1022,8 @@ export default function ManualRegisterEvent() {
               <button
                 className={styles.purchaseBtn}
                 disabled={
+                  !eventId ||
+                  !selectedTicket ||
                   !formData.firstName ||
                   !formData.lastName ||
                   !formData.email ||
@@ -877,7 +1042,8 @@ export default function ManualRegisterEvent() {
                   }) ||
                   paymentLoading ||
                   !event ||
-                  !isMounted
+                  !isMounted ||
+                  !!crossEventError
                 }
                 onClick={handleRegistration}
               >
@@ -902,8 +1068,22 @@ export default function ManualRegisterEvent() {
         onClose={closeQRModal}
         attendeeId={registeredAttendeeId || undefined}
         email={formData.email || undefined}
-        eventId={event?.id || undefined}
+        eventId={eventId || event?.id || undefined}
       />
     </div>
+  );
+}
+
+export default function ManualRegisterEvent() {
+  return (
+    <Suspense
+      fallback={
+        <Center style={{ height: "100vh" }}>
+          <Loader size="xl" />
+        </Center>
+      }
+    >
+      <ManualRegisterEventContent />
+    </Suspense>
   );
 }

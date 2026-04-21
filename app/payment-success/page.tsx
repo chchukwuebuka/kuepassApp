@@ -2,6 +2,8 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+
+export const dynamic = 'force-dynamic';
 import { Center, Text, Loader } from "@mantine/core";
 import QRCodePopup from "@/components/QRCodePopup";
 

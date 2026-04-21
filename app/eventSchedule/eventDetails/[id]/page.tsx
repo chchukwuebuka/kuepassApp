@@ -1,7 +1,17 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+  Suspense,
+} from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+
+export const dynamic = "force-dynamic";
+import Link from "next/link";
 import {
   Container,
   Button,
@@ -37,7 +47,19 @@ import {
   Bookmark,
   ChevronDown,
   ChevronUp,
+  Tag,
+  Youtube,
+  Instagram,
+  Twitter,
+  Facebook,
+  Link as LinkIcon,
+  MessageCircle,
+  Send,
+  Sparkles,
+  X,
+  Navigation,
 } from "lucide-react";
+import { EventSessionsViewer, EventSurveyForm, EventSponsorsDisplay, EventSeatPicker } from "@/components/EventAttendeeFeatures";
 import styles from "./styles.module.css";
 import CountdownTimer from "@/components/CountdownTimer";
 import QRCode from "qrcode";
@@ -47,13 +69,36 @@ import { useLoadingState } from "@/store/loadingHook";
 // --- INTERFACE DEFINITIONS ---
 interface Customization {
   id: string;
-  banner_url: string;
+  banner_url: string | string[];
   font?: string;
   card_color: string;
+  button_text?: string;
   event?: string;
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;
+}
+
+interface SocialLink {
+  url: string;
+  platform: string;
+}
+
+interface LineUpItem {
+  name: string;
+  role: string;
+  description?: string;
+  image?: string;
+}
+
+interface ItineraryItem {
+  title: string;
+  start_time: string;
+  end_time: string;
+  activity: string;
+  host?: string;
+  description?: string;
+  image?: string;
 }
 
 interface EventData {
@@ -65,13 +110,21 @@ interface EventData {
   banner_url?: string;
   location: string;
   address?: string;
+  landmark?: string;
   price?: string;
+  event_type?: string;
+  tags?: string[];
+  services?: any[];
+  social_links?: SocialLink[];
+  line_up?: LineUpItem[];
+  itinerary?: ItineraryItem[];
   creator?: {
     id: number;
     username: string;
     email?: string;
   };
   customization?: Customization;
+  total_tickets_sold?: number;
 }
 
 interface CountdownData {
@@ -91,6 +144,19 @@ interface AttendeeData {
   is_validated?: boolean;
   payment_status?: string;
   validated_at?: string | null;
+  ticket_type_id?: string;
+  ticket?: string;
+}
+
+interface TicketData {
+  id: string;
+  event: string | number;
+  ticket_sold?: number;
+  quantity?: number | "Unlimited" | null;
+  category_price?: string | number;
+  category_name?: string;
+  description?: string | null;
+  name?: string;
 }
 
 interface CurrentUser {
@@ -98,9 +164,9 @@ interface CurrentUser {
   email: string;
 }
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api";
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.kuepass.com/api/"
+).replace(/\/$/, "");
 
 const getAuthToken = () => {
   if (typeof window !== "undefined") {
@@ -189,7 +255,7 @@ const checkUserRegistration = (
   return !!userAttendee; // Check presence only
 };
 
-export default function EventDetails() {
+function EventDetailsContent() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -199,6 +265,7 @@ export default function EventDetails() {
   const [event, setEvent] = useState<EventData | null>(null);
   const [countdownDate, setCountdownDate] = useState<Date | null>(null);
   const [attendees, setAttendees] = useState<AttendeeData[]>([]);
+  const [tickets, setTickets] = useState<TicketData[]>([]);
   const [pageError, setPageError] = useState<string | null>(null);
   const [showCheckInQRModal, setShowCheckInQRModal] = useState(false);
   const [checkInQrError, setCheckInQrError] = useState<string | null>(null);
@@ -218,10 +285,53 @@ export default function EventDetails() {
   } | null>(null);
   const [mapUrl, setMapUrl] = useState<string>("");
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [currentPriceIndex, setCurrentPriceIndex] = useState(0);
+  const [similarEvents, setSimilarEvents] = useState<any[]>([]);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<{role: string; text: string}[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const [directionsTips, setDirectionsTips] = useState<string | null>(null);
+  const [directionsTipsLoading, setDirectionsTipsLoading] = useState(false);
 
-  // Set auth check as complete immediately since we allow guest access
+  // Build an array of ticket price labels for the carousel
+  const ticketPriceLabels = useMemo(() => {
+    if (tickets.length === 0) return ["N/A"];
+    return tickets.map((t) => {
+      const name = t.category_name || t.name || "Ticket";
+      const price = t.category_price
+        ? parseFloat(t.category_price.toString())
+        : 0;
+      const priceStr = price > 0 ? `₦${price.toLocaleString()}` : "Free";
+      return `${name} — ${priceStr}`;
+    });
+  }, [tickets]);
+
+  // Auto-cycle carousel when there are multiple tickets
   useEffect(() => {
-    setIsAuthCheckComplete(true);
+    if (ticketPriceLabels.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentPriceIndex((prev) => (prev + 1) % ticketPriceLabels.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [ticketPriceLabels.length]);
+
+  // Fetch current user on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+      } catch (error) {
+        console.warn("Error fetching current user:", error);
+        setCurrentUser(null);
+      } finally {
+        setIsAuthCheckComplete(true);
+      }
+    };
+    fetchUser();
   }, []);
 
   // Set hardcoded location (replace with your actual coordinates)
@@ -267,26 +377,39 @@ export default function EventDetails() {
   }, [event]);
 
   const fetchAttendees = useCallback(async () => {
-    if (!id) return;
+    // 🛑 STOP: Do not fetch if there is no user or event ID
+    if (!currentUser || !id || !event?.id) {
+      setAttendees([]);
+      return;
+    }
 
     try {
       console.log("=== DEBUG: Fetching attendees ===");
       console.log("Event ID:", id);
 
-      // Use regular fetch instead of authenticatedRequest for guest access
+      const token = getAuthToken();
+      const headers: HeadersInit = {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      };
+
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const response = await fetch(
         `${API_BASE_URL}/attendees/?event_id=${id}`,
         {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
+          headers,
         }
       );
 
       if (!response.ok) {
-        console.warn("Failed to fetch attendees:", response.status);
+        // Silently handle errors - attendees are optional
+        if (response.status !== 500) {
+          console.warn("Failed to fetch attendees:", response.status);
+        }
         setAttendees([]);
         return;
       }
@@ -296,6 +419,8 @@ export default function EventDetails() {
 
       let attendeeDataArray: AttendeeData[] = [];
       if (Array.isArray(res)) attendeeDataArray = res;
+      else if (res?.results && Array.isArray(res.results))
+        attendeeDataArray = res.results; // Handle paginated response
       else if (res?.success && Array.isArray(res.data))
         attendeeDataArray = res.data;
 
@@ -308,7 +433,7 @@ export default function EventDetails() {
       console.warn("EventDetails - Error fetching attendees:", err);
       setAttendees([]);
     }
-  }, [id]);
+  }, [id, currentUser, event?.id]);
 
   useEffect(() => {
     if (!id) {
@@ -341,7 +466,19 @@ export default function EventDetails() {
 
         const resData = JSON.parse(responseBodyForDebug);
         const eventData = resData?.data || resData;
+        
         if (eventData && eventData.id) {
+          // Safely parse JSON fields if they arrive as strings
+          ['services', 'itinerary', 'line_up', 'social_links'].forEach(field => {
+            if (typeof eventData[field] === 'string') {
+              try {
+                eventData[field] = JSON.parse(eventData[field]);
+              } catch (e) {
+                console.warn(`Failed to parse ${field}:`, e);
+                eventData[field] = [];
+              }
+            }
+          });
           setEvent(eventData as EventData);
         } else {
           throw new Error(
@@ -357,11 +494,75 @@ export default function EventDetails() {
     fetchEvent();
   }, [id]);
 
+  // Customization is already included in the event response, no need to fetch separately
+  // This prevents 401 errors when the endpoint requires authentication
+
   useEffect(() => {
-    if (id) {
+    // Only fetch attendees if user is logged in and event is loaded
+    if (id && currentUser && event?.id) {
       fetchAttendees();
     }
-  }, [id, fetchAttendees]);
+  }, [id, currentUser, event?.id, fetchAttendees]);
+
+  // Fetch tickets for the event
+  useEffect(() => {
+    // 🛑 STOP: Do not fetch if there is no user or event ID
+    if (!currentUser || !id || !event?.id) {
+      setTickets([]);
+      return;
+    }
+
+    const fetchTickets = async () => {
+      try {
+        const token = getAuthToken();
+        const headers: HeadersInit = {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        };
+
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/tickets/?event=${id}`, {
+          method: "GET",
+          headers,
+        });
+
+        if (!response.ok) {
+          // Silently handle errors - tickets are optional
+          if (response.status !== 500) {
+            console.warn("Failed to fetch tickets:", response.status);
+          }
+          setTickets([]);
+          return;
+        }
+
+        const res = await response.json();
+        const ticketsList = Array.isArray(res)
+          ? res
+          : res?.data && Array.isArray(res.data)
+          ? res.data
+          : res?.results && Array.isArray(res.results)
+          ? res.results
+          : res?.success && Array.isArray(res.data)
+          ? res.data
+          : [];
+
+        // Filter tickets for the current event
+        const eventTickets = ticketsList.filter(
+          (ticket: TicketData) => String(ticket.event) === String(id)
+        );
+
+        setTickets(eventTickets);
+      } catch (err) {
+        console.warn("Error fetching tickets:", err);
+        setTickets([]);
+      }
+    };
+
+    fetchTickets();
+  }, [id, currentUser, event?.id]);
 
   useEffect(() => {
     if (searchParams.get("refresh") === "true" && id) {
@@ -408,6 +609,111 @@ export default function EventDetails() {
     fetchCountdown();
   }, [event, id]);
 
+  // Fetch similar events
+  useEffect(() => {
+    if (!id || !event) return;
+    const fetchSimilar = async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/ai/similar-events/?event_id=${id}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          const events = data?.events || data?.data || [];
+          setSimilarEvents(events);
+        }
+      } catch (err) {
+        console.warn("Error fetching similar events:", err);
+      }
+    };
+    fetchSimilar();
+  }, [id, event]);
+
+  // Fetch AI summary for long descriptions
+  useEffect(() => {
+    if (!id || !event) return;
+    const desc = event.description || "";
+    if (desc.split(" ").length < 30) return;
+    setAiSummaryLoading(true);
+    const fetchSummary = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/ai/event-summary/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event_id: id }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.summary) setAiSummary(data.summary);
+        }
+      } catch (err) {
+        console.warn("Error fetching AI summary:", err);
+      } finally {
+        setAiSummaryLoading(false);
+      }
+    };
+    fetchSummary();
+  }, [id, event]);
+
+  // Fetch AI directions tips
+  useEffect(() => {
+    if (!id || !event) return;
+    setDirectionsTipsLoading(true);
+    const fetchTips = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/ai/directions-tips/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event_id: id }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.tips) setDirectionsTips(data.tips);
+        }
+      } catch (err) {
+        console.warn("Error fetching directions tips:", err);
+      } finally {
+        setDirectionsTipsLoading(false);
+      }
+    };
+    fetchTips();
+  }, [id, event]);
+
+  // AI Chat handler
+  const handleChatSend = async () => {
+    if (!chatInput.trim() || chatLoading) return;
+    const question = chatInput.trim();
+    setChatInput("");
+    setChatMessages((prev) => [...prev, { role: "user", text: question }]);
+    setChatLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/ai/event-chat/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id: id, question }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setChatMessages((prev) => [
+          ...prev,
+          { role: "ai", text: data.answer || "Sorry, I couldn't answer that." },
+        ]);
+      } else {
+        setChatMessages((prev) => [
+          ...prev,
+          { role: "ai", text: "Something went wrong. Please try again." },
+        ]);
+      }
+    } catch {
+      setChatMessages((prev) => [
+        ...prev,
+        { role: "ai", text: "Network error. Please try again." },
+      ]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (event && headerContentRef.current && event.customization?.card_color) {
       const cardColor = event.customization.card_color;
@@ -450,6 +756,54 @@ export default function EventDetails() {
     const numericPrice = parseFloat(price.toString());
     if (isNaN(numericPrice) || numericPrice <= 0) return "Free";
     return `N${price}`;
+  };
+
+  const getLowestTicketPrice = (): string => {
+    if (tickets.length === 0) return "N/A";
+    const paidTickets = tickets.filter(
+      (t) => t.category_price && parseFloat(t.category_price.toString()) > 0
+    );
+    if (paidTickets.length === 0) {
+      const freeTickets = tickets.filter(
+        (t) =>
+          !t.category_price || parseFloat(t.category_price.toString()) === 0
+      );
+      if (freeTickets.length > 0) return "Free";
+      return "Contact for pricing";
+    }
+    const prices = paidTickets.map((t) =>
+      parseFloat(t.category_price?.toString() || "0")
+    );
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    if (minPrice === maxPrice) {
+      return `₦${minPrice.toLocaleString()}`;
+    }
+    return `₦${minPrice.toLocaleString()}-₦${maxPrice.toLocaleString()}`;
+  };
+
+  const extractStateAndCountry = (address: string | undefined): string => {
+    if (!address || address.trim() === "" || address === "TBD") {
+      return "Event Location";
+    }
+
+    // Split the address by spaces and get the last two words (state and country)
+    const parts = address.trim().split(/\s+/);
+
+    if (parts.length < 2) {
+      return address; // Return the address as-is if it's too short
+    }
+
+    // Get the last two words (state and country)
+    const state = parts[parts.length - 2];
+    const country = parts[parts.length - 1];
+
+    // Capitalize first letter of each word
+    const capitalize = (str: string) => {
+      return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    };
+
+    return `${capitalize(state)}, ${capitalize(country)}`;
   };
 
   const truncateDescription = (
@@ -625,12 +979,6 @@ export default function EventDetails() {
     document.body.removeChild(link);
   };
 
-  const handleRegisterNowClick = () => {
-    if (!id) return;
-    // Allow registration without authentication
-    router.push(`/eventSchedule/registerEvent?eventId=${id}`);
-  };
-
   const handleManualRegisterClick = () => {
     router.push("/eventSchedule/manual-register");
   };
@@ -639,17 +987,52 @@ export default function EventDetails() {
   const userIsRegisteredAndValidated = useMemo(() => {
     return event ? checkUserRegistration(currentUser, attendees) : false;
   }, [event, currentUser, attendees]);
+  useEffect(() => {
+    if (id) {
+      router.prefetch(`/eventSchedule/registerEvent?eventId=${id}`);
+    }
+  }, [id, router]);
 
-  let finalBannerUrl = "/images/placeholder.jpg";
-  if (event) {
-    if (
-      event.customization?.banner_url &&
-      event.customization.banner_url.trim() !== ""
-    )
-      finalBannerUrl = event.customization.banner_url;
-    else if (event.banner_url && event.banner_url.trim() !== "")
-      finalBannerUrl = event.banner_url;
-  }
+  // Handle banner_url as either array or string
+  const finalBannerUrl = useMemo(() => {
+    if (!event || !event.customization?.banner_url) {
+      return "/images/placeholder.jpg";
+    }
+
+    const bannerUrl = event.customization.banner_url;
+
+    // If it's an array, use the first valid HTTP/HTTPS URL
+    if (Array.isArray(bannerUrl)) {
+      const firstUrl = bannerUrl.find(
+        (url: any) =>
+          typeof url === "string" &&
+          url.trim() !== "" &&
+          (url.startsWith("http://") || url.startsWith("https://"))
+      );
+      return firstUrl || "/images/placeholder.jpg";
+    }
+
+    // If it's a string, use it directly
+    if (typeof bannerUrl === "string" && bannerUrl.trim() !== "") {
+      return bannerUrl;
+    }
+
+    return "/images/placeholder.jpg";
+  }, [event]);
+
+  // Get ticket description from the first ticket that has a description
+  const ticketDescription = useMemo(() => {
+    if (!tickets || tickets.length === 0) {
+      return null;
+    }
+
+    // Find the first ticket with a description
+    const ticketWithDescription = tickets.find(
+      (ticket) => ticket.description && ticket.description.trim() !== ""
+    );
+
+    return ticketWithDescription?.description || null;
+  }, [tickets]);
 
   // Show error state only if there's an actual error
   if (pageError) {
@@ -800,8 +1183,15 @@ export default function EventDetails() {
               <div className={styles.heroLayout}>
                 <div className={styles.heroLeft}>
                   <Badge className={styles.eventBadge} size="lg">
-                    {event?.location || "Event Location"}
+                    <MapPin size={16} />
+                    {extractStateAndCountry(event?.address)}
                   </Badge>
+                  {event?.event_type && event.event_type.trim() && (
+                    <div className={styles.eventTypeBadge}>
+                      <Tag size={14} />
+                      <span>{event.event_type}</span>
+                    </div>
+                  )}
                   <Title className={styles.heroTitle}>{event?.title}</Title>
                   <Text className={styles.heroDescription}>
                     {truncateDescription(event?.description || "", 220)}
@@ -811,9 +1201,31 @@ export default function EventDetails() {
                       <Button
                         className={styles.ticketButton}
                         size="lg"
-                        onClick={handleRegisterNowClick}
+                        component={Link}
+                        href={`/eventSchedule/registerEvent?eventId=${
+                          id ?? ""
+                        }`}
+                        prefetch={true}
                       >
-                        Get Access Card - {formatPrice(event?.price)}
+                        <span className={styles.ticketBtnContent}>
+                          <span className={styles.ticketBtnLabel}>
+                            {event?.customization?.button_text || "Get Access Card"} @
+                          </span>
+                          {ticketPriceLabels.length > 1 ? (
+                            <span className={styles.priceCarousel}>
+                              <span
+                                key={currentPriceIndex}
+                                className={styles.priceSlide}
+                              >
+                                {ticketPriceLabels[currentPriceIndex]}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className={styles.priceSingle}>
+                              {getLowestTicketPrice()}
+                            </span>
+                          )}
+                        </span>
                       </Button>
                       <Menu shadow="md" width={200}>
                         <Menu.Target>
@@ -842,6 +1254,25 @@ export default function EventDetails() {
                       </Menu>
                     </Group>
                   </div>
+                  <div className={styles.heroStats}>
+                    <span style={{ color: "#32cd32", fontWeight: 500 }}>
+                      Over{" "}
+                      {event?.total_tickets_sold !== undefined
+                        ? event.total_tickets_sold
+                        : attendees.length > 0
+                        ? attendees.length
+                        : tickets.reduce((sum, t) => {
+                            const qty =
+                              t.ticket_sold !== undefined
+                                ? t.ticket_sold
+                                : t.quantity === "Unlimited"
+                                ? 0
+                                : (t.quantity as number) || 0;
+                            return sum + qty;
+                          }, 0)}{" "}
+                      tickets sold
+                    </span>
+                  </div>
                 </div>
                 <div className={styles.heroRight}>
                   <div className={styles.imageCard}>
@@ -864,10 +1295,40 @@ export default function EventDetails() {
           <div className={styles.mainColumn}>
             <Paper className={styles.contentCard}>
               {/* Event Details Grid */}
-              <div className={styles.highlightedText}>INVITATION</div>
+              {ticketDescription && (
+                <div className={styles.highlightedText}>
+                  <Text
+                    size="lg"
+                    style={{ color: "#666", fontStyle: "italic" }}
+                  >
+                    {ticketDescription}
+                  </Text>
+                </div>
+              )}
               <div className={styles.creatorName}>
                 by {event?.creator?.username || "Unknown Host"}
               </div>
+              <div className={styles.tagsSection}>
+                <div className={styles.tagsContainer}> Tags</div>
+                {event?.tags && event.tags.length > 0 && (
+                  <div className={styles.section}>
+                    <div className={styles.tagsContainer}>
+                      {event.tags.map((tag, index) => (
+                        <Badge
+                          key={index}
+                          className={styles.tagBadge}
+                          variant="light"
+                          size="lg"
+                        >
+                          <Tag size={14} style={{ marginRight: "4px" }} />
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className={styles.eventDetailsGrid}>
                 <div className={styles.detailItem}>
                   <div className={styles.detailIcon}>
@@ -915,9 +1376,9 @@ export default function EventDetails() {
                     <Info size={20} />
                   </div>
                   <div className={styles.detailContent}>
-                    <Text className={styles.detailLabel}>Categories</Text>
+                    <Text className={styles.detailLabel}>Event Type</Text>
                     <Text className={styles.detailValue}>
-                      Event, Entertainment
+                      {event?.event_type || "N/A"}
                     </Text>
                   </div>
                 </div>
@@ -947,7 +1408,7 @@ export default function EventDetails() {
                 </div>
                 <div className={styles.detailItem}>
                   <div className={styles.detailIcon}>
-                    <Text size={20} style={{ fontWeight: "bold" }}>
+                    <Text style={{ fontWeight: "bold", fontSize: "20px" }}>
                       ₦
                     </Text>
                   </div>
@@ -1024,6 +1485,26 @@ export default function EventDetails() {
                 </div>
               </div>
 
+              {/* AI Summary */}
+              {(aiSummary || aiSummaryLoading) && (
+                <div className={styles.aiSummaryCard}>
+                  <div className={styles.aiSummaryHeader}>
+                    <Sparkles size={16} />
+                    <Text fw={600} size="sm">AI Summary</Text>
+                  </div>
+                  {aiSummaryLoading ? (
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 0' }}>
+                      <Loader size="xs" />
+                      <Text size="sm" c="dimmed">Generating summary...</Text>
+                    </div>
+                  ) : (
+                    <Text size="sm" className={styles.aiSummaryText}>
+                      {aiSummary}
+                    </Text>
+                  )}
+                </div>
+              )}
+
               {/* Countdown Section */}
               {countdownDate && (
                 <div className={styles.section}>
@@ -1041,6 +1522,16 @@ export default function EventDetails() {
                 <Title order={2} className={styles.sectionTitle}>
                   Direction
                 </Title>
+
+                {/* Landmark */}
+                {event?.landmark && event.landmark.trim() && (
+                  <div className={styles.landmarkContainer}>
+                    <Text className={styles.landmarkLabel}>Landmark:</Text>
+                    <Text className={styles.landmarkValue}>
+                      {event.landmark}
+                    </Text>
+                  </div>
+                )}
 
                 {/* Debug info - remove this after testing */}
                 {process.env.NODE_ENV === "development" && (
@@ -1097,20 +1588,377 @@ export default function EventDetails() {
                 </div>
               </div>
 
-              {/* Contact Us Section */}
-              <div className={styles.section}>
-                <Title order={2} className={styles.sectionTitle}>
-                  Contact Us
-                </Title>
-                <div className={styles.socialIcons}>
-                  <div className={styles.socialIcon}>
-                    <Text size={24}>𝕏</Text>
+              {/* AI Directions Tips */}
+              {(directionsTips || directionsTipsLoading) && (
+                <div className={styles.aiDirectionsCard}>
+                  <div className={styles.aiDirectionsHeader}>
+                    <Navigation size={16} />
+                    <Text fw={600} size="sm">Getting There</Text>
                   </div>
-                  <div className={styles.socialIcon}>
-                    <Text size={24}>📷</Text>
+                  {directionsTipsLoading ? (
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 0' }}>
+                      <Loader size="xs" />
+                      <Text size="sm" c="dimmed">Loading travel tips...</Text>
+                    </div>
+                  ) : (
+                    <Text size="sm" className={styles.aiDirectionsText} style={{ whiteSpace: 'pre-line' }}>
+                      {directionsTips}
+                    </Text>
+                  )}
+                </div>
+              )}
+
+              {/* Contact Us Section */}
+              {event?.social_links && event.social_links.length > 0 && (
+                <div className={styles.section}>
+                  <Title order={2} className={styles.sectionTitle}>
+                    Contact Us
+                  </Title>
+                  <div className={styles.socialIcons}>
+                    {event.social_links.map((socialLink, index) => {
+                      const platform = socialLink.platform?.toLowerCase() || "";
+                      let IconComponent = LinkIcon;
+                      let iconColor = "#666";
+
+                      if (platform.includes("youtube")) {
+                        IconComponent = Youtube;
+                        iconColor = "#FF0000";
+                      } else if (platform.includes("instagram")) {
+                        IconComponent = Instagram;
+                        iconColor = "#E4405F";
+                      } else if (
+                        platform.includes("twitter") ||
+                        platform.includes("x")
+                      ) {
+                        IconComponent = Twitter;
+                        iconColor = "#1DA1F2";
+                      } else if (platform.includes("facebook")) {
+                        IconComponent = Facebook;
+                        iconColor = "#1877F2";
+                      } else if (platform.includes("tiktok")) {
+                        IconComponent = Share2;
+                        iconColor = "#000000";
+                      }
+
+                      return (
+                        <a
+                          key={index}
+                          href={socialLink.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.socialIcon}
+                          title={socialLink.platform}
+                        >
+                          <IconComponent
+                            size={24}
+                            style={{ color: iconColor }}
+                          />
+                        </a>
+                      );
+                    })}
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* Line Up Section */}
+              {event?.line_up && event.line_up.length > 0 && (
+                <div className={styles.section}>
+                  <Title order={2} className={styles.sectionTitle}>
+                    Line Up
+                  </Title>
+                  <div className={styles.lineupList}>
+                    {event.line_up.map((speaker, index) => (
+                      <div key={index} className={styles.lineupCard}>
+                        <div className={styles.lineupAvatar}>
+                          {speaker.image ? (
+                            <img
+                              src={speaker.image}
+                              alt={speaker.name}
+                              className={styles.lineupAvatarImg}
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                                e.currentTarget.nextElementSibling?.classList.remove(
+                                  styles.lineupAvatarPlaceholder
+                                );
+                                if (e.currentTarget.parentElement) {
+                                  const placeholder =
+                                    document.createElement("div");
+                                  placeholder.className =
+                                    styles.lineupAvatarPlaceholder;
+                                  e.currentTarget.parentElement.appendChild(
+                                    placeholder
+                                  );
+                                }
+                              }}
+                            />
+                          ) : (
+                            <div className={styles.lineupAvatarPlaceholder} />
+                          )}
+                        </div>
+                        <div className={styles.lineupContent}>
+                          <Text className={styles.lineupRole}>
+                            {speaker.role?.toUpperCase() || ""}
+                          </Text>
+                          <Text className={styles.lineupName}>
+                            {speaker.name}
+                          </Text>
+                          {speaker.description && (
+                            <Text className={styles.lineupDescription}>
+                              {speaker.description}
+                            </Text>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Schedule Section */}
+              {event?.itinerary && event.itinerary.length > 0 && (
+                <div className={styles.section}>
+                  <div className={styles.scheduleList}>
+                    {event.itinerary.map((schedule, index) => {
+                      const formatTime = (time: string): string => {
+                        if (!time) return "";
+                        try {
+                          const [hours, minutes] = time.split(":");
+                          const hour = parseInt(hours, 10);
+                          const ampm = hour >= 12 ? "pm" : "am";
+                          const hour12 = hour % 12 || 12;
+                          return `${hour12}:${minutes}${ampm}`;
+                        } catch {
+                          return time;
+                        }
+                      };
+
+                      // Color schemes for different schedules
+                      const colorSchemes = [
+                        {
+                          highlight: "#4FFF40", // Green
+                          background: "#f0fdf4",
+                          hostBorder: "#4FFF40",
+                          hostText: "#4FFF40",
+                        },
+                        {
+                          highlight: "#3B82F6", // Blue
+                          background: "#eff6ff",
+                          hostBorder: "#3B82F6",
+                          hostText: "#3B82F6",
+                        },
+                        {
+                          highlight: "#F59E0B", // Amber
+                          background: "#fffbeb",
+                          hostBorder: "#F59E0B",
+                          hostText: "#F59E0B",
+                        },
+                        {
+                          highlight: "#EF4444", // Red
+                          background: "#fef2f2",
+                          hostBorder: "#EF4444",
+                          hostText: "#EF4444",
+                        },
+                        {
+                          highlight: "#8B5CF6", // Purple
+                          background: "#faf5ff",
+                          hostBorder: "#8B5CF6",
+                          hostText: "#8B5CF6",
+                        },
+                        {
+                          highlight: "#EC4899", // Pink
+                          background: "#fdf2f8",
+                          hostBorder: "#EC4899",
+                          hostText: "#EC4899",
+                        },
+                      ];
+
+                      const colorScheme =
+                        colorSchemes[index % colorSchemes.length];
+
+                      const startTime = formatTime(schedule.start_time);
+                      const endTime = formatTime(schedule.end_time);
+                      const timeRange =
+                        startTime && endTime
+                          ? `${startTime} - ${endTime}`
+                          : schedule.start_time && schedule.end_time
+                          ? `${schedule.start_time} - ${schedule.end_time}`
+                          : "";
+
+                      const hasMultipleSchedules =
+                        event.itinerary && event.itinerary.length > 1;
+
+                      return (
+                        <div key={index} className={styles.scheduleItem}>
+                          {schedule.title && (
+                            <Title order={2} className={styles.scheduleTitle}>
+                              {schedule.title}
+                            </Title>
+                          )}
+                          <div
+                            className={styles.scheduleCard}
+                            style={{
+                              backgroundColor: hasMultipleSchedules
+                                ? colorScheme.background
+                                : "#ffffff",
+                            }}
+                          >
+                            <div
+                              className={styles.scheduleCardHighlight}
+                              style={{
+                                backgroundColor: hasMultipleSchedules
+                                  ? colorScheme.highlight
+                                  : "#4FFF40",
+                              }}
+                            />
+                            <div className={styles.scheduleCardLayout}>
+                              {schedule.image ? (
+                                <img
+                                  src={schedule.image}
+                                  alt={schedule.activity || "Schedule image"}
+                                  className={styles.scheduleImage}
+                                />
+                              ) : (
+                                <div
+                                  className={styles.scheduleImagePlaceholder}
+                                >
+                                  <Text size="xs" c="dimmed">
+                                    600 × 400
+                                  </Text>
+                                </div>
+                              )}
+                              <div className={styles.scheduleCardContent}>
+                                <Text className={styles.scheduleTime}>
+                                  {timeRange}
+                                </Text>
+                                <Text className={styles.scheduleActivity}>
+                                  {schedule.activity}
+                                </Text>
+                                {schedule.host && (
+                                  <Badge
+                                    className={styles.scheduleHost}
+                                    style={{
+                                      borderColor: hasMultipleSchedules
+                                        ? colorScheme.hostBorder
+                                        : "#4FFF40",
+                                      color: hasMultipleSchedules
+                                        ? colorScheme.hostText
+                                        : "#4FFF40",
+                                    }}
+                                  >
+                                    {schedule.host.toUpperCase()}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Event Services Section */}
+              {(() => {
+                let parsedServices: any[] = [];
+                if (event?.services) {
+                  if (typeof event.services === 'string') {
+                    try { parsedServices = JSON.parse(event.services); } catch (e) {}
+                  } else if (Array.isArray(event.services)) {
+                    parsedServices = event.services;
+                  }
+                }
+                
+                if (parsedServices.length === 0) return null;
+
+                // Determine the current user's ticket type to filter services
+                const userEmail = currentUser?.email || (typeof window !== 'undefined' ? localStorage.getItem('kuepass_guest_email') : null);
+                const userAttendee = attendees.find(
+                  (att) =>
+                    (currentUser && String(att.user) === String(currentUser.userId)) ||
+                    (att.email && userEmail && att.email.toLowerCase() === userEmail.toLowerCase())
+                );
+                const userTicketTypeId = userAttendee?.ticket_type_id || userAttendee?.ticket;
+
+                // Filter services: show only those linked to the user's ticket type, or general (no linked ticket / "all")
+                const filteredServices = userTicketTypeId
+                  ? parsedServices.filter(
+                      (svc: any) =>
+                        !svc.linkedTicketId ||
+                        svc.linkedTicketId === "all" ||
+                        String(svc.linkedTicketId) === String(userTicketTypeId)
+                    )
+                  : parsedServices; // If we can't determine ticket type, show all
+
+                if (filteredServices.length === 0) return null;
+
+                return (
+                  <div className={styles.section}>
+                    <Title order={2} className={styles.sectionTitle}>
+                      Event Services & Gifts
+                    </Title>
+                    <div style={{ display: 'grid', gap: '12px', marginTop: '16px' }}>
+                      {filteredServices.map((service: any, index: number) => {
+                        const linkedTicket = service.linkedTicketId && service.linkedTicketId !== "all" 
+                          ? tickets.find(t => String(t.id) === String(service.linkedTicketId)) 
+                          : null;
+
+                        return (
+                          <Paper key={index} p="md" radius="md" withBorder>
+                            <Flex direction="column" gap={4}>
+                              <Text fw={600} size="lg" c="dark.9">{service.name}</Text>
+                              <Box mt={4}>
+                                {linkedTicket ? (
+                                  <Badge color="green" variant="light" size="sm">
+                                    Available with: {linkedTicket.name || linkedTicket.category_name || "Ticket"}
+                                  </Badge>
+                                ) : (
+                                  <Badge color="gray" variant="light" size="sm">
+                                    General Service
+                                  </Badge>
+                                )}
+                              </Box>
+                              {service.description && (
+                                <Text size="sm" c="dimmed" mt="xs">{service.description}</Text>
+                              )}
+                            </Flex>
+                          </Paper>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Attendee Sessions Viewer */}
+              {id && (
+                <div className={styles.section}>
+                  <EventSessionsViewer eventId={id} />
+                </div>
+              )}
+
+              {/* Sponsors Display */}
+              {id && (
+                <div className={styles.section}>
+                  <EventSponsorsDisplay eventId={id} />
+                </div>
+              )}
+
+              {/* Seat Picker */}
+              {id && (
+                <div className={styles.section}>
+                  <EventSeatPicker eventId={id} />
+                </div>
+              )}
+
+
+
+              {/* Attendee Feedback */}
+              {id && (
+                <div className={styles.section}>
+                  <EventSurveyForm eventId={id} />
+                </div>
+              )}
             </Paper>
           </div>
 
@@ -1122,11 +1970,13 @@ export default function EventDetails() {
                 {event?.start_date ? formatTime(event.start_date) : "TBD"} WAT
               </Text>
               <Text className={styles.sidebarPriceText}>
-                {formatPrice(event?.price)}
+                {getLowestTicketPrice()}
               </Text>
               <Button
                 className={styles.getTicketButton}
-                onClick={handleRegisterNowClick}
+                component={Link}
+                href={`/eventSchedule/registerEvent?eventId=${id ?? ""}`}
+                prefetch={true}
                 fullWidth
               >
                 Get Access Card
@@ -1135,6 +1985,149 @@ export default function EventDetails() {
           </div>
         </div>
       </Container>
+
+      {/* Similar Events Section */}
+      {similarEvents.length > 0 && (
+        <Container size="xl" className={styles.similarSection}>
+          <Title order={2} className={styles.similarTitle}>
+            You Might Also Like
+          </Title>
+          <div className={styles.similarGrid}>
+            {similarEvents.map((simEvent: any) => {
+              const bannerUrl =
+                simEvent.customization?.banner_url?.[0] ||
+                simEvent.banner_url ||
+                "";
+              return (
+                <Link
+                  key={simEvent.id}
+                  href={`/eventSchedule/eventDetails/${simEvent.id}`}
+                  className={styles.similarCard}
+                >
+                  <div className={styles.similarCardImage}>
+                    {bannerUrl ? (
+                      <img
+                        src={bannerUrl}
+                        alt={simEvent.title}
+                        className={styles.similarCardImg}
+                      />
+                    ) : (
+                      <div className={styles.similarCardPlaceholder}>
+                        <Text size="xs" c="dimmed">
+                          No Image
+                        </Text>
+                      </div>
+                    )}
+                  </div>
+                  <div className={styles.similarCardBody}>
+                    <Text
+                      className={styles.similarCardTitle}
+                      lineClamp={2}
+                    >
+                      {simEvent.title}
+                    </Text>
+                    <Text className={styles.similarCardMeta}>
+                      <Calendar size={12} />
+                      {simEvent.start_date
+                        ? formatDateOnly(simEvent.start_date)
+                        : "TBD"}
+                    </Text>
+                    {simEvent.address && (
+                      <Text className={styles.similarCardMeta}>
+                        <MapPin size={12} />
+                        {extractStateAndCountry(simEvent.address)}
+                      </Text>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </Container>
+      )}
+
+      {/* Floating AI Chat Widget */}
+      <div className={styles.chatFab} onClick={() => setChatOpen(!chatOpen)}>
+        {chatOpen ? <X size={24} /> : <MessageCircle size={24} />}
+      </div>
+
+      {chatOpen && (
+        <div className={styles.chatWidget}>
+          <div className={styles.chatHeader}>
+            <div className={styles.chatHeaderLeft}>
+              <Sparkles size={16} />
+              <Text fw={700} size="sm">Ask about this event</Text>
+            </div>
+            <X size={18} style={{ cursor: 'pointer' }} onClick={() => setChatOpen(false)} />
+          </div>
+          <div className={styles.chatMessages}>
+            {chatMessages.length === 0 && (
+              <div className={styles.chatEmpty}>
+                <Sparkles size={24} color="#9ca3af" />
+                <Text size="sm" c="dimmed" ta="center">
+                  Ask me anything about this event!
+                </Text>
+                <div className={styles.chatSuggestions}>
+                  {["What time does it start?", "Is there parking?", "What should I wear?"].map((q) => (
+                    <button
+                      key={q}
+                      className={styles.chatSuggestionBtn}
+                      onClick={() => {
+                        setChatInput(q);
+                      }}
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {chatMessages.map((msg, i) => (
+              <div
+                key={i}
+                className={
+                  msg.role === "user"
+                    ? styles.chatBubbleUser
+                    : styles.chatBubbleAi
+                }
+              >
+                {msg.text}
+              </div>
+            ))}
+            {chatLoading && (
+              <div className={styles.chatBubbleAi}>
+                <Loader size="xs" />
+              </div>
+            )}
+          </div>
+          <div className={styles.chatInputArea}>
+            <input
+              className={styles.chatInput}
+              placeholder="Ask a question..."
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleChatSend()}
+            />
+            <button className={styles.chatSendBtn} onClick={handleChatSend} disabled={chatLoading}>
+              <Send size={18} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+export default function EventDetails() {
+  return (
+    <Suspense
+      fallback={
+        <Center style={{ height: "100vh" }}>
+          <Loader size="xl" />
+        </Center>
+      }
+    >
+      <EventDetailsContent />
+    </Suspense>
   );
 }

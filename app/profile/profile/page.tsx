@@ -18,16 +18,11 @@ import {
   Title,
 } from "@mantine/core";
 import {
-  IconEdit,
   IconLogout,
-  IconCalendarEvent,
-  IconBuilding,
-  IconMail,
   IconUser,
-  IconPhone,
-  IconWorld,
-  IconCurrencyDollar,
-  IconLanguage,
+  IconDeviceMobile,
+  IconMail,
+  IconPlus,
 } from "@tabler/icons-react";
 import Navbar from "@/components/navbar";
 import CustomFooter from "@/components/Footer";
@@ -60,6 +55,33 @@ const ProfilePage: React.FC = () => {
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const isLogged = useSelector((state: RootState) => state.user.isLogged);
 
+
+  const [detectedCountry, setDetectedCountry] = useState<string>("Not provided");
+  const [detectedLanguage, setDetectedLanguage] = useState<string>("English");
+
+  useEffect(() => {
+    // Detect Language
+    if (typeof navigator !== 'undefined') {
+      try {
+        const langCode = navigator.language.split('-')[0];
+        const langName = new Intl.DisplayNames(['en'], { type: 'language' }).of(langCode) || 'English';
+        setDetectedLanguage(langName);
+      } catch (e) {
+        setDetectedLanguage('English');
+      }
+    }
+
+    // Detect Country via IP
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.country_name) {
+          setDetectedCountry(data.country_name);
+        }
+      })
+      .catch(() => console.log("Failed to fetch IP country"));
+  }, []);
+
   useEffect(() => {
     // Log the user data to see what we have
     console.log("Redux userInfo:", userInfo);
@@ -74,8 +96,8 @@ const ProfilePage: React.FC = () => {
     // Get profile picture URL directly from profile_url
     let profile_url = userInfo.profile_url || "";
 
-    // Add a cache-busting timestamp if not already present
-    if (profile_url && !profile_url.includes("?t=")) {
+    // Add a cache-busting timestamp if not already present, but NEVER for Google images
+    if (profile_url && !profile_url.includes("?t=") && !profile_url.includes("googleusercontent.com")) {
       const timestamp = new Date().getTime();
       profile_url = profile_url.includes("?")
         ? `${profile_url}&t=${timestamp}`
@@ -101,9 +123,9 @@ const ProfilePage: React.FC = () => {
       phoneNumber: phoneNumber,
       profile_url: profile_url,
       username: userInfo.username || "",
-      country: userInfo.country || "Not provided",
+      country: userInfo.country || "",
       currency: userInfo.currency || "Not provided",
-      language: userInfo.language || "Not provided",
+      language: userInfo.language || "",
       active: userInfo.active ?? true,
     });
   }, [userInfo, isLogged, router]);
@@ -121,16 +143,15 @@ const ProfilePage: React.FC = () => {
     setImgSrc(""); // Clear the image source on error
   };
 
-  // Show loading state if user data isn't ready
-  if (!userProfile) {
+    if (!userProfile) {
     return (
       <Stack>
         <Stack className={styles.navStark}>
-          <Navbar />
+          <Navbar alwaysDark />
         </Stack>
         <Container className={styles.container}>
           <Paper className={styles.loadingCard}>
-            <Loader color="#024d3a" size="lg" />
+            <Loader color="#025a3a" size="lg" />
             <Text className={styles.loadingText}>Loading profile...</Text>
           </Paper>
         </Container>
@@ -142,164 +163,109 @@ const ProfilePage: React.FC = () => {
   }
 
   return (
-    <Stack>
-      <Stack className={styles.navStark}>
-        <Navbar />
-      </Stack>
-      <Container className={styles.container}>
-        <Card className={styles.profileCard}>
-          <Flex className={styles.profileCard1}>
-            <Box className={styles.profileImage}>
-              <Avatar
-                src={imgSrc || ""}
-                alt="Profile"
-                size={150}
-                radius={150}
-                className={styles.avatar}
-                imageProps={{ onError: handleImageError }}
-              />
-              {imgError && (
-                <Text className={styles.imgErrorText}>
-                  Failed to load profile image from server
-                </Text>
-              )}
-            </Box>
-            <Box className={styles.profileDetails}>
-              <Title order={2} className={styles.profileName}>
-                {userProfile.name}
-              </Title>
-              <Divider className={styles.profileDivider} />
+    <Stack style={{ backgroundColor: "#f4f5f7", minHeight: "100vh" }} gap={0}>
+      <Navbar alwaysDark />
 
-              <Group className={styles.profileInfo}>
-                <IconUser className={styles.infoIcon} />
-                <Text component="span" className={styles.infoLabel}>
-                  Username:
-                </Text>
-                <Text component="span">{userProfile.username}</Text>
-              </Group>
+      <Flex style={{ flex: 1, width: "100%", paddingTop: "80px", justifyContent: "center", paddingBottom: "60px" }}>
+        <Container size="md" className={styles.container}>
+          <Box mb={32}>
+            <Title order={2} className={styles.pageTitle}>Account Settings</Title>
+            <Text c="dimmed">Manage your profile details, email addresses, and security preferences.</Text>
+          </Box>
 
-              <Group className={styles.profileInfo}>
-                <IconMail className={styles.infoIcon} />
-                <Text component="span" className={styles.infoLabel}>
-                  Email:
-                </Text>
-                <Text component="span">{userProfile.email}</Text>
-              </Group>
+          <Box className={styles.mainContent}>
+                <Card className={styles.profileCard}>
+                  {/* Header Row: Avatar, Name/Email, Edit Button */}
+                  <Flex className={styles.profileHeaderFlex}>
+                    <Flex align="center" gap={20}>
+                      <Box className={styles.profileImage}>
+                        <Avatar
+                          src={imgSrc || ""}
+                          alt="Profile"
+                          size={70}
+                          radius={70}
+                          className={styles.avatar}
+                          imageProps={{ onError: handleImageError }}
+                        />
+                        {imgError && <Text className={styles.imgErrorText}>Failed to load</Text>}
+                      </Box>
+                      <Box>
+                        <Title order={3} className={styles.profileName}>
+                          {userProfile.name}
+                        </Title>
+                        <Text className={styles.profileEmail}>
+                          {userProfile.email}
+                        </Text>
+                      </Box>
+                    </Flex>
 
-              <Group className={styles.profileInfo}>
-                <IconPhone className={styles.infoIcon} />
-                <Text component="span" className={styles.infoLabel}>
-                  Phone:
-                </Text>
-                <Text component="span">{userProfile.phoneNumber}</Text>
-              </Group>
+                    <Link href="/profile/edithProfile" className={styles.actionLink}>
+                      <button className={styles.editButton}>
+                        Edit
+                      </button>
+                    </Link>
+                  </Flex>
 
-              <Group className={styles.profileInfo}>
-                <IconWorld className={styles.infoIcon} />
-                <Text component="span" className={styles.infoLabel}>
-                  Country:
-                </Text>
-                <Text component="span">{userProfile.country}</Text>
-              </Group>
+                  {/* User Info Grid */}
+                  <div className={styles.infoGrid}>
+                    <div className={styles.infoBlock}>
+                      <Text className={styles.infoLabel}>Full Name</Text>
+                      <Text className={styles.infoValue}>{userProfile.name}</Text>
+                    </div>
+                    <div className={styles.infoBlock}>
+                      <Text className={styles.infoLabel}>Display Name</Text>
+                      <Text className={styles.infoValue}>{userProfile.username || userProfile.name}</Text>
+                    </div>
+                    <div className={styles.infoBlock}>
+                      <Text className={styles.infoLabel}>Phone Number</Text>
+                      <Text className={styles.infoValue}>{userProfile.phoneNumber || "Not provided"}</Text>
+                    </div>
+                    <div className={styles.infoBlock}>
+                      <Text className={styles.infoLabel}>Gender</Text>
+                      <Text className={styles.infoValue}>I'd prefer not to say</Text>
+                    </div>
+                    <div className={styles.infoBlock}>
+                      <Text className={styles.infoLabel}>Country/Region</Text>
+                      <Text className={styles.infoValue}>
+                        {userProfile.country || detectedCountry}
+                      </Text>
+                    </div>
+                    <div className={styles.infoBlock}>
+                      <Text className={styles.infoLabel}>Language</Text>
+                      <Text className={styles.infoValue}>{userProfile.language || detectedLanguage}</Text>
+                    </div>
+                    <div className={styles.infoBlock}>
+                      <Text className={styles.infoLabel}>Time zone</Text>
+                      <Text className={styles.infoValue}>(GMT +01:00) West Africa Standard Time</Text>
+                    </div>
+                  </div>
+                </Card>
 
-              <Group className={styles.profileInfo}>
-                <IconCurrencyDollar className={styles.infoIcon} />
-                <Text component="span" className={styles.infoLabel}>
-                  Currency:
-                </Text>
-                <Text component="span">{userProfile.currency}</Text>
-              </Group>
+                {/* Email Addresses Card */}
+                <Card className={styles.profileCard} mt="md">
+                  <Title order={4} className={styles.sectionTitle}>My Email Addresses</Title>
+                  <Text className={styles.sectionDesc}>
+                    View and manage the email addresses associated with your account. They can be used to sign in and to reset password if you ever forget.
+                  </Text>
+                  <div className={styles.emailBlock}>
+                    <Text className={styles.infoValue}>{userProfile.email}</Text>
+                    <Badge color="green" variant="light">Primary</Badge>
+                  </div>
+                </Card>
 
-              <Group className={styles.profileInfo}>
-                <IconLanguage className={styles.infoIcon} />
-                <Text component="span" className={styles.infoLabel}>
-                  Language:
-                </Text>
-                <Text component="span">{userProfile.language}</Text>
-              </Group>
 
-              <Group className={styles.profileInfo}>
-                <Text component="span" className={styles.infoLabel}>
-                  Account Status:
-                </Text>
-                <Badge
-                  color={userProfile.active ? "green" : "red"}
-                  variant="light"
-                  size="lg"
-                >
-                  {userProfile.active ? "Active" : "Inactive"}
-                </Badge>
-              </Group>
-            </Box>
-          </Flex>
+            {/* Separated Logout Action - Always visible safely at the bottom */}
+            <Flex justify="flex-start" mt={40} mb={40}>
+               <button onClick={handleLogout} className={styles.logoutButton}>
+                 <IconLogout size={18} className={styles.buttonIcon} />
+                 Log Out
+               </button>
+            </Flex>
 
-          <Group className={styles.actions}>
-            <Link href="/profile/edithProfile" className={styles.actionLink}>
-              <button className={styles.editButton}>
-                <IconEdit size={18} className={styles.buttonIcon} />
-                Edit Profile
-              </button>
-            </Link>
-            <button onClick={handleLogout} className={styles.logoutButton}>
-              <IconLogout size={18} className={styles.buttonIcon} />
-              Log Out
-            </button>
-          </Group>
-        </Card>
+          </Box>
+        </Container>
+      </Flex>
 
-        <Flex className={styles.eventsFlex}>
-          <Card className={styles.eventsCards}>
-            <Title order={3} className={styles.cardTitle}>
-              My Events
-            </Title>
-            <Text className={styles.cardDescription}>
-              View events that has been uploaded with this profile and also
-              search for events of your choice.
-            </Text>
-            <Link
-              href="/eventSchedule/exploreEvent"
-              className={styles.actionLink}
-            >
-              <button className={styles.editButton}>
-                <IconCalendarEvent size={18} className={styles.buttonIcon} />
-                View
-              </button>
-            </Link>
-          </Card>
-
-          <Card className={styles.eventsCards}>
-            <Title order={3} className={styles.cardTitle}>
-              My Buildings
-            </Title>
-            <Text className={styles.cardDescription}>
-              View events that has been uploaded with this profile and also
-              search for events of your choice.
-            </Text>
-            <Link href="/building/my-buildings" className={styles.actionLink}>
-              <button className={styles.editButton}>
-                <IconBuilding size={18} className={styles.buttonIcon} />
-                View
-              </button>
-            </Link>
-          </Card>
-
-          <Card className={styles.eventsCards}>
-            <Title order={3} className={styles.cardTitle}>
-              My Invites
-            </Title>
-            <Text className={styles.cardDescription}>
-              View events that has been uploaded with this profile and also
-              search for events of your choice.
-            </Text>
-            <Link href="/dashboard" className={styles.actionLink}>
-              <button className={styles.editButton}>
-                <IconCalendarEvent size={18} className={styles.buttonIcon} />
-                View
-              </button>
-            </Link>
-          </Card>
-        </Flex>
-      </Container>
       <Box>
         <CustomFooter />
       </Box>
@@ -308,3 +274,4 @@ const ProfilePage: React.FC = () => {
 };
 
 export default ProfilePage;
+  

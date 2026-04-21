@@ -7,7 +7,7 @@ import ContactFormSection from '@/components/ContactFormSection'
 function page() {
   return (
     <div >
-      <Navbar />
+      <Navbar alwaysDark />
         <ConnectSection />
         <ContactFormSection />
       <Footer />

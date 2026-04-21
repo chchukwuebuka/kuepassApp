@@ -41,9 +41,9 @@ interface UserTableProps {
   filter?: "all" | "validated" | "unvalidated";
 }
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api";
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.kuepass.com/api/"
+).replace(/\/$/, "");
 
 const UserTable: React.FC<UserTableProps> = ({
   eventId,
@@ -61,12 +61,20 @@ const UserTable: React.FC<UserTableProps> = ({
     setError(null);
     try {
       // --- THIS IS THE FIX: Changed '?event=' to '?event_id=' ---
-      const response = await authenticatedRequest<Attendee[]>(
+      const response = await authenticatedRequest<any>(
         `${API_BASE_URL}/attendees/?event_id=${eventId}`,
         "GET"
       );
-      console.log("UserTable attendees:", response); // Debug log
-      setAttendees(response || []);
+      // Handle paginated response from backend
+      let attendees: Attendee[] = [];
+      if (Array.isArray(response)) {
+        attendees = response;
+      } else if (response?.results && Array.isArray(response.results)) {
+        attendees = response.results; // Handle paginated response
+      } else if (response?.data && Array.isArray(response.data)) {
+        attendees = response.data;
+      }
+      setAttendees(attendees);
     } catch (err: any) {
       console.error("Fetch error:", err);
       setError(err.message || "Failed to fetch attendees. Please try again.");
@@ -76,7 +84,6 @@ const UserTable: React.FC<UserTableProps> = ({
   };
 
   useEffect(() => {
-    console.log("UserTable eventId:", eventId); // Debug log
     if (!eventId) {
       setError("No event selected. Please provide a valid event ID.");
       setAttendees([]);
@@ -85,7 +92,8 @@ const UserTable: React.FC<UserTableProps> = ({
     }
 
     fetchAttendees();
-  }, [eventId]); // The dependency array is correct
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId]); // fetchAttendees is stable, doesn't need to be in deps
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -166,7 +174,7 @@ const UserTable: React.FC<UserTableProps> = ({
   return (
     <div className={styles.tableContainer}>
       <div className={styles.tableUser}>
-        <Group spacing="xs">
+        <Group gap="xs">
           <Users size={20} className={styles.headerIcon} />
           <h3>Registered Users</h3>
           {!loading && totalAttendees > 0 && (
@@ -181,7 +189,7 @@ const UserTable: React.FC<UserTableProps> = ({
           )}
         </Group>
 
-        <Group spacing="md">
+        <Group gap="md">
           {!loading && totalAttendees > 0 && (
             <Tooltip label="Validated attendees">
               <Badge size="md" color="green" variant="light" radius="xl">
@@ -228,10 +236,10 @@ const UserTable: React.FC<UserTableProps> = ({
         </div>
       ) : filteredAttendees.length === 0 ? (
         <div className={styles.emptyContainer}>
-          <Text align="center" color="dimmed" size="lg">
+          <Text ta="center" color="dimmed" size="lg">
             No attendees found for this event.
           </Text>
-          <Text align="center" color="dimmed" size="sm" mt="xs">
+          <Text ta="center" color="dimmed" size="sm" mt="xs">
             {searchQuery
               ? "Try adjusting your search criteria."
               : "Attendees will appear here once they register."}
@@ -256,7 +264,11 @@ const UserTable: React.FC<UserTableProps> = ({
                   <td className={styles.td}>{attendee.name}</td>
                   <td className={styles.td}>
                     {attendee.phone_number || (
-                      <Text color="dimmed" size="sm" italic>
+                      <Text
+                        color="dimmed"
+                        size="sm"
+                        style={{ fontStyle: "italic" }}
+                      >
                         Not provided
                       </Text>
                     )}

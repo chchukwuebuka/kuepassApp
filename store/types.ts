@@ -26,6 +26,28 @@ export interface EventFormData {
   address: string;
   eventURL: string;
   price: string;
+  
+  // Extended Location & Timing Fields
+  locationType?: "venue" | "virtual" | "tba";
+  eventTimingType?: "single" | "recurring";
+  timezone?: string;
+  streetAddress?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  landmark?: string;
+  additionalDetails?: string;
+  meetingLink?: string;
+  tags?: string[];
+  socialLinks?: {
+    instagram?: string;
+    youtube?: string;
+    tiktok?: string;
+  };
+  sections?: string[];
+  lineupItems?: any[];
+  schedules?: any[];
+  ticketButtonText?: string;
 }
 
 export interface Question {

@@ -133,7 +133,7 @@ const VerifyEmail = () => {
       const email = searchParams.get("email");
       const apiUrl =
         process.env.NEXT_PUBLIC_API_URL ||
-        "https://keupass-48c2ae65f897.herokuapp.com/api";
+        "https://api.kuepass.com/api/";
 
       if (!email) {
         setError("Email address is missing from URL. Please start over.");

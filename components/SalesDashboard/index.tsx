@@ -82,7 +82,7 @@ const SalesDashboard: React.FC<SalesDashboardProps> = ({
         // --- THIS IS THE CORRECTED API CALL ---
         // We now use your trusted function, which handles authentication correctly.
         const data = await authenticatedRequest<ForecastDataPoint[]>(
-          `https://keupass-48c2ae65f897.herokuapp.com/api/tickets/${ticketTypeId}/forecast/`,
+          `https://api.kuepass.com/api//tickets/${ticketTypeId}/forecast/`,
           "GET"
         );
 

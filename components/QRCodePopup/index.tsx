@@ -40,6 +40,7 @@ interface QRCodeData {
   registration_date: string;
   is_validated: boolean;
   validated_at?: string;
+  seats?: string[];
 }
 
 interface QRCodePopupProps {
@@ -53,7 +54,7 @@ interface QRCodePopupProps {
 
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api"
+  "https://api.kuepass.com/api/"
 ).replace(/\/$/, "");
 
 export default function QRCodePopup({
@@ -390,6 +391,15 @@ export default function QRCodePopup({
                   <Text fw={500}>Event:</Text>
                   <Text>{qrData.event_title}</Text>
                 </Group>
+
+                {qrData.seats && qrData.seats.length > 0 && (
+                  <Group justify="space-between">
+                    <Text fw={500}>Seat{qrData.seats.length > 1 ? 's' : ''}:</Text>
+                    <Badge color="grape" variant="light" size="lg">
+                      {qrData.seats.join(', ')}
+                    </Badge>
+                  </Group>
+                )}
 
                 <Group justify="space-between">
                   <Text fw={500}>Ticket Code:</Text>

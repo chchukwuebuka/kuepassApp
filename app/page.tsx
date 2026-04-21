@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Stack } from "@mantine/core";
+
+export const dynamic = "force-dynamic";
+import { Stack, Loader, Center, Text } from "@mantine/core";
 import HeroSection from "@/components/hero";
 import CustomFooter from "@/components/Footer";
 import Navbar from "@/components/navbar";
@@ -14,7 +16,7 @@ import StatsSection from "@/components/StatsSection";
 import HelpSection from "@/components/HelpSection";
 import FAQSection from "@/components/FAQSection";
 
-export default function KuepassHome() {
+function KuepassHomeContent() {
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId");
 
@@ -114,5 +116,21 @@ export default function KuepassHome() {
       </Stack>
       <CustomFooter />
     </Stack>
+  );
+}
+
+export default function KuepassHome() {
+  return (
+    <Suspense
+      fallback={
+        <Stack style={{ height: "100vh", justifyContent: "center" }}>
+          <Center>
+            <Loader size="xl" />
+          </Center>
+        </Stack>
+      }
+    >
+      <KuepassHomeContent />
+    </Suspense>
   );
 }

@@ -4,7 +4,7 @@ import { authenticatedRequest } from "../../app/services/auth";
 
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api"
+  "https://api.kuepass.com/api/"
 ).replace(/\/$/, "");
 
 interface ExportButtonProps {
@@ -92,17 +92,25 @@ const ExportButton: React.FC<ExportButtonProps> = ({ eventId }) => {
       setIsExporting(true);
 
       // Fetch attendees data
-      const attendeesResponse = await authenticatedRequest<Attendee[]>(
+      const attendeesResponse = await authenticatedRequest<any>(
         `${API_BASE_URL}/attendees/?event_id=${eventId}`,
         "GET"
       );
 
-      if (!Array.isArray(attendeesResponse)) {
+      // Handle paginated response from backend
+      let attendees: Attendee[] = [];
+      if (Array.isArray(attendeesResponse)) {
+        attendees = attendeesResponse;
+      } else if (attendeesResponse?.results && Array.isArray(attendeesResponse.results)) {
+        attendees = attendeesResponse.results; // Handle paginated response
+      } else if (attendeesResponse?.data && Array.isArray(attendeesResponse.data)) {
+        attendees = attendeesResponse.data;
+      } else {
         throw new Error("Invalid attendees data received");
       }
 
       // Convert to CSV
-      const csvContent = convertToCSV(attendeesResponse);
+      const csvContent = convertToCSV(attendees);
 
       if (!csvContent) {
         alert("No attendees data to export");

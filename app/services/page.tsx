@@ -1,25 +1,32 @@
 "use client";
 
 import Image from "next/image";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import type React from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import styles from "./styles.module.css";
+import { useIsMobile } from "@/hooks/use-mobile";
+import Navbar from "@/components/navbar";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 type Service = {
   id: string;
   title: React.ReactNode;
   subtitle?: string;
-  points: React.ReactNode[];
+  points?: React.ReactNode[];
   color?: string;
   media?: string;
+  video?: string;
 };
 
 const servicesData: Service[] = [
+  {
+    id: "video-intro",
+    title: "Welcome to Kuepass",
+    video: "/videos/kuepass1.mp4",
+  },
   {
     id: "digital-ticketing",
     title: (
@@ -29,27 +36,31 @@ const servicesData: Service[] = [
     ),
     points: [
       <>
-        <span className={styles.cardPointHighlight}>QR Code Tickets:</span>
-        {" Generate unique, scannable digital tickets for secure entry."}
+        <span key="qr-code-tickets" className={styles.cardPointHighlight}>
+          QR Code Tickets:
+        </span>{" "}
+        Generate unique, scannable digital tickets for secure entry.
       </>,
       <>
-        <span className={styles.cardPointHighlight}>
+        <span key="multiple-ticket-types" className={styles.cardPointHighlight}>
           Multiple Ticket Types:
-        </span>
-        {" Support for VIP, regular, early bird, and group ticket categories."}
+        </span>{" "}
+        Support for VIP, regular, early bird, and group ticket categories.
       </>,
       <>
-        <span className={styles.cardPointHighlight}>Fraud Prevention:</span>
-        {
-          " Tickets are single-use and validated in real time to block duplication."
-        }
+        <span key="fraud-prevention" className={styles.cardPointHighlight}>
+          Fraud Prevention:
+        </span>{" "}
+        Tickets are single-use and validated in real time to block duplication.
       </>,
       <>
-        <span className={styles.cardPointHighlight}>Instant Delivery:</span>
-        {" Tickets are delivered instantly via email, SMS, or WhatsApp."}
+        <span key="instant-delivery" className={styles.cardPointHighlight}>
+          Instant Delivery:
+        </span>{" "}
+        Tickets are delivered instantly via email, SMS, or WhatsApp.
       </>,
     ],
-    color: "#DDFCE7",
+    color: "#F5F5F5",
     media: "/images/seerviceImage.png",
   },
   {
@@ -57,24 +68,31 @@ const servicesData: Service[] = [
     title: "Entry Validation & Check-in",
     points: [
       <>
-        <span className={styles.cardPointHighlight}>Real-time Scanning:</span>
-        {" Use mobile or desktop scanners to validate tickets instantly."}
+        <span key="real-time-scanning" className={styles.cardPointHighlight}>
+          Real-time Scanning:
+        </span>{" "}
+        Use mobile or desktop scanners to validate tickets instantly.
       </>,
       <>
-        <span className={styles.cardPointHighlight}>Faster Entry:</span>
-        {" Reduce queues with 40% faster entry times."}
+        <span key="faster-entry" className={styles.cardPointHighlight}>
+          Faster Entry:
+        </span>{" "}
+        Reduce queues with 40% faster entry times.
       </>,
       <>
-        <span className={styles.cardPointHighlight}>Analytics:</span>
-        {" Track entry flow and attendance trends in real time."}
+        <span key="analytics" className={styles.cardPointHighlight}>
+          Analytics:
+        </span>{" "}
+        Track entry flow and attendance trends in real time.
       </>,
     ],
-    color: "#FFE7CC",
+    color: "#F5F5F5",
     media: "/images/serviceImage1.png",
   },
 ];
 
 const ServicesPage: React.FC = () => {
+  const isMobile = useIsMobile();
   const [activeId, setActiveId] = useState<string>(servicesData[0].id);
   const sidebar = useMemo(
     () => servicesData.map((s) => ({ id: s.id, title: s.title })),
@@ -102,90 +120,92 @@ const ServicesPage: React.FC = () => {
     []
   );
 
+  // GSAP ScrollTrigger for sidebar sync
   useEffect(() => {
-    const root = mainColRef.current;
-    if (!root) {
-      return;
-    }
+    const scroller = mainColRef.current;
+    if (!scroller || isMobile) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const intersecting = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+    // Wait a tick for refs to populate
+    const timer = setTimeout(() => {
+      const triggers: ScrollTrigger[] = [];
 
-        const fallback = entries
-          .slice()
-          .sort(
-            (a, b) =>
-              Math.abs(a.boundingClientRect.top) -
-              Math.abs(b.boundingClientRect.top)
-          );
+      servicesData.forEach((service) => {
+        const cardEl = cardRefs.current[service.id];
+        if (!cardEl) return;
 
-        const targetEntry = intersecting[0] ?? fallback[0];
+        const st = ScrollTrigger.create({
+          trigger: cardEl,
+          scroller: scroller,
+          start: "top center",
+          end: "bottom center",
+          onToggle: (self) => {
+            if (self.isActive) {
+              setActiveId(service.id);
+            }
+          },
+        });
 
-        if (!targetEntry) {
-          return;
-        }
-
-        const nextActiveId = targetEntry.target.id;
-        setActiveId((current) =>
-          current === nextActiveId ? current : nextActiveId
-        );
-      },
-      {
-        root,
-        rootMargin: "-30% 0px -50% 0px",
-        threshold: [0, 0.25, 0.5, 0.75, 1],
-      }
-    );
-
-    const observedElements = new Set<HTMLDivElement>();
-
-    const observeElements = () => {
-      const elements = Object.values(cardRefs.current).filter(
-        (element): element is HTMLDivElement => Boolean(element)
-      );
-
-      elements.forEach((element) => {
-        if (!observedElements.has(element)) {
-          observer.observe(element);
-          observedElements.add(element);
-        }
+        triggers.push(st);
       });
-    };
 
-    observeElements();
-    const rafId = requestAnimationFrame(observeElements);
+      // Also add card entrance animations
+      servicesData.forEach((service) => {
+        const cardEl = cardRefs.current[service.id];
+        if (!cardEl) return;
+
+        gsap.fromTo(
+          cardEl,
+          { opacity: 0, y: 40 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: cardEl,
+              scroller: scroller,
+              start: "top 85%",
+              toggleActions: "play none none reverse",
+            },
+          }
+        );
+      });
+
+      return () => {
+        triggers.forEach((t) => t.kill());
+      };
+    }, 100);
 
     return () => {
-      observedElements.forEach((element) => observer.unobserve(element));
-      observer.disconnect();
-      cancelAnimationFrame(rafId);
+      clearTimeout(timer);
+      ScrollTrigger.getAll().forEach((t) => t.kill());
     };
-  }, []);
+  }, [isMobile]);
 
   return (
     <div className={styles.pageWrapper}>
+      <Navbar />
       <div className={styles.container}>
         <div className={styles.contentRow}>
-          <div className={styles.sidebarCol}>
-            <div className={styles.sidebar}>
-              <div className={styles.sidebarHeading}>Overview</div>
-              {sidebar.map((item) => (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  onClick={(event) => handleSidebarClick(event, item.id)}
-                  className={`${styles.sidebarLink} ${
-                    activeId === item.id ? styles.sidebarLinkActive : ""
-                  }`}
-                >
-                  {item.title}
-                </a>
-              ))}
+          {!isMobile && (
+            <div className={styles.sidebarCol}>
+              <div className={styles.sidebar}>
+                <div className={styles.sidebarHeading}>Overview</div>
+                {sidebar.map((item) => (
+                  <a
+                    key={item.id}
+                    href={`#${item.id}`}
+                    onClick={(event) => handleSidebarClick(event, item.id)}
+                    className={`${styles.sidebarLink} ${
+                      activeId === item.id ? styles.sidebarLinkActive : ""
+                    }`}
+                  >
+                    {item.title}
+                  </a>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className={styles.mainCol} ref={mainColRef}>
             <div className={styles.cardsStack}>
@@ -193,36 +213,64 @@ const ServicesPage: React.FC = () => {
                 <div
                   id={service.id}
                   key={service.id}
-                  className={styles.card}
+                  className={`${styles.card} ${
+                    service.video ? styles.videoCard : ""
+                  }`}
                   ref={registerCardRef(service.id)}
                 >
-                  <div className={styles.cardHeader}>
-                    <h3 className={styles.cardTitle}>{service.title}</h3>
-                  </div>
-                  <div className={styles.cardBody}>
-                    <div className={styles.cardText}>
-                      {service.points.map((point, index) => (
-                        <p
-                          key={`${service.id}-point-${index}`}
-                          className={styles.cardPoint}
-                        >
-                          {point}
-                        </p>
-                      ))}
+                  {!service.video && (
+                    <div className={styles.cardHeader}>
+                      <h3 className={styles.cardTitle}>{service.title}</h3>
                     </div>
-                    {service.media && (
+                  )}
+                  <div className={styles.cardBody}>
+                    {service.video ? (
                       <div
                         className={styles.cardMedia}
-                        style={{ backgroundColor: service.color }}
+                        style={{
+                          backgroundColor: service.color || "transparent",
+                        }}
                       >
-                        <Image
-                          src={service.media}
-                          alt={`${service.id}-media`}
-                          width={800}
-                          height={450}
-                          className={styles.cardMediaImage}
-                        />
+                        <video
+                          src={service.video}
+                          controls
+                          autoPlay
+                          loop
+                          muted
+                          className={styles.cardMediaVideo}
+                        >
+                          Your browser does not support the video tag.
+                        </video>
                       </div>
+                    ) : (
+                      <>
+                        {service.points && (
+                          <div className={styles.cardText}>
+                            {service.points.map((point, index) => (
+                              <p
+                                key={`${service.id}-point-${index}`}
+                                className={styles.cardPoint}
+                              >
+                                {point}
+                              </p>
+                            ))}
+                          </div>
+                        )}
+                        {service.media && (
+                          <div
+                            className={styles.cardMedia}
+                            style={{ backgroundColor: service.color }}
+                          >
+                            <Image
+                              src={service.media || "/placeholder.svg"}
+                              alt={`${service.id}-media`}
+                              width={800}
+                              height={450}
+                              className={styles.cardMediaImage}
+                            />
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

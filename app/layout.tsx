@@ -76,11 +76,14 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import { createTheme } from "@mantine/core";
+import { Suspense } from "react";
 import ReduxProvider from "@/store/provider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import "./globals.css";
 import styles from "./page.module.css";
 import GlobalLoading from "@/components/loader/globalLoading";
+import { AnalyticsProvider } from "@/components/GoogleAnalytics/AnalyticsProvider";
+import CookieConsent from "@/components/CookieConsent";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -137,12 +140,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={roboto.className}>
+        <div className="background-ellipse-left"></div>
+        <div className="background-ellipse-right"></div>
+        <Suspense fallback={null}>
+          <AnalyticsProvider />
+        </Suspense>
         <ReduxProvider theme={theme}>
           <GlobalLoading />
           <ErrorBoundary>
             <main className={styles.mainContent}>{children}</main>
           </ErrorBoundary>
         </ReduxProvider>
+        <CookieConsent />
       </body>
     </html>
   );

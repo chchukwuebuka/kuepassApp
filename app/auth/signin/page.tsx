@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import {
   TextInput,
   PasswordInput,
@@ -19,6 +19,7 @@ import {
   IconArrowLeft,
   IconLock,
   IconBrandGoogle,
+  IconCheck,
 } from "@tabler/icons-react";
 import styles from "./styles.module.css";
 import Link from "next/link";
@@ -38,7 +39,7 @@ import { useGoogleLogin, CredentialResponse } from "@react-oauth/google"; // Cor
 
 // Removed duplicate JwtPayload, use UserData from auth.ts or Redux User type
 
-const SignIn: React.FC = () => {
+const SignInContent: React.FC = () => {
   const form = useForm({
     initialValues: { email: "", password: "" },
     validate: {
@@ -54,12 +55,38 @@ const SignIn: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [googleLoading, setGoogleLoading] = useState<boolean>(false);
+  const [passwordRequirements, setPasswordRequirements] = useState({
+    hasNumber: false,
+    hasUppercase: false,
+    hasLowercase: false,
+    hasSpecialChar: false,
+  });
 
   useEffect(() => {
     if (searchParams.get("registered") === "true") {
       setSuccess("Account created! Please sign in.");
     }
   }, [searchParams]);
+
+  // Check password requirements as user types
+  useEffect(() => {
+    const password = form.values.password;
+    if (password) {
+      setPasswordRequirements({
+        hasNumber: /\d/.test(password),
+        hasUppercase: /[A-Z]/.test(password),
+        hasLowercase: /[a-z]/.test(password),
+        hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+      });
+    } else {
+      setPasswordRequirements({
+        hasNumber: false,
+        hasUppercase: false,
+        hasLowercase: false,
+        hasSpecialChar: false,
+      });
+    }
+  }, [form.values.password]);
 
   // Helper to process backend auth response and update state/storage
   const processAuthResponse = (
@@ -77,6 +104,13 @@ const SignIn: React.FC = () => {
       setAuthToken(access);
       if (refresh) localStorage.setItem("kuepass_refresh_token", refresh);
 
+      // Prioritize Google profile picture if available (check multiple possible fields)
+      const profilePicture =
+        (backendApiUser as any).picture ||
+        (backendApiUser as any).image ||
+        backendApiUser.profile_url ||
+        undefined;
+
       // Prepare payload for Redux store, ensuring all fields match ReduxUser type
       const userForRedux: ReduxUser = {
         id: backendApiUser.id!, // Assuming backendApiUser has id and it's required for ReduxUser
@@ -88,10 +122,8 @@ const SignIn: React.FC = () => {
           backendApiUser.name ||
           backendApiUser.username ||
           (sourceEmail ? sourceEmail.split("@")[0] : "User"),
-        profile_url: backendApiUser.profile_url || undefined, // Use profile_url from backend
+        profile_url: profilePicture || undefined, // Use profile picture from any available field
         phone_number: backendApiUser.phone_number || undefined,
-        // Add other fields required by ReduxUser, providing defaults if necessary
-        profilePicture: backendApiUser.profile_url || "/images/avatar.png", // If you still use this
         country: backendApiUser.country || undefined,
         currency: backendApiUser.currency || undefined,
         language: backendApiUser.language || undefined,
@@ -110,7 +142,12 @@ const SignIn: React.FC = () => {
       };
       setUserData(userForLocalStorage);
 
-      router.push("/"); // Or to a dashboard/profile page
+      const redirectPath = searchParams.get("redirect");
+      if (redirectPath) {
+        router.push(redirectPath);
+      } else {
+        router.push("/");
+      }
     } else {
       const errorMessage =
         backendResponse.message ||
@@ -129,16 +166,46 @@ const SignIn: React.FC = () => {
     setGoogleLoading(true);
     setError(null);
     try {
-      const apiUrl =
+      // Fetch Google profile info to get the profile picture
+      let googleProfilePicture: string | undefined;
+      try {
+        const googleUserInfoResponse = await fetch(
+          "https://www.googleapis.com/oauth2/v3/userinfo",
+          {
+            headers: { Authorization: `Bearer ${googleAccessToken}` },
+          }
+        );
+        if (googleUserInfoResponse.ok) {
+          const googleUserInfo = await googleUserInfoResponse.json();
+          console.log("Google userinfo:", googleUserInfo);
+          googleProfilePicture = googleUserInfo.picture || undefined;
+        }
+      } catch (googleInfoErr) {
+        console.warn("Could not fetch Google profile info:", googleInfoErr);
+      }
+
+      const API_BASE_URL = (
+        process.env.NEXT_PUBLIC_API_BASE_URL ||
         process.env.NEXT_PUBLIC_API_URL ||
-        "https://keupass-48c2ae65f897.herokuapp.com/api";
-      const response = await fetch(`${apiUrl}/google-login/`, {
+        "https://api.kuepass.com/api/"
+      ).replace(/\/$/, "");
+
+      const response = await fetch(`${API_BASE_URL}/google-login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ access_token: googleAccessToken }),
       });
 
-      const backendAuthResponse: AuthResponse = await response.json();
+      // Try to parse JSON; if it fails, surface a clear error
+      const text = await response.text();
+      let backendAuthResponse: AuthResponse;
+      try {
+        backendAuthResponse = JSON.parse(text);
+      } catch {
+        throw new Error(
+          `Unexpected response from server (status ${response.status}).`
+        );
+      }
       console.log("Google login backend response:", backendAuthResponse);
 
       if (!response.ok) {
@@ -149,8 +216,18 @@ const SignIn: React.FC = () => {
         );
       }
 
+      // Inject Google profile picture into the backend response if backend didn't provide one
+      if (
+        googleProfilePicture &&
+        backendAuthResponse.data?.user &&
+        !backendAuthResponse.data.user.profile_url &&
+        !(backendAuthResponse.data.user as any).picture &&
+        !(backendAuthResponse.data.user as any).image
+      ) {
+        (backendAuthResponse.data.user as any).picture = googleProfilePicture;
+      }
+
       // Use the common processing function
-      // The email used for Google sign-in might come from backendAuthResponse.data.user.email
       processAuthResponse(
         backendAuthResponse,
         backendAuthResponse.data?.user?.email
@@ -226,39 +303,15 @@ const SignIn: React.FC = () => {
 
   return (
     <div className={styles.pageContainer}>
-      {/* Left Column ... (no changes needed here) */}
+      {/* Left Column: Form */}
       <div className={styles.leftColumn}>
-        <div className={styles.overlay}></div>
-        <div className={styles.welcomeTextOverlay}>
-          <Title className={styles.welcomeTitle}>Welcome Back</Title>
-          <Text className={styles.welcomeSubtitle}>
-            We&apos;re excited to see you again
-          </Text>
-        </div>
-        <Image
-          src="/images/clubDance.png"
-          alt="Sign in background"
-          fill
-          className={styles.image}
-          priority
-        />
-      </div>
-
-      {/* Right Column with Form ... */}
-      <div className={styles.rightColumn}>
         <div className={styles.formContainer}>
-          <Button
-            variant="subtle"
-            className={styles.goBackButton}
-            onClick={() => router.push("/")}
-            leftSection={<IconArrowLeft size={18} />}
-          >
-            Go Home
-          </Button>
           <div className={styles.formHeader}>
-            <Title className={styles.title}>Sign In</Title>
+            <Title className={styles.title}>
+              Kuepass helps your events run smoothly
+            </Title>
             <Text className={styles.subtitle}>
-              Log in to your account to continue your journey
+              Login to your kuepass account
             </Text>
           </div>
 
@@ -286,9 +339,8 @@ const SignIn: React.FC = () => {
           <Box className={styles.formWrapper}>
             <form onSubmit={form.onSubmit(handleRegularSignIn)}>
               <TextInput
-                label="Email address"
-                leftSection={<IconAt size={18} className={styles.inputIcon} />}
-                placeholder="Enter your email address"
+                label="Email"
+                placeholder=""
                 {...form.getInputProps("email")}
                 required
                 className={styles.input}
@@ -302,10 +354,7 @@ const SignIn: React.FC = () => {
               <div className={styles.passwordContainer}>
                 <PasswordInput
                   label="Password"
-                  placeholder="Enter your password"
-                  leftSection={
-                    <IconLock size={18} className={styles.inputIcon} />
-                  }
+                  placeholder=""
                   {...form.getInputProps("password")}
                   required
                   className={styles.input}
@@ -317,6 +366,52 @@ const SignIn: React.FC = () => {
                     wrapper: styles.inputWrapper,
                   }}
                 />
+                {form.values.password && (
+                  <div className={styles.passwordRequirements}>
+                    <div
+                      className={`${styles.requirementItem} ${
+                        passwordRequirements.hasNumber
+                          ? styles.requirementMet
+                          : styles.requirementUnmet
+                      }`}
+                    >
+                      <IconCheck size={16} className={styles.requirementIcon} />
+                      <span className={styles.requirementText}>Number</span>
+                    </div>
+                    <div
+                      className={`${styles.requirementItem} ${
+                        passwordRequirements.hasUppercase
+                          ? styles.requirementMet
+                          : styles.requirementUnmet
+                      }`}
+                    >
+                      <IconCheck size={16} className={styles.requirementIcon} />
+                      <span className={styles.requirementText}>uppercase</span>
+                    </div>
+                    <div
+                      className={`${styles.requirementItem} ${
+                        passwordRequirements.hasLowercase
+                          ? styles.requirementMet
+                          : styles.requirementUnmet
+                      }`}
+                    >
+                      <IconCheck size={16} className={styles.requirementIcon} />
+                      <span className={styles.requirementText}>lowercase</span>
+                    </div>
+                    <div
+                      className={`${styles.requirementItem} ${
+                        passwordRequirements.hasSpecialChar
+                          ? styles.requirementMet
+                          : styles.requirementUnmet
+                      }`}
+                    >
+                      <IconCheck size={16} className={styles.requirementIcon} />
+                      <span className={styles.requirementText}>
+                        Special character
+                      </span>
+                    </div>
+                  </div>
+                )}
                 <div className={styles.forgotPasswordContainer}>
                   <Link
                     href="/auth/forgotPassword"
@@ -326,6 +421,7 @@ const SignIn: React.FC = () => {
                   </Link>
                 </div>
               </div>
+
               <Button
                 type="submit"
                 fullWidth
@@ -338,335 +434,62 @@ const SignIn: React.FC = () => {
             </form>
 
             <div className={styles.divider}>
-              <span className={styles.dividerText}>OR</span>
+              <span className={styles.dividerText}>Or</span>
             </div>
 
-            <Stack gap="md">
-              {/* Replace GoogleLogin component with a button that calls googleLoginFlow */}
+            <Stack gap="md" className={styles.socialStack}>
               <Button
-                variant="outline"
+                variant="default"
                 fullWidth
                 className={styles.socialButton}
                 leftSection={!googleLoading && <IconBrandGoogle size={18} />}
                 loading={googleLoading}
                 onClick={handleGoogleSignInClick}
               >
-                {googleLoading ? "Connecting..." : "Continue with Google"}
+                {googleLoading ? "Connecting..." : "Sign in with Google"}
               </Button>
+              {/* Apple Sign In would go here */}
             </Stack>
+
+            <Text className={styles.footerText}>
+              by continuing you are agreeing to kuepass{" "}
+              <Link href="/terms" className={styles.footerLink}>
+                terms of service
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy" className={styles.footerLink}>
+                privacy
+              </Link>
+            </Text>
 
             <Text className={styles.signUpText}>
               Don&apos;t have an account?{" "}
-              <Link href="/auth/signnup" className={styles.signUpLink}>
+              <Link href={searchParams.get("redirect") ? `/auth/signnup?redirect=${encodeURIComponent(searchParams.get("redirect")!)}` : "/auth/signnup"} className={styles.signUpLink}>
                 Sign up
               </Link>
             </Text>
           </Box>
         </div>
       </div>
+
+      {/* Right Column: Image */}
+      <div className={styles.rightColumn}>
+        <Image
+          src="/images/signimage.png"
+          alt="Sign in background"
+          fill
+          className={styles.image}
+          priority
+        />
+      </div>
     </div>
   );
 };
 
+const SignIn: React.FC = () => (
+  <Suspense fallback={null}>
+    <SignInContent />
+  </Suspense>
+);
+
 export default SignIn;
-// "use client";
-
-// import type React from "react";
-// import { useState, useEffect } from "react";
-// import {
-//   TextInput,
-//   PasswordInput,
-//   Button,
-//   Text,
-//   Stack,
-//   Notification,
-//   Box,
-//   Title,
-// } from "@mantine/core";
-// import { useForm } from "@mantine/form";
-// import Image from "next/image";
-// import {
-//   IconAt,
-//   IconArrowLeft,
-//   IconLock,
-//   IconBrandGoogle,
-// } from "@tabler/icons-react";
-// import styles from "./styles.module.css";
-// import Link from "next/link";
-// import { useAppDispatch } from "@/store/store";
-// import { login, User as ReduxUser } from "@/store/store";
-// import { useRouter, useSearchParams } from "next/navigation";
-// import { signIn as apiSignIn } from "@/app/services/api";
-// import {
-//   setAuthToken,
-//   setUserData,
-//   UserData as ApiUserData,
-//   AuthResponse,
-//   authenticatedRequest,
-// } from "@/app/services/auth";
-// import { useGoogleLogin } from "@react-oauth/google";
-
-// const SignIn: React.FC = () => {
-//   const form = useForm({
-//     initialValues: { email: "", password: "" },
-//     validate: {
-//       email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
-//       password: (value) => (value.length >= 6 ? null : "Password too short"),
-//     },
-//   });
-
-//   const dispatch = useAppDispatch();
-//   const router = useRouter();
-//   const searchParams = useSearchParams();
-//   const [error, setError] = useState<string | null>(null);
-//   const [success, setSuccess] = useState<string | null>(null);
-//   const [loading, setLoading] = useState<boolean>(false);
-//   const [googleLoading, setGoogleLoading] = useState<boolean>(false);
-
-//   useEffect(() => {
-//     if (searchParams.get("registered") === "true") {
-//       setSuccess("Account created! Please sign in.");
-//     }
-//   }, [searchParams]);
-
-//   // --- THIS IS THE CORRECTED FUNCTION ---
-//   // It now correctly handles the structure of your actual backend response.
-//   const processAuthResponse = (backendResponse: AuthResponse) => {
-//     try {
-//       // It looks for 'access' and 'user' at the top level of the response
-//       const accessToken = backendResponse.access;
-//       const apiUser = backendResponse.user;
-//       const refreshToken = backendResponse.refresh;
-
-//       // Check if the essential data is present
-//       if (!accessToken || !apiUser) {
-//         throw new Error("Authentication response from server is missing user data or access token.");
-//       }
-
-//       // 1. Set tokens and user data in localStorage
-//       setAuthToken(accessToken);
-//       setUserData(apiUser);
-//       if (refreshToken) {
-//         localStorage.setItem("kuepass_refresh_token", refreshToken);
-//       }
-
-//       // 2. Create the user object for the Redux store
-//       const userForRedux: ReduxUser = {
-//         id: apiUser.id,
-//         username: apiUser.username || "User",
-//         email: apiUser.email || "",
-//         name: apiUser.name || apiUser.username || "",
-//         profile_url: apiUser.profile_url || "/images/avatar.png",
-//         phone_number: apiUser.phone_number,
-//         country: apiUser.country,
-//         currency: apiUser.currency,
-//         language: apiUser.language,
-//         active: apiUser.active,
-//       };
-
-//       // 3. Dispatch to Redux
-//       dispatch(login(userForRedux));
-
-//       // 4. Redirect to dashboard
-//       router.push("/");
-
-//     } catch (err: any) {
-//         console.error("Error processing authentication response:", err.message, backendResponse);
-//         setError(err.message || "Failed to process login.");
-//     }
-//   };
-
-//   const handleGoogleAuthWithBackend = async (googleAccessToken: string) => {
-//     setGoogleLoading(true);
-//     setError(null);
-//     try {
-//       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://keupass-48c2ae65f897.herokuapp.com/api";
-
-//       const backendAuthResponse: AuthResponse = await authenticatedRequest(
-//         `${apiUrl}/google-login/`,
-//         "POST",
-//         { access_token: googleAccessToken }
-//       );
-
-//       console.log("Google login backend response:", backendAuthResponse);
-//       processAuthResponse(backendAuthResponse);
-
-//     } catch (err: any) {
-//       console.error("Error during Google login with backend:", err);
-//       setError(err.message || "Google sign-in failed. Please try again.");
-//     } finally {
-//       setGoogleLoading(false);
-//     }
-//   };
-
-//   const googleLoginFlow = useGoogleLogin({
-//     onSuccess: (tokenResponse) => {
-//       console.log("Google useGoogleLogin onSuccess:", tokenResponse);
-//       if (tokenResponse.access_token) {
-//         handleGoogleAuthWithBackend(tokenResponse.access_token);
-//       } else {
-//         setError("Failed to get access token from Google.");
-//         setGoogleLoading(false);
-//       }
-//     },
-//     onError: (errorResponse) => {
-//       console.error("Google useGoogleLogin error:", errorResponse);
-//       setError("Google authentication failed. Please try again.");
-//       setGoogleLoading(false);
-//     },
-//   });
-
-//   const handleGoogleSignInClick = () => {
-//     setGoogleLoading(true);
-//     setError(null);
-//     googleLoginFlow();
-//   };
-
-//   const handleRegularSignIn = async (values: typeof form.values) => {
-//     setLoading(true);
-//     setError(null);
-//     try {
-//       const backendAuthResponse = await apiSignIn({
-//         email: values.email,
-//         password: values.password,
-//       });
-
-//       console.log("Regular login backend response:", backendAuthResponse);
-//       processAuthResponse(backendAuthResponse);
-
-//     } catch (err: any) {
-//       console.error("Regular login error:", err);
-//       setError(err.message || "Invalid email or password.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div className={styles.pageContainer}>
-//       <div className={styles.leftColumn}>
-//         <div className={styles.overlay}></div>
-//         <div className={styles.welcomeTextOverlay}>
-//           <Title className={styles.welcomeTitle}>Welcome Back</Title>
-//           <Text className={styles.welcomeSubtitle}>
-//             We're excited to see you again
-//           </Text>
-//         </div>
-//         <Image
-//           src="/images/clubDance.png"
-//           alt="Sign in background"
-//           fill
-//           className={styles.image}
-//           priority
-//         />
-//       </div>
-//       <div className={styles.rightColumn}>
-//         <div className={styles.formContainer}>
-//           <Button
-//             variant="subtle"
-//             className={styles.goBackButton}
-//             onClick={() => router.push("/")}
-//             leftSection={<IconArrowLeft size={18} />}
-//           >
-//             Go Home
-//           </Button>
-//           <div className={styles.formHeader}>
-//             <Title className={styles.title}>Sign In</Title>
-//             <Text className={styles.subtitle}>
-//               Log in to your account to continue your journey
-//             </Text>
-//           </div>
-
-//           {error && (
-//             <Notification
-//               color="red"
-//               onClose={() => setError(null)}
-//               className={styles.notification}
-//               withCloseButton
-//             >
-//               {error}
-//             </Notification>
-//           )}
-//           {success && (
-//             <Notification
-//               color="green"
-//               onClose={() => setSuccess(null)}
-//               className={styles.notification}
-//               withCloseButton
-//             >
-//               {success}
-//             </Notification>
-//           )}
-
-//           <Box className={styles.formWrapper}>
-//             <form onSubmit={form.onSubmit(handleRegularSignIn)}>
-//               <TextInput
-//                 label="Email address"
-//                 leftSection={<IconAt size={18} className={styles.inputIcon} />}
-//                 placeholder="Enter your email address"
-//                 {...form.getInputProps("email")}
-//                 required
-//                 className={styles.input}
-//                 classNames={{ input: styles.inputField, label: styles.inputLabel, error: styles.inputError, wrapper: styles.inputWrapper }}
-//               />
-//               <div className={styles.passwordContainer}>
-//                 <PasswordInput
-//                   label="Password"
-//                   placeholder="Enter your password"
-//                   leftSection={<IconLock size={18} className={styles.inputIcon} />}
-//                   {...form.getInputProps("password")}
-//                   required
-//                   className={styles.input}
-//                   classNames={{ input: styles.inputField, label: styles.inputLabel, error: styles.inputError, innerInput: styles.passwordInput, wrapper: styles.inputWrapper }}
-//                 />
-//                 <div className={styles.forgotPasswordContainer}>
-//                   <Link
-//                     href="/auth/forgotPassword"
-//                     className={styles.forgotPassword}
-//                   >
-//                     Forgot Password?
-//                   </Link>
-//                 </div>
-//               </div>
-//               <Button
-//                 type="submit"
-//                 fullWidth
-//                 className={styles.submitButton}
-//                 loading={loading}
-//                 loaderProps={{ size: "sm" }}
-//               >
-//                 {loading ? "Signing In" : "Sign In"}
-//               </Button>
-//             </form>
-
-//             <div className={styles.divider}>
-//               <span className={styles.dividerText}>OR</span>
-//             </div>
-
-//             <Stack gap="md">
-//               <Button
-//                 variant="outline"
-//                 fullWidth
-//                 className={styles.socialButton}
-//                 leftSection={!googleLoading && <IconBrandGoogle size={18} />}
-//                 loading={googleLoading}
-//                 onClick={handleGoogleSignInClick}
-//               >
-//                 {googleLoading ? "Connecting..." : "Continue with Google"}
-//               </Button>
-//             </Stack>
-
-//             <Text className={styles.signUpText}>
-//               Don't have an account?{" "}
-//               <Link href="/auth/signnup" className={styles.signUpLink}>
-//                 Sign up
-//               </Link>
-//             </Text>
-//           </Box>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default SignIn;

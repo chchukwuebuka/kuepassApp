@@ -1,8 +1,9 @@
+export const dynamic = 'force-static';
 import { NextRequest, NextResponse } from "next/server";
 
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api"
+  "https://api.kuepass.com/api/"
 ).replace(/\/$/, "");
 
 export async function GET(

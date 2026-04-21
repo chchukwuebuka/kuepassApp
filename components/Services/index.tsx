@@ -673,9 +673,11 @@ import styled, { keyframes } from "styled-components";
 import { Container, Text, Group } from "@mantine/core";
 import { FaCheck } from "react-icons/fa";
 import Image from "next/image";
+import AnimatedCopy from "../AnimatedCopy";
 
 const ServicesSection: React.FC = () => {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [isMobileView, setIsMobileView] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
   const serviceCards = [
@@ -702,24 +704,34 @@ const ServicesSection: React.FC = () => {
     },
   ];
 
+  // Detect mobile viewport
   useEffect(() => {
+    const checkMobile = () => {
+      setIsMobileView(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Scroll-based card switching — only on desktop
+  useEffect(() => {
+    if (isMobileView) return;
+
     const handleScroll = () => {
       if (!sectionRef.current) return;
 
       const sectionRect = sectionRef.current.getBoundingClientRect();
       const sectionTop = sectionRect.top;
 
-      // Only run calculations when the section is sticky (at or above the top of the viewport)
       if (sectionTop <= 200) {
         const sectionHeight = sectionRef.current.offsetHeight;
         const windowHeight = window.innerHeight;
         const scrolledDistance = Math.abs(sectionTop);
-
-        // The total distance we can scroll *while the element is sticky*
         const maxScrollDistance = sectionHeight - windowHeight;
 
         if (scrolledDistance >= maxScrollDistance) {
-          setCurrentCardIndex(serviceCards.length - 1); // Lock to the last card at the end
+          setCurrentCardIndex(serviceCards.length - 1);
           return;
         }
 
@@ -731,19 +743,87 @@ const ServicesSection: React.FC = () => {
           setCurrentCardIndex(clampedIndex);
         }
       } else {
-        // Reset to the first card if we scroll back up above the section
         setCurrentCardIndex(0);
       }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [currentCardIndex, serviceCards.length]);
+  }, [currentCardIndex, serviceCards.length, isMobileView]);
 
+  // ─── Mobile layout: all cards stacked, no sticky ───
+  if (isMobileView) {
+    return (
+      <MobileSectionWrapper>
+        <SectionHeader>
+          <ServiceSubtitle>Services</ServiceSubtitle>
+          <ServiceTitle>
+            <span style={{ color: "#6F6F6F" }}> Smarter Event Management</span>
+            <br />
+            Seamless Tools for Unforgettable Events.
+          </ServiceTitle>
+        </SectionHeader>
+
+        <Container size="xl" px="md">
+          {/* Service Description + CTA */}
+          <MobileIntroBlock>
+            <ServiceDescription>
+              Kuepass blends smart technology with simplicity, helping you plan
+              and manage events with ease.
+            </ServiceDescription>
+            <LearnMoreButton>Learn More</LearnMoreButton>
+          </MobileIntroBlock>
+
+          {/* All cards displayed */}
+          <MobileCardsGrid>
+            {serviceCards.map((card) => (
+              <MobileCard key={card.id}>
+                <MobileCardImageWrap>
+                  <PhoneImage
+                    src={card.image}
+                    alt={`${card.title} interface`}
+                    width={240}
+                    height={80}
+                    priority
+                  />
+                </MobileCardImageWrap>
+                <CardTitle>{card.title}</CardTitle>
+                <MobileCardDescription>{card.description}</MobileCardDescription>
+              </MobileCard>
+            ))}
+          </MobileCardsGrid>
+
+          {/* Features checklist */}
+          <MobileFeaturesBlock>
+            <FeaturesList>
+              <FeatureItem>
+                <CheckIcon color="#4CAF50">
+                  <FaCheck />
+                </CheckIcon>
+                <FeatureText>Event Hosting & Ticketing</FeatureText>
+              </FeatureItem>
+              <FeatureItem>
+                <CheckIcon color="#4CAF50">
+                  <FaCheck />
+                </CheckIcon>
+                <FeatureText>AI-Powered Event Planning</FeatureText>
+              </FeatureItem>
+              <FeatureItem>
+                <CheckIcon color="#4CAF50">
+                  <FaCheck />
+                </CheckIcon>
+                <FeatureText>Event Discovery</FeatureText>
+              </FeatureItem>
+            </FeaturesList>
+          </MobileFeaturesBlock>
+        </Container>
+      </MobileSectionWrapper>
+    );
+  }
+
+  // ─── Desktop layout: sticky scroll experience ───
   return (
-    // 1. The wrapper's height is now explicitly set to create the scroll track.
     <SectionWrapper ref={sectionRef} $cardCount={serviceCards.length}>
-      {/* The main content uses `position: sticky` */}
       <StickyContent>
         <SectionHeader>
           <ServiceSubtitle>Services</ServiceSubtitle>
@@ -773,26 +853,34 @@ const ServicesSection: React.FC = () => {
               </LeftColumn>
             </LeftColumnContainer>
             <RightColumn>
-              <ServiceDescription>
-                Kuepass blends smart technology with simplicity, helping you
-                plan and manage events with ease.
-              </ServiceDescription>
+              <AnimatedCopy>
+                <ServiceDescription>
+                  Kuepass blends smart technology with simplicity, helping you
+                  plan and manage events with ease.
+                </ServiceDescription>
+              </AnimatedCopy>
               <LearnMoreButton>Learn More</LearnMoreButton>
               <FeaturesList>
                 <FeatureItem>
-                  <CheckIcon color={currentCardIndex >= 0 ? "#4CAF50" : "#999"}>
+                  <CheckIcon
+                    color={currentCardIndex >= 0 ? "#4CAF50" : "#999"}
+                  >
                     <FaCheck />
                   </CheckIcon>
                   <FeatureText>Event Hosting & Ticketing</FeatureText>
                 </FeatureItem>
                 <FeatureItem>
-                  <CheckIcon color={currentCardIndex >= 1 ? "#4CAF50" : "#999"}>
+                  <CheckIcon
+                    color={currentCardIndex >= 1 ? "#4CAF50" : "#999"}
+                  >
                     <FaCheck />
                   </CheckIcon>
                   <FeatureText>AI-Powered Event Planning</FeatureText>
                 </FeatureItem>
                 <FeatureItem>
-                  <CheckIcon color={currentCardIndex >= 2 ? "#4CAF50" : "#999"}>
+                  <CheckIcon
+                    color={currentCardIndex >= 2 ? "#4CAF50" : "#999"}
+                  >
                     <FaCheck />
                   </CheckIcon>
                   <FeatureText>Event Discovery</FeatureText>
@@ -806,15 +894,27 @@ const ServicesSection: React.FC = () => {
   );
 };
 
-// 2. SectionWrapper now uses a clear height calculation.
-// Each card gets 100vh of scroll space.
+/* ================================
+   Styled Components
+   ================================ */
+
+const fadeInUp = keyframes`
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+const fadeInText = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+/* ─── Desktop: Sticky scroll layout ─── */
 const SectionWrapper = styled.section<{ $cardCount: number }>`
   position: relative;
   background: white;
   height: ${(props) => props.$cardCount * 100}vh;
 `;
 
-// 3. StickyContent is simplified. No more overflow property.
 const StickyContent = styled.div`
   position: sticky;
   top: 0;
@@ -826,23 +926,8 @@ const StickyContent = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-
-  @media (max-width: 768px) {
-    height: auto;
-    padding: 0.5rem 0;
-  }
-
-  @media (max-width: 480px) {
-    padding: 0.25rem 0;
-  }
 `;
 
-// ... (The rest of your styled-components remain the same)
-
-const fadeInUp = keyframes`
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
 const SectionHeader = styled.div`
   text-align: left;
   margin-bottom: 2rem;
@@ -850,47 +935,30 @@ const SectionHeader = styled.div`
 
   @media (max-width: 768px) {
     padding-left: 1rem;
+    padding-right: 1rem;
     margin-bottom: 1.5rem;
   }
 
   @media (max-width: 480px) {
-    padding-left: 0.5rem;
-    margin-bottom: 1rem;
+    padding-left: 0.75rem;
+    margin-bottom: 1.25rem;
   }
 `;
+
 const ContentWrapper = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: center;
   height: 100%;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    height: auto;
-    padding: 1rem 0;
-  }
-
-  @media (max-width: 480px) {
-    gap: 1.5rem;
-    padding: 0.5rem 0;
-  }
 `;
+
 const LeftColumnContainer = styled.div`
   display: flex;
   gap: 2rem;
   height: 100%;
   justify-content: center;
-
-  @media (max-width: 768px) {
-    height: auto;
-    gap: 1rem;
-  }
-
-  @media (max-width: 480px) {
-    gap: 0.5rem;
-  }
 `;
+
 const LeftColumn = styled.div`
   display: flex;
   width: 80%;
@@ -900,20 +968,8 @@ const LeftColumn = styled.div`
   background-color: #f4f5f7;
   border-radius: 20px;
   animation: ${fadeInUp} 0.8s ease-out;
-
-  @media (max-width: 768px) {
-    width: 95%;
-    padding: 1.5rem;
-    gap: 1rem;
-  }
-
-  @media (max-width: 480px) {
-    width: 98%;
-    padding: 1rem;
-    gap: 0.8rem;
-    border-radius: 15px;
-  }
 `;
+
 const MobileImageContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -921,32 +977,24 @@ const MobileImageContainer = styled.div`
   height: 200px;
   position: relative;
   top: 100px;
-
-  @media (max-width: 768px) {
-    height: 150px;
-    top: 50px;
-  }
-
-  @media (max-width: 480px) {
-    height: 120px;
-    top: 30px;
-  }
 `;
+
 const PhoneImage = styled(Image)`
   max-width: 100%;
   height: auto;
   border-radius: 20px;
 
   @media (max-width: 768px) {
-    max-width: 80%;
-    border-radius: 15px;
+    max-width: 75%;
+    border-radius: 14px;
   }
 
   @media (max-width: 480px) {
-    max-width: 70%;
+    max-width: 65%;
     border-radius: 12px;
   }
 `;
+
 const CardTitle = styled.h3`
   font-size: 24px;
   font-weight: 600;
@@ -962,10 +1010,7 @@ const CardTitle = styled.h3`
     font-size: 18px;
   }
 `;
-const fadeInText = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
+
 const DescriptionText = styled(Text)`
   color: #666;
   background-color: #f9fafb;
@@ -980,44 +1025,106 @@ const DescriptionText = styled(Text)`
   position: relative;
   bottom: 0px;
   height: 22vh;
-
-  @media (max-width: 768px) {
-    font-size: 18px;
-    padding: 15px;
-    line-height: 1.4;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 16px;
-    padding: 12px;
-    line-height: 1.3;
-  }
 `;
+
 const RightColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   height: 100%;
-  /* justify-content: center; */
+`;
 
-  @media (max-width: 768px) {
-    height: auto;
-    gap: 1rem;
-    padding: 0 1rem;
-  }
+/* ─── Mobile: Linear stacked layout ─── */
+const MobileSectionWrapper = styled.section`
+  background: white;
+  padding: 2.5rem 0 3rem;
+  font-family: "DM Sans", sans-serif;
+`;
+
+const MobileIntroBlock = styled.div`
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: flex-start;
 
   @media (max-width: 480px) {
-    gap: 0.8rem;
-    padding: 0 0.5rem;
+    gap: 1rem;
+    align-items: center;
   }
 `;
-const ServiceSubtitle = styled(Text)`
-  font-size: 20px;
-  color: #606060;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  margin: 0;
+
+const MobileCardsGrid = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
 `;
+
+const MobileCard = styled.div`
+  background-color: #f4f5f7;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  animation: ${fadeInUp} 0.6s ease-out both;
+
+  @media (max-width: 480px) {
+    padding: 1.25rem;
+    border-radius: 14px;
+    gap: 0.8rem;
+  }
+`;
+
+const MobileCardImageWrap = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem 0;
+`;
+
+const MobileCardDescription = styled(Text)`
+  color: #555;
+  text-align: center;
+  line-height: 1.6;
+  font-weight: 400;
+  font-size: 15px;
+  padding: 0 0.5rem;
+
+  @media (max-width: 480px) {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+`;
+
+const MobileFeaturesBlock = styled.div`
+  padding: 1.5rem;
+  background-color: #f9f9f9;
+  border-radius: 14px;
+
+  @media (max-width: 480px) {
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
+`;
+
+/* ─── Shared components ─── */
+const ServiceSubtitle = styled(Text)`
+  font-size: 18px;
+  color: #606060;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem;
+
+  @media (max-width: 480px) {
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+`;
+
 const ServiceTitle = styled(Text)`
   font-size: 40px;
   font-weight: 500;
@@ -1026,15 +1133,16 @@ const ServiceTitle = styled(Text)`
   margin: 0;
 
   @media (max-width: 768px) {
-    font-size: 28px;
+    font-size: 26px;
     line-height: 1.3;
   }
 
   @media (max-width: 480px) {
-    font-size: 24px;
-    line-height: 1.3;
+    font-size: 22px;
+    line-height: 1.35;
   }
 `;
+
 const ServiceDescription = styled(Text)`
   font-size: 24px;
   font-weight: 400;
@@ -1042,105 +1150,91 @@ const ServiceDescription = styled(Text)`
   line-height: 1.5;
 
   @media (max-width: 768px) {
-    font-size: 24px;
+    font-size: 20px;
     line-height: 1.4;
   }
 
   @media (max-width: 480px) {
-    font-size: 20px;
-    line-height: 1.3;
+    font-size: 18px;
+    line-height: 1.4;
+    text-align: center;
   }
 `;
+
 const LearnMoreButton = styled.button`
   background: #f5b645;
   color: #000;
   border: none;
   border-radius: 70px;
-  padding: 12px 104px;
+  padding: 14px 56px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: all 0.25s ease;
   align-self: flex-start;
+  font-family: "DM Sans", sans-serif;
 
   &:hover {
     transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(245, 182, 69, 0.3);
+    background-color: #f0a830;
   }
 
   @media (max-width: 768px) {
-    padding: 10px 80px;
-    font-size: 0.9rem;
+    padding: 12px 48px;
+    font-size: 0.95rem;
     align-self: center;
   }
 
   @media (max-width: 480px) {
-    padding: 8px 60px;
-    font-size: 0.8rem;
+    padding: 11px 40px;
+    font-size: 0.9rem;
     border-radius: 50px;
   }
 `;
+
 const FeaturesList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
 
-  @media (max-width: 768px) {
-    gap: 0.8rem;
-  }
-
   @media (max-width: 480px) {
-    gap: 0.6rem;
+    gap: 0.75rem;
   }
 `;
+
 const FeatureItem = styled(Group)`
   align-items: center;
   gap: 0.75rem;
 `;
+
 const CheckIcon = styled.div<{ color: string }>`
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: ${(props) => props.color};
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: scale(1);
-  &:hover {
-    transform: scale(1.1);
-  }
+  font-size: 11px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
 `;
+
 const FeatureText = styled(Text)`
   font-size: 1rem;
   color: #333;
   margin: 0;
+  font-weight: 500;
 
   @media (max-width: 768px) {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
   }
 
   @media (max-width: 480px) {
-    font-size: 0.8rem;
+    font-size: 0.875rem;
   }
 `;
-// const ProgressIndicator = styled.div`
-//   display: flex;
-//   gap: 8px;
-//   margin-top: 1rem;
-// `;
-// const ProgressDot = styled.div<{ $isActive: boolean }>`
-//   width: 12px;
-//   height: 12px;
-//   border-radius: 50%;
-//   background: ${(props) => (props.$isActive ? "#f5b645" : "#ddd")};
-//   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-//   transform: ${(props) => (props.$isActive ? "scale(1.2)" : "scale(1)")};
-//   box-shadow: ${(props) =>
-//     props.$isActive
-//       ? "0 0 0 3px rgba(245, 182, 69, 0.2)"
-//       : "0 0 0 0px rgba(245, 182, 69, 0.2)"};
-// `;
 
 export default ServicesSection;

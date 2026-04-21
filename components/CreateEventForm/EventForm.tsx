@@ -30,9 +30,9 @@ const isValidHex = (color: string): boolean => {
   return /^#[0-9A-Fa-f]{6}$/i.test(color);
 };
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api";
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.kuepass.com/api/"
+).replace(/\/$/, "");
 const DEFAULT_BANNER_URL = "/images/placeholder-banner.png";
 const FORM_STORAGE_KEY = "kuepassCreateEventFormDraft";
 
@@ -63,8 +63,8 @@ export default function CreateEventForm() {
   const [isStep3Complete, setIsStep3Complete] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const saveDraft = () => {
-    if (!isAuthenticated()) return;
+  useEffect(() => {
+    if (isLoading || !isAuthenticated()) return;
     const draftToSave = {
       formData: {
         ...formData,
@@ -75,7 +75,7 @@ export default function CreateEventForm() {
       currentStep,
     };
     localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(draftToSave));
-  };
+  }, [formData, currentStep, selectedFile, isLoading]);
 
   useEffect(() => {
     const initializeForm = async () => {
@@ -154,7 +154,7 @@ export default function CreateEventForm() {
 
   const createEventCustomization = async (data: {
     event: string;
-    banner_url: string;
+    banner_url: string[];
     font: string;
     card_color: string;
     is_active: boolean;
@@ -234,7 +234,6 @@ export default function CreateEventForm() {
   ) => {
     const { name, value } = e.target;
     setFormData((p) => ({ ...p, [name]: value }));
-    saveDraft();
   };
 
   const handleLocationChange = (value: "Virtual" | "Physical") => {
@@ -243,7 +242,6 @@ export default function CreateEventForm() {
       location: value,
       address: value === "Virtual" ? "" : p.address,
     }));
-    saveDraft();
   };
 
   const addTicket = (ticketDataFromModal: Omit<Ticket, "id">) => {
@@ -268,7 +266,6 @@ export default function CreateEventForm() {
     };
     setFormData((p) => ({ ...p, tickets: [...p.tickets, newTicket] }));
     setIsModalOpen(false);
-    saveDraft();
   };
 
   const handleFileSelect = (file: File | null) => {
@@ -284,12 +281,10 @@ export default function CreateEventForm() {
         appearance: initialFormData.appearance,
       }));
     }
-    saveDraft();
   };
 
   const handleUpdateQuestions = (questions: Question[]) => {
     setFormData((p) => ({ ...p, questions }));
-    saveDraft();
   };
 
   const handleAiAction = async (mode: "generate" | "refine" | "complete") => {
@@ -306,7 +301,7 @@ export default function CreateEventForm() {
     setIsGenerating(true);
     try {
       const response = await authenticatedRequest<{ description: string }>(
-        "https://keupass-48c2ae65f897.herokuapp.com/api/generate-description/",
+        `${API_BASE_URL}/generate-description/`,
         "POST",
         {
           title: formData.title,
@@ -316,7 +311,6 @@ export default function CreateEventForm() {
       );
       if (response && response.description) {
         setFormData((prev) => ({ ...prev, description: response.description }));
-        saveDraft();
       }
     } catch (error: any) {
       console.error("Failed to perform AI action:", error);
@@ -328,7 +322,6 @@ export default function CreateEventForm() {
 
   const handleStep3Completion = (isComplete: boolean) => {
     setIsStep3Complete(isComplete);
-    saveDraft();
   };
 
   // Auto-complete step 3 if no questions are added (questions are optional)
@@ -341,12 +334,12 @@ export default function CreateEventForm() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Questions are now optional - no need to check isStep3Complete
+    let createdEventId: string | null = null;
     try {
       setIsLoading(true);
       await withLoading(async () => {
         if (currentStep < 4) {
           setCurrentStep((p) => p + 1);
-          saveDraft();
           return;
         }
 
@@ -381,6 +374,10 @@ export default function CreateEventForm() {
         };
         const createdEvent = await createEvent(eventApiPayload);
         const eventId = createdEvent.id;
+        createdEventId = eventId;
+
+        // Clear draft immediately to avoid duplicate creations if later steps fail
+        localStorage.removeItem(FORM_STORAGE_KEY);
 
         setFormData((p) => ({
           ...p,
@@ -389,7 +386,7 @@ export default function CreateEventForm() {
 
         await createEventCustomization({
           event: eventId,
-          banner_url: finalBannerUrl,
+          banner_url: finalBannerUrl ? [finalBannerUrl] : [],
           font: "Arial",
           card_color: formData.cardColor,
           is_active: true,
@@ -430,17 +427,25 @@ export default function CreateEventForm() {
         }
 
         alert("Event created successfully!");
-        localStorage.removeItem(FORM_STORAGE_KEY);
         setFormData(initialFormData);
         setSelectedFile(null);
         setCurrentStep(1);
       });
     } catch (err: any) {
       console.error("Error creating event:", err);
-      alert(
-        err.message ||
-          "Failed to create event. Please check the form and try again."
-      );
+      if (createdEventId) {
+        alert(
+          "Event was created, but some details (like tickets or customization) failed to save. Please edit them from your dashboard."
+        );
+        setFormData(initialFormData);
+        setSelectedFile(null);
+        setCurrentStep(1);
+      } else {
+        alert(
+          err.message ||
+            "Failed to create event. Please check the form and try again."
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -449,7 +454,6 @@ export default function CreateEventForm() {
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep((p) => p - 1);
-      saveDraft();
     }
   };
 
@@ -482,7 +486,6 @@ export default function CreateEventForm() {
                 return t;
               });
               setFormData((prev) => ({ ...prev, tickets: updatedTickets }));
-              saveDraft();
             }}
             handleSendInvite={(ticketId: string) => {
               /* ... */
@@ -503,7 +506,6 @@ export default function CreateEventForm() {
             formData={formData}
             updateFormData={(u) => {
               setFormData((p) => ({ ...p, ...u }));
-              saveDraft();
             }}
             onFileSelect={handleFileSelect}
           />

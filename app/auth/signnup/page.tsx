@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import {
   TextInput,
   PasswordInput,
@@ -23,15 +23,16 @@ import {
 } from "@tabler/icons-react";
 import styles from "./styles.module.css";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signUp } from "@/app/services/api";
 import { setAuthToken, setUserData } from "@/app/services/auth";
 import { useDispatch } from "react-redux";
 import { login } from "@/store/store"; // Adjust the path as necessary
 import { useGoogleLogin } from "@react-oauth/google";
 
-const SignUp = () => {
+const SignUpContent = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const form = useForm({
     initialValues: {
       username: "",
@@ -60,10 +61,12 @@ const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [imgSrc, setImgSrc] = useState<string>("/images/avatar.png");
-  const [imgFile, setImgFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState<boolean>(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [passwordRequirements, setPasswordRequirements] = useState({
+    hasNumber: false,
+    hasUppercase: false,
+    hasLowercase: false,
+    hasSpecialChar: false,
+  });
 
   const dispatch = useDispatch();
 
@@ -73,9 +76,26 @@ const SignUp = () => {
    */
   async function handleGoogleLogin(accessToken: string) {
     try {
+      // Fetch Google profile info to get the profile picture
+      let googlePictureFromApi: string | undefined;
+      try {
+        const googleUserInfoResponse = await fetch(
+          "https://www.googleapis.com/oauth2/v3/userinfo",
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+        if (googleUserInfoResponse.ok) {
+          const googleUserInfo = await googleUserInfoResponse.json();
+          console.log("Google userinfo:", googleUserInfo);
+          googlePictureFromApi = googleUserInfo.picture || undefined;
+        }
+      } catch (googleInfoErr) {
+        console.warn("Could not fetch Google profile info:", googleInfoErr);
+      }
+
       const apiUrl = (
-        process.env.NEXT_PUBLIC_API_URL ||
-        "https://keupass-48c2ae65f897.herokuapp.com/api"
+        process.env.NEXT_PUBLIC_API_URL || "https://api.kuepass.com/api/"
       ).replace(/\/$/, "");
 
       // Use the working Google login endpoint
@@ -85,7 +105,7 @@ const SignUp = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          access_token: accessToken, // This is the key - access_token needs to be named exactly like this
+          access_token: accessToken,
         }),
       });
 
@@ -99,8 +119,9 @@ const SignUp = () => {
         }
 
         if (data.data?.user) {
-          // Prioritize Google profile picture if available
+          // Prioritize Google profile picture: first from Google API, then from backend response
           const googleProfilePicture =
+            googlePictureFromApi ||
             data.data.user.picture ||
             data.data.user.image ||
             data.data.user.profile_url ||
@@ -108,18 +129,13 @@ const SignUp = () => {
 
           console.log("Google profile picture found:", googleProfilePicture);
 
-          // Use a default image if none is provided
-          const profileImage = googleProfilePicture || "/images/avatar.png";
-
           const userData = {
-            // For username, use existing username if available, otherwise use email or Google name
             username:
               data.data.user.username ||
               data.data.user.email?.split("@")[0] ||
               "",
             email: data.data.user.email || "",
             name: data.data.user.name || data.data.user.username || "",
-            // Set profile picture
             profile_url: googleProfilePicture || undefined,
             phone_number: data.data.user.phone_number,
           };
@@ -133,7 +149,6 @@ const SignUp = () => {
               name: userData.name,
               username: userData.username,
               email: userData.email || "",
-              // Ensure profile picture is set
               profile_url: googleProfilePicture || undefined,
               phone_number: userData.phone_number,
               active: data.data.user.active,
@@ -141,8 +156,13 @@ const SignUp = () => {
           );
         }
 
-        // Redirect to profile page instead of homepage
-        router.push("/profile/profile");
+        // Redirect to profile page or the requested redirect path
+        const redirectPath = searchParams.get("redirect");
+        if (redirectPath) {
+          router.push(redirectPath);
+        } else {
+          router.push("/profile/profile");
+        }
         return data.data;
       } else {
         // Handle error
@@ -160,16 +180,16 @@ const SignUp = () => {
     }
   }
 
-  // Google login hook with redirect flow to avoid disallowed_useragent error
+  // Google login hook using implicit flow (same as sign-in page)
+  // This directly returns an access_token which we send to /google-login/
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      console.log("Google redirect onSuccess:", tokenResponse);
-      // For auth-code flow, we need to handle the code exchange on the backend
-      if (tokenResponse.code) {
-        await handleGoogleAuthCode(tokenResponse.code);
+      console.log("Google useGoogleLogin onSuccess:", tokenResponse);
+      if (tokenResponse.access_token) {
+        await handleGoogleLogin(tokenResponse.access_token);
       } else {
-        console.error("Google auth code not found in redirect response");
-        setError("Failed to get authorization code from Google.");
+        console.error("Google access_token not found in tokenResponse");
+        setError("Failed to get access token from Google.");
         setGoogleLoading(false);
       }
     },
@@ -178,122 +198,39 @@ const SignUp = () => {
       setError("Google authentication failed. Please try again.");
       setGoogleLoading(false);
     },
-    flow: "auth-code",
-    scope: "openid email profile",
   });
 
-  // Handle auth code flow for Google OAuth
-  const handleGoogleAuthCode = async (code: string) => {
-    try {
-      const apiUrl = (
-        process.env.NEXT_PUBLIC_API_URL ||
-        "https://keupass-48c2ae65f897.herokuapp.com/api"
-      ).replace(/\/$/, "");
-
-      // Exchange auth code for tokens
-      const response = await fetch(`${apiUrl}/google-auth-code/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
-      });
-
-      const data = await response.json();
-
-      if (data.success && data.access_token) {
-        await handleGoogleLogin(data.access_token);
-      } else {
-        throw new Error(data.message || "Failed to exchange auth code");
-      }
-    } catch (error) {
-      console.error("Error exchanging auth code:", error);
-      setError("Google authentication failed. Please try again.");
-      setGoogleLoading(false);
-    }
-  };
-
-  // Check for auth code in URL on component mount
+  // Check password requirements as user types
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get("code");
-    const state = urlParams.get("state");
-
-    if (code && state) {
-      setGoogleLoading(true);
-      handleGoogleAuthCode(code);
-
-      // Clean up URL
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
+    const password = form.values.password;
+    if (password) {
+      setPasswordRequirements({
+        hasNumber: /\d/.test(password),
+        hasUppercase: /[A-Z]/.test(password),
+        hasLowercase: /[a-z]/.test(password),
+        hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+      });
+    } else {
+      setPasswordRequirements({
+        hasNumber: false,
+        hasUppercase: false,
+        hasLowercase: false,
+        hasSpecialChar: false,
+      });
     }
-  }, []);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        setImgSrc(e.target.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
-    setImgFile(file);
-  };
-
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
+  }, [form.values.password]);
 
   const handleSubmit = async (values: typeof form.values) => {
     setLoading(true);
     setError(null);
 
     try {
-      let profileImageUrl = "";
-
-      // Upload profile image if selected
-      if (imgFile) {
-        setUploading(true);
-        try {
-          const formData = new FormData();
-          formData.append("file", imgFile);
-
-          const apiUrl = (
-            process.env.NEXT_PUBLIC_API_URL ||
-            "https://keupass-48c2ae65f897.herokuapp.com/api"
-          ).replace(/\/$/, "");
-
-          const imageResponse = await fetch(`${apiUrl}/upload/image`, {
-            method: "POST",
-            body: formData,
-          });
-
-          if (imageResponse.ok) {
-            const imageData = await imageResponse.json();
-            profileImageUrl = imageData.url;
-          } else {
-            console.error(
-              "Failed to upload image:",
-              await imageResponse.text()
-            );
-            // Continue with signup even if image upload fails
-          }
-        } catch (error) {
-          console.error("Error uploading image:", error);
-          // Continue with signup even if image upload fails
-        } finally {
-          setUploading(false);
-        }
-      }
-
       // Call the API service to register the user
       const response = await signUp({
         username: values.username,
         email: values.email,
         password: values.password,
         phone_number: values.number,
-        profile_url: profileImageUrl || undefined,
       });
 
       if (response.success) {
@@ -313,8 +250,6 @@ const SignUp = () => {
               ...user,
               // Use username from form input
               username: values.username,
-              // Handle profile picture with both possible field names
-              profile_url: profileImageUrl || user.profile_url,
             };
           }
         }
@@ -327,7 +262,6 @@ const SignUp = () => {
               ...response.user,
               // Use username from form input
               username: values.username,
-              profile_url: profileImageUrl,
             };
           }
         }
@@ -346,8 +280,13 @@ const SignUp = () => {
           dispatch(login(user));
         }
 
-        // Use the appropriate approach for Next.js router
-        router.push("/auth/signin?registered=true");
+        // Pass along the redirect parameter to the signin page so it isn't lost
+        const redirectPath = searchParams.get("redirect");
+        if (redirectPath) {
+          router.push(`/auth/signin?registered=true&redirect=${encodeURIComponent(redirectPath)}`);
+        } else {
+          router.push("/auth/signin?registered=true");
+        }
       } else {
         setError(
           response.message || "Failed to create account. Please try again."
@@ -365,43 +304,18 @@ const SignUp = () => {
     }
   };
 
-  const handleGoogleSignUp = async () => {
+  const handleGoogleSignUp = () => {
     setGoogleLoading(true);
     setError(null);
-
-    try {
-      // Try the library approach first
-      googleLogin();
-    } catch (error) {
-      console.error("Library approach failed, trying direct URL:", error);
-
-      // Fallback: Direct Google OAuth URL
-      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-      const redirectUri = encodeURIComponent(
-        window.location.origin + window.location.pathname
-      );
-      const scope = encodeURIComponent("openid email profile");
-
-      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
-
-      // Redirect to Google OAuth
-      window.location.href = googleAuthUrl;
-    }
+    googleLogin(); // This initiates the Google popup
   };
 
   return (
     <div className={styles.pageContainer}>
       {/* Left Column with Image - hidden on mobile */}
       <div className={styles.leftColumn}>
-        <div className={styles.overlay}></div>
-        <div className={styles.welcomeTextOverlay}>
-          <Title className={styles.welcomeTitle}>Join Our Community</Title>
-          <Text className={styles.welcomeSubtitle}>
-            Discover amazing events around you
-          </Text>
-        </div>
         <Image
-          src="/images/clubDance.png"
+          src="/images/signimage.png"
           alt="Sign up background"
           fill
           className={styles.image}
@@ -455,32 +369,6 @@ const SignUp = () => {
             />
 
             <form onSubmit={form.onSubmit(handleSubmit)}>
-              <div className={styles.profileImageUpload}>
-                <div className={styles.profileImageContainer}>
-                  <Image
-                    src={imgSrc}
-                    alt="Profile"
-                    width={80}
-                    height={80}
-                    className={styles.profileImage}
-                  />
-                  <button
-                    type="button"
-                    className={styles.uploadImageButton}
-                    onClick={triggerFileInput}
-                  >
-                    {uploading ? "Uploading..." : "Choose Photo"}
-                  </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    style={{ display: "none" }}
-                  />
-                </div>
-              </div>
-
               <TextInput
                 label="Username"
                 placeholder="Enter your username"
@@ -530,23 +418,71 @@ const SignUp = () => {
                 }}
               />
 
-              <PasswordInput
-                label="Password"
-                placeholder="Create a strong password"
-                leftSection={
-                  <IconLock size={18} className={styles.inputIcon} />
-                }
-                {...form.getInputProps("password")}
-                className={styles.input}
-                classNames={{
-                  input: styles.inputField,
-                  label: styles.inputLabel,
-                  error: styles.inputError,
-                  innerInput: styles.passwordInput,
-                  wrapper: styles.inputWrapper,
-                }}
-                description="Must be at least 8 characters"
-              />
+              <div className={styles.passwordContainer}>
+                <PasswordInput
+                  label="Password"
+                  placeholder="Create a strong password"
+                  leftSection={
+                    <IconLock size={18} className={styles.inputIcon} />
+                  }
+                  {...form.getInputProps("password")}
+                  className={styles.input}
+                  classNames={{
+                    input: styles.inputField,
+                    label: styles.inputLabel,
+                    error: styles.inputError,
+                    innerInput: styles.passwordInput,
+                    wrapper: styles.inputWrapper,
+                  }}
+                  description="Must be at least 8 characters"
+                />
+                {form.values.password && (
+                  <div className={styles.passwordRequirements}>
+                    <div
+                      className={`${styles.requirementItem} ${
+                        passwordRequirements.hasNumber
+                          ? styles.requirementMet
+                          : styles.requirementUnmet
+                      }`}
+                    >
+                      <IconCheck size={16} className={styles.requirementIcon} />
+                      <span className={styles.requirementText}>Number</span>
+                    </div>
+                    <div
+                      className={`${styles.requirementItem} ${
+                        passwordRequirements.hasUppercase
+                          ? styles.requirementMet
+                          : styles.requirementUnmet
+                      }`}
+                    >
+                      <IconCheck size={16} className={styles.requirementIcon} />
+                      <span className={styles.requirementText}>uppercase</span>
+                    </div>
+                    <div
+                      className={`${styles.requirementItem} ${
+                        passwordRequirements.hasLowercase
+                          ? styles.requirementMet
+                          : styles.requirementUnmet
+                      }`}
+                    >
+                      <IconCheck size={16} className={styles.requirementIcon} />
+                      <span className={styles.requirementText}>lowercase</span>
+                    </div>
+                    <div
+                      className={`${styles.requirementItem} ${
+                        passwordRequirements.hasSpecialChar
+                          ? styles.requirementMet
+                          : styles.requirementUnmet
+                      }`}
+                    >
+                      <IconCheck size={16} className={styles.requirementIcon} />
+                      <span className={styles.requirementText}>
+                        Special character
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <div className={styles.termsContainer}>
                 <Text size="sm" className={styles.termsText}>
@@ -574,7 +510,7 @@ const SignUp = () => {
 
             <Text className={styles.signInText}>
               Already have an account?{" "}
-              <Link href="/auth/signin" className={styles.signInLink}>
+              <Link href={searchParams.get("redirect") ? `/auth/signin?redirect=${encodeURIComponent(searchParams.get("redirect")!)}` : "/auth/signin"} className={styles.signInLink}>
                 Sign In
               </Link>
             </Text>
@@ -584,5 +520,11 @@ const SignUp = () => {
     </div>
   );
 };
+
+const SignUp = () => (
+  <Suspense fallback={null}>
+    <SignUpContent />
+  </Suspense>
+);
 
 export default SignUp;

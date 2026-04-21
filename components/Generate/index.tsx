@@ -42,9 +42,10 @@ import {
 import styles from "./styles.module.css";
 
 // API base URL configuration
-const API_BASE_URL =
+const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api";
+  "https://api.kuepass.com/api/"
+).replace(/\/+$/, "");
 
 // Interfaces for type safety
 interface MarketingPlan {
@@ -145,7 +146,7 @@ const ShareButtons = ({
   };
 
   return (
-    <Group spacing="xs" mt="md">
+    <div className={styles.shareGroup}>
       <Button
         component="a"
         href={shareLinks.twitter}
@@ -155,6 +156,7 @@ const ShareButtons = ({
         variant="light"
         color="blue"
         leftIcon={<IconBrandX size={16} />}
+        className={styles.fullWidthMobile}
       >
         Share on X
       </Button>
@@ -167,6 +169,7 @@ const ShareButtons = ({
         variant="light"
         color="indigo"
         leftIcon={<IconBrandFacebook size={16} />}
+        className={styles.fullWidthMobile}
       >
         Share on Facebook
       </Button>
@@ -177,11 +180,12 @@ const ShareButtons = ({
           variant="light"
           color="pink"
           leftIcon={<IconBrandInstagram size={16} />}
+          className={styles.fullWidthMobile}
         >
           {copied ? "Copied" : "Copy for Instagram"}
         </Button>
       </Tooltip>
-    </Group>
+    </div>
   );
 };
 
@@ -194,6 +198,8 @@ export default function YourPromotionKitComponent({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedText, setCopiedText] = useState<string | null>(null);
+  const [isAutomating, setIsAutomating] = useState(false);
+  const [automationSuccess, setAutomationSuccess] = useState(false);
 
   // Fetch event data and extract marketing plan
   useEffect(() => {
@@ -211,7 +217,7 @@ export default function YourPromotionKitComponent({
           `${API_BASE_URL}/events/${eventId}/`,
           "GET"
         );
-        setEvent(eventResponse.data || eventResponse); // adjust if your API wraps in .data
+        setEvent(eventResponse.data || eventResponse);
         // Check for marketing plan in customization
         const planFromEvent =
           eventResponse.data?.customization?.marketing_plan ||
@@ -231,7 +237,7 @@ export default function YourPromotionKitComponent({
   const handleGeneratePlan = async () => {
     if (!eventId) {
       setError(
-        "No event is selected. Please choose an event from the sidebar first."
+        "No event found. Please create an event first."
       );
       return;
     }
@@ -254,6 +260,29 @@ export default function YourPromotionKitComponent({
       );
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Automate email sequence
+  const handleAutomateEmails = async () => {
+    if (!eventId || !plan || !plan.emailSequence) return;
+    
+    setIsAutomating(true);
+    setAutomationSuccess(false);
+    
+    try {
+      await authenticatedRequest(
+        `${API_BASE_URL}/events/${eventId}/automate-emails/`,
+        "POST",
+        { emailSequence: plan.emailSequence }
+      );
+      setAutomationSuccess(true);
+      setTimeout(() => setAutomationSuccess(false), 5000); // Hide success after 5s
+    } catch (err: any) {
+      console.error("Failed to automate emails:", err);
+      setError(err.message || "Failed to plug emails into the automated drip campaign.");
+    } finally {
+      setIsAutomating(false);
     }
   };
 
@@ -345,7 +374,7 @@ export default function YourPromotionKitComponent({
               <Stack spacing="md" style={{ flex: 1 }}>
                 <Group spacing="sm">
                   <ThemeIcon
-                    size="xl"
+                    size={56}
                     radius="xl"
                     className={styles.headerIcon}
                   >
@@ -370,7 +399,6 @@ export default function YourPromotionKitComponent({
                 <Group spacing="md">
                   <Button
                     onClick={handleGeneratePlan}
-                    size="lg"
                     className={styles.generateButton}
                     leftIcon={<IconRocket size={20} />}
                   >
@@ -393,8 +421,7 @@ export default function YourPromotionKitComponent({
           >
             <Tabs
               defaultValue="social"
-              variant="pills"
-              radius="xl"
+              variant="unstyled"
               className={styles.tabs}
             >
               <Tabs.List className={styles.tabsList}>
@@ -443,8 +470,14 @@ export default function YourPromotionKitComponent({
                             p="lg"
                             radius="lg"
                           >
-                            <Group position="apart" mb="md">
-                              <Badge variant="dot" size="lg">
+                            <Group position="apart" mb="xl">
+                              <Badge 
+                                size="lg" 
+                                radius="md" 
+                                color="teal" 
+                                variant="light" 
+                                style={{ fontWeight: 700, letterSpacing: '0.02em', padding: '16px' }}
+                              >
                                 {template.theme}
                               </Badge>
                             </Group>
@@ -470,9 +503,26 @@ export default function YourPromotionKitComponent({
               {/* Email Campaigns Tab */}
               <Tabs.Panel value="email" pt="xl">
                 <Stack spacing="xl">
-                  <Title order={3} className={styles.sectionTitle}>
-                    Email Campaign Sequence
-                  </Title>
+                  <Group position="apart">
+                    <Title order={3} className={styles.sectionTitle}>
+                      Email Campaign Sequence
+                    </Title>
+                    <Button
+                      leftIcon={<IconMail size={16} />}
+                      onClick={handleAutomateEmails}
+                      loading={isAutomating}
+                      color={automationSuccess ? "teal" : "blue"}
+                    >
+                      {automationSuccess ? "Automations Active!" : "Automate Email Sequence"}
+                    </Button>
+                  </Group>
+                  
+                  {automationSuccess && (
+                    <Alert icon={<IconSparkles size={16} />} color="teal" radius="md">
+                      These emails have been saved to your event and will now be automatically sent to attendees based on their schedule (e.g. at registration, 30 days before, etc).
+                    </Alert>
+                  )}
+
                   <Grid>
                     {plan.emailSequence.map((email, index) => (
                       <Grid.Col key={index} span={12}>
@@ -480,19 +530,20 @@ export default function YourPromotionKitComponent({
                           <Group position="apart" mb="md">
                             <Group spacing="md">
                               <ThemeIcon
-                                size="lg"
-                                color="green"
+                                size={48}
+                                radius="md"
+                                color="teal"
                                 variant="light"
                               >
-                                <IconMail size={20} />
+                                <IconMail size={24} />
                               </ThemeIcon>
                               <div>
-                                <Text weight={600} size="lg">
+                                <Text weight={700} size="lg" color="dark.9">
                                   {email.name}
                                 </Text>
-                                <Group spacing="xs">
-                                  <IconClock size={14} />
-                                  <Text size="sm" color="dimmed">
+                                <Group spacing="xs" mt={4}>
+                                  <IconClock size={14} color="#6b7280" />
+                                  <Text size="sm" color="dimmed" weight={500}>
                                     {email.send_timing}
                                   </Text>
                                 </Group>
@@ -533,8 +584,8 @@ export default function YourPromotionKitComponent({
                               </Code>
                             </div>
                             <div>
-                              <Text weight={500} mb="xs">
-                                Email Body:
+                              <Text weight={600} size="sm" mb="xs" color="gray.7" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                Email Body
                               </Text>
                               <Textarea
                                 value={email.body}
@@ -559,12 +610,12 @@ export default function YourPromotionKitComponent({
                     Advertising Strategy
                   </Title>
                   <Card className={styles.platformCard} p="lg" radius="lg">
-                    <Group spacing="md" mb="md">
-                      <ThemeIcon size="lg" color="orange" variant="light">
-                        <IconCurrencyDollar size={20} />
+                    <Group spacing="md" mb="lg">
+                      <ThemeIcon size={48} radius="md" color="orange" variant="light">
+                        <IconCurrencyDollar size={24} />
                       </ThemeIcon>
                       <div>
-                        <Text weight={600}>Recommended Ad Platforms</Text>
+                        <Text weight={700} size="lg">Recommended Ad Platforms</Text>
                       </div>
                     </Group>
                     <Group spacing="sm">
@@ -592,21 +643,22 @@ export default function YourPromotionKitComponent({
                               {getPlatformIcon(item.platform)}
                               <Text weight={600}>{item.platform}</Text>
                             </Group>
-                            <Badge size="lg" color="orange" variant="light">
+                            <Badge size="lg" radius="md" color="teal" variant="filled">
                               {item.suggested_allocation_percent}%
                             </Badge>
                           </Group>
                           <Progress
                             value={item.suggested_allocation_percent}
-                            size="lg"
+                            size="md"
                             radius="xl"
-                            mb="md"
+                            color="teal"
+                            mb="xl"
                           />
-                          <div>
-                            <Text size="sm" weight={500} mb="xs">
-                              Target Audience:
+                          <div style={{ background: '#f9fafb', padding: '16px', borderRadius: '12px' }}>
+                            <Text size="xs" weight={700} mb={4} color="gray.5" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                              Target Audience
                             </Text>
-                            <Text size="sm" color="dimmed">
+                            <Text size="sm" color="dark.7" weight={500} style={{ lineHeight: 1.5 }}>
                               {item.target_audience_suggestion}
                             </Text>
                           </div>
@@ -637,9 +689,11 @@ export default function YourPromotionKitComponent({
                               Day {task.day}
                             </Badge>
                             <Badge
-                              size="sm"
+                              size="lg"
+                              radius="md"
                               color={getTaskCategoryColor(task.task_category)}
                               variant="light"
+                              style={{ fontWeight: 600 }}
                             >
                               {task.task_category}
                             </Badge>

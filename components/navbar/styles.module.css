@@ -1,5 +1,3 @@
-
-
 /* Base Navbar Styles */
 .navFlexEnhanced {
   display: flex;
@@ -18,7 +16,7 @@
 
 .navFlexEnhanced.scrolled {
   backdrop-filter: blur(20px);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1); */
 }
 
 .navFlexEnhanced.scrolled .link {
@@ -40,6 +38,15 @@
 }
 
 /* Dashboard-specific styles - black text */
+.dashboardNav {
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
+}
+
 .dashboardNav .link {
   color: #000000 !important;
 }
@@ -75,7 +82,7 @@
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 1.5rem;
 }
 
 .kuepass {
@@ -84,6 +91,28 @@
   cursor: pointer;
   flex-shrink: 0;
   color: #ffffff;
+}
+
+/* Mobile/Desktop logo switching */
+.desktopLogoOnly {
+  display: block;
+}
+
+.mobileLogoOnly {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .desktopLogoOnly {
+    display: none !important;
+  }
+
+  .mobileLogoOnly {
+    display: block !important;
+    height: 42px !important;
+    width: auto !important;
+    object-fit: contain;
+  }
 }
 
 
@@ -133,42 +162,57 @@
 }
 
 .navBTNEnhanced {
-  
   color: #ffffff !important;
   background-color: transparent !important;
-  border: 1px solid #f59e0b !important;
+  border: 1.5px solid #f59e0b !important;
   border-radius: 46px !important;
-  width: 7rem;
-  height: 2.25rem;
-  padding: 0 1rem !important;
-  font-weight: 500 !important;
-  font-size: 0.875rem !important;
+  min-width: 110px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.5rem !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
   transition: all 0.2s ease !important;
+  box-sizing: border-box;
 }
 
 .navBTNEnhanced:hover {
   background-color: rgba(245, 158, 11, 0.1) !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.2);
+}
+
+.navBTNEnhanced:active {
+  transform: scale(0.97);
 }
 
 .navBTN1Enhanced {
   background-color: #F5B645 !important;
   color: #ffffff !important;
   border-radius: 46px !important;
-  width: 8rem;
-  height: 2.25rem;
-  padding: 0 1rem !important;
-  font-weight: 500 !important;
-  font-size: 0.875rem !important;
+  min-width: 120px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.5rem !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
   transition: all 0.2s ease !important;
   border: none !important;
+  box-sizing: border-box;
 }
 
 .navBTN1Enhanced:hover {
   background-color: #F5B645 !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(2, 88, 58, 0.3);
+  box-shadow: 0 8px 24px rgba(245, 182, 69, 0.45);
+}
+
+.navBTN1Enhanced:active {
+  transform: scale(0.97);
 }
 
 .navBTN11Enhanced {
@@ -187,7 +231,11 @@
 .navBTN11Enhanced:hover {
   background-color: #023825 !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(5, 99, 72, 0.2);
+  box-shadow: 0 8px 24px rgba(2, 56, 37, 0.45);
+}
+
+.navBTN11Enhanced:active {
+  transform: scale(0.97);
 }
 
 .avatarButtonEnhanced {
@@ -299,41 +347,45 @@
 
 /* Tablet Styles (768px - 1199px) */
 @media (min-width: 768px) and (max-width: 1199px) {
+  .navContainer {
+    padding: 0 1.25rem;
+  }
+
   .navFlexEnhanced {
     padding: 0 1.5rem;
     height: 75px;
   }
-  
+
   .kuepass {
-    width: 7rem;
+    width: 6rem;
   }
-  
+
   .searchContainer {
     display: block;
     max-width: 250px;
     margin: 0 1rem;
   }
-  
+
   .navLinkEnhanced {
     display: flex;
     gap: 1rem;
   }
-  
+
   .navBTNEnhanced,
   .navBTN1Enhanced {
     width: 6.5rem;
     height: 2.25rem;
     font-size: 0.8rem;
   }
-  
+
   .avatarButtonEnhanced {
     min-width: 7rem;
   }
-  
+
   .userName {
     max-width: 80px;
   }
-  
+
   .mobileMenuButton {
     display: none;
   }
@@ -342,36 +394,36 @@
 /* Desktop Styles (1200px and up) */
 @media (min-width: 1200px) {
   .navFlexEnhanced {
-   
+
     height: 80px;
   }
-  
+
   .kuepass {
     width: 8.383125rem;
     height: 2.844375rem;
   }
-  
+
   .searchContainer {
     display: block;
     max-width: 400px;
     margin: 0 2rem;
   }
-  
+
   .searchInput {
     height: 42px;
     font-size: 16px;
   }
-  
+
   .navLinkEnhanced {
     display: flex;
     gap: 2rem;
     font-size: 1rem;
   }
-  
+
   .groupBTN {
     gap: 20px;
   }
-  
+
   .navBTNEnhanced,
   .navBTN1Enhanced,
   .navBTN11Enhanced {
@@ -379,23 +431,23 @@
     height: 2.75rem;
     font-size: 1rem;
   }
-  
+
   .avatarButtonEnhanced {
     min-width: 10.125rem;
     height: 2.75rem;
     padding: 0 1rem;
   }
-  
+
   .userAvatar {
     width: 36px;
     height: 36px;
   }
-  
+
   .userName {
     max-width: 150px;
     font-size: 1rem;
   }
-  
+
   .mobileMenuButton {
     display: none;
   }
@@ -403,84 +455,89 @@
 
 /* Mobile Styles (up to 767px) */
 @media (max-width: 767px) {
+  .navContainer {
+    padding: 0 1rem;
+  }
+
   .navFlexEnhanced {
     padding: 0 1rem;
     height: 60px;
   }
-  
+
   .kuepass {
     width: 5.5rem;
   }
-  
+
   .searchContainer {
     display: none;
   }
-  
+
   .navLinkEnhanced {
     display: none;
   }
-  
+
   .groupBTN {
     gap: 0.5rem;
   }
-  
+
   .navBTNEnhanced,
-  .navBTN1Enhanced {
-    width: 5.5rem;
-    height: 2rem;
-    font-size: 0.75rem;
-    padding: 0 0.5rem !important;
-  }
-  
+  .navBTN1Enhanced,
   .avatarButtonEnhanced {
-    min-width: 6rem;
-    height: 2rem;
-    padding: 0 0.5rem;
+    display: none !important;
   }
-  
+
   .userAvatar {
     width: 28px;
     height: 28px;
   }
-  
+
   .userName {
     display: none;
   }
-  
+
   .mobileMenuButton {
     display: flex;
+  }
+
+  /* Dashboard specific mobile styles */
+  .dashboardNavCenter {
+    display: none !important;
+  }
+
+  .dashboardNavRight {
+    display: none !important;
+  }
+
+  .dashboardUserButton {
+    padding: 0.25rem !important;
+    border-radius: 50% !important;
+  }
+
+  .dashboardUserName,
+  .dashboardChevron {
+    display: none !important;
   }
 }
 
 /* Extra Small Mobile (up to 480px) */
 @media (max-width: 480px) {
+  .navContainer {
+    padding: 0 0.75rem;
+  }
+
   .navFlexEnhanced {
     padding: 0 0.75rem;
     height: 55px;
   }
-  
+
   .kuepass {
     width: 5rem;
   }
-  
+
   .groupBTN {
     gap: 0.25rem;
   }
-  
-  .navBTNEnhanced,
-  .navBTN1Enhanced {
-    width: 4.5rem;
-    height: 1.75rem;
-    font-size: 0.7rem;
-    padding: 0 0.25rem !important;
-  }
-  
-  .avatarButtonEnhanced {
-    min-width: 5rem;
-    height: 1.75rem;
-    padding: 0 0.25rem;
-  }
-  
+
   .userAvatar {
     width: 24px;
     height: 24px;
@@ -492,24 +549,15 @@
   .navFlexEnhanced {
     height: 50px;
   }
-  
+
   .kuepass {
     width: 5rem;
-  }
-  
-  .navBTNEnhanced,
-  .navBTN1Enhanced {
-    height: 1.75rem;
-    font-size: 0.75rem;
-  }
-  
-  .avatarButtonEnhanced {
-    height: 1.75rem;
   }
 }
 
 /* High DPI Displays */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+@media (-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
   .kuepass {
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
@@ -527,12 +575,148 @@
 }
 
 .link:focus {
-  outline: 2px solid #056348;
-  outline-offset: 4px;
-  border-radius: 4px;
+  outline: none;
 }
 
 /* Smooth transitions for responsive changes */
 /* * {
   transition: width 0.3s ease, height 0.3s ease, font-size 0.3s ease, padding 0.3s ease;
 } */
+
+/* Dashboard Navbar Styles */
+.dashboardNavLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.dashboardLogoContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.dashboardLogoContainer:hover {
+  transform: scale(1.02);
+}
+
+.dashboardLogoIcon {
+  color: #000;
+  flex-shrink: 0;
+}
+
+.dashboardNavCenter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  padding: 0.35rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.dashboardNavCenter:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.dashboardNavSeparator {
+  width: 1px;
+  height: 20px;
+  background-color: rgba(0, 0, 0, 0.1);
+  margin: 0 0.25rem;
+}
+
+.dashboardViewEventButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #034230 0%, #056348 100%);
+  color: #ffffff;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(3, 66, 48, 0.25);
+}
+
+.dashboardViewEventButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(3, 66, 48, 0.35);
+  background: linear-gradient(135deg, #04523B 0%, #067c5a 100%);
+  color: #ffffff;
+}
+
+.viewEventIcon {
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.dashboardMoreButton {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: transparent;
+  border: none;
+  color: #4b5563;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+}
+
+.dashboardMoreButton:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: #111827;
+}
+
+.dashboardNavRight {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.dashboardUserButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  padding: 0.35rem 0.75rem 0.35rem 0.35rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.dashboardUserButton:hover {
+  background-color: #f9fafb;
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+.dashboardUserAvatar {
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dashboardUserName {
+  color: #111827;
+  font-size: 0.875rem;
+  font-weight: 600;
+  max-width: 120px;
+}

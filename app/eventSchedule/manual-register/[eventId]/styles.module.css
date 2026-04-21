@@ -203,6 +203,64 @@
   padding-left: 60px !important;
 }
 
+/* Phone Input Wrapper */
+.phoneInputWrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Hide country code prefix display in the input field */
+.phoneContainer {
+  position: relative;
+}
+
+.phoneContainer input[type="tel"] {
+  padding-left: 60px !important;
+}
+
+/* Hide the dial code prefix that react-phone-input-2 displays */
+.phoneContainer .flag-dropdown {
+  position: relative !important;
+}
+
+/* Hide dial code prefix text - react-phone-input-2 shows it after the flag */
+.phoneContainer .selected-flag .dial-code {
+  display: none !important;
+  width: 0 !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
+
+/* Hide any text element that shows dial code after the flag */
+.phoneContainer .selected-flag > *:not(.flag):not(.arrow) {
+  display: none !important;
+}
+
+/* Ensure flag button still works but hide dial code */
+.phoneContainer .flag-dropdown .selected-flag {
+  width: 50px !important;
+  min-width: 50px !important;
+  max-width: 50px !important;
+  border-right: 1px solid #d1d5db !important;
+  padding-right: 0 !important;
+  padding-left: 8px !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+/* Hide any country code prefix that appears in the input field itself */
+.phoneContainer .flag-dropdown + input::before,
+.phoneContainer input::before {
+  display: none !important;
+  content: none !important;
+}
+
 .phoneInput:focus {
   outline: none !important;
   border-color: #059669 !important;
@@ -574,3 +632,4 @@
 .ticketCard:nth-child(2) { animation-delay: 0.2s; }
 .ticketCard:nth-child(3) { animation-delay: 0.3s; }
 .ticketCard:nth-child(4) { animation-delay: 0.4s; }
+

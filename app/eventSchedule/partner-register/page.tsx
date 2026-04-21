@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+
+export const dynamic = 'force-dynamic';
 import styles from "./styles.module.css";
 import QRCodePopup from "@/components/QRCodePopup";
 import {
@@ -100,10 +102,10 @@ interface AttendeeRequestPayload {
 
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://keupass-48c2ae65f897.herokuapp.com/api"
+  "https://api.kuepass.com/api/"
 ).replace(/\/$/, "");
 
-export default function PartnerRegisterEvent() {
+function PartnerRegisterEventContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const eventId = searchParams.get("eventId");
@@ -949,5 +951,20 @@ export default function PartnerRegisterEvent() {
         eventId={event?.id || undefined}
       />
     </div>
+  );
+}
+
+export default function PartnerRegisterEvent() {
+  return (
+    <Suspense
+      fallback={
+        <Center style={{ height: "80vh", flexDirection: "column" }}>
+          <Loader size="lg" color="#025a3a" />
+          <Text mt="md">Loading...</Text>
+        </Center>
+      }
+    >
+      <PartnerRegisterEventContent />
+    </Suspense>
   );
 }
