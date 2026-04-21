@@ -368,7 +368,7 @@ const ViewMoreButton = styled.button`
   transition: color 0.2s ease;
 
   &:hover {
-    color: #ff6b35;
+    color: #F5B645;
   }
 `;
 

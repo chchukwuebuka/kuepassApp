@@ -83,6 +83,7 @@ import "./globals.css";
 import styles from "./page.module.css";
 import GlobalLoading from "@/components/loader/globalLoading";
 import { AnalyticsProvider } from "@/components/GoogleAnalytics/AnalyticsProvider";
+import CookieConsent from "@/components/CookieConsent";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -150,6 +151,7 @@ export default function RootLayout({
             <main className={styles.mainContent}>{children}</main>
           </ErrorBoundary>
         </ReduxProvider>
+        <CookieConsent />
       </body>
     </html>
   );
