@@ -1,3 +1,4 @@
+export const dynamic = 'force-static';
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { NextAuthOptions } from "next-auth";
