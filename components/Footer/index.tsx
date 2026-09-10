@@ -55,25 +55,25 @@ const CustomFooter: React.FC = () => {
               <ColumnTitle>Connect</ColumnTitle>
               <HeaderLine />
               <SocialOptions>
-                <SocialOption>
+                <SocialOption href="#" target="_blank" rel="noopener noreferrer">
                   <SocialIconWrapper>
                     <Image src="/images/insta.png" alt="Instagram" width={20} height={20} />
                   </SocialIconWrapper>
                   <SocialText>Instagram</SocialText>
                 </SocialOption>
-                <SocialOption>
+                <SocialOption href="https://www.tiktok.com/@kuepass?_r=1&_t=ZS-95h1dQbhZMf" target="_blank" rel="noopener noreferrer">
                   <SocialIconWrapper>
                     <Image src="/images/tiktok.png" alt="TikTok" width={20} height={20} />
                   </SocialIconWrapper>
                   <SocialText>TikTok</SocialText>
                 </SocialOption>
-                <SocialOption>
+                <SocialOption href="https://www.linkedin.com/in/kuepass-event-ticketing-and-access-management-8547533bb?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app" target="_blank" rel="noopener noreferrer">
                   <SocialIconWrapper>
                     <Image src="/images/lindin.png" alt="LinkedIn" width={20} height={20} />
                   </SocialIconWrapper>
                   <SocialText>LinkedIn</SocialText>
                 </SocialOption>
-                <SocialOption>
+                <SocialOption href="#" target="_blank" rel="noopener noreferrer">
                   <SocialIconWrapper>
                     <Image src="/images/youtube.png" alt="YouTube" width={20} height={20} />
                   </SocialIconWrapper>
@@ -264,11 +264,12 @@ const SocialOptions = styled.div`
   gap: 1rem;
 `;
 
-const SocialOption = styled.div`
+const SocialOption = styled.a`
   display: flex;
   align-items: center;
   gap: 0.8rem;
   cursor: pointer;
+  text-decoration: none;
   
   &:hover span {
     color: #10b981;
